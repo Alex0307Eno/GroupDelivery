@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "探索熱門湊單";
+}
+
+<div id="app" class="container py-4">
+
+    <!-- 頂部區塊 -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="fw-bold display-6">探索熱門湊單</h1>
+            <p class="text-muted fs-6">加入附近的團購，一起省運費、吃得更爽！</p>
+        </div>
+
+        <div class="col-md-6 text-md-end">
+            <div class="input-group shadow-sm search-box">
+                <input type="text"
+                       class="form-control border-0"
+                       placeholder="搜尋店家或餐點..."
+                       v-model="searchQuery">
+                <button class="btn btn-premium">搜尋</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-muted mt-2">正在為你尋找最划算的湊單...</p>
+    </div>
+
+    <!-- 團購列表 -->
+    <div v-else class="row g-4">
+
+        <div v-for="group in filteredGroups"
+             :key="group.groupOrderId"
+             class="col-md-4">
+
+            <div class="premium-card h-100 overflow-hidden">
+
+                <!-- 圖片 -->
+                <div class="card-img-top premium-image"
+                     :style="{ backgroundImage: 'url(/img/food-sample.jpg)' }">
+                </div>
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="store-badge">{{ group.store.storeName }}</span>
+
+                        <span :class="['badge status-badge',
+                                       group.status === 'Active' ? 'bg-success' : 'bg-secondary']">
+                            {{ group.status === 'Active' ? '湊單中' : '已結束' }}
+                        </span>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">
+                        {{ group.remark || '美味午餐團' }}
+                    </h5>
+
+                    <p class="text-muted small">
+                        <i class="bi bi-clock"></i>
+                        截止：{{ formatDate(group.deadline) }}
+                    </p>
+
+                    <!-- 進度條 -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small">
+                            <span>已湊 ${{ group.currentAmount }}</span>
+                            <span>目標 ${{ group.targetAmount }}</span>
+                        </div>
+
+                        <div class="progress progress-premium">
+                            <div class="progress-bar progress-bar-premium"
+                                 :style="{ width: calculatePercent(group) + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <a :href="'/Home/GroupDetail/' + group.groupOrderId"
+                       class="btn btn-premium w-100 mt-2">
+                        立即參加
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 無資料 -->
+        <div v-if="filteredGroups.length === 0"
+             class="col-12 text-center text-muted py-5">
+
+            <p class="fs-5">目前沒有符合條件的團購。</p>
+        </div>
+    </div>
+</div>
+
+<!-- Vue / Axios -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                groups: [],
+                loading: true,
+                searchQuery: ''
+            };
+        },
+
+        computed: {
+            filteredGroups() {
+                if (!this.searchQuery) return this.groups;
+
+                const k = this.searchQuery.toLowerCase();
+                return this.groups.filter(g =>
+                    g.store.storeName.toLowerCase().includes(k)
+                    || (g.remark && g.remark.toLowerCase().includes(k))
+                );
+            }
+        },
+
+        methods: {
+            fetchGroups() {
+                this.loading = true;
+
+                axios.get('/api/groups')
+                    .then(res => {
+                        this.groups = res.data;
+                        this.loading = false;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        this.loading = false;
+                    });
+            },
+
+            formatDate(str) {
+                return new Date(str).toLocaleTimeString('zh-TW', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            },
+
+            calculatePercent(g) {
+                return Math.min(
+                    Math.round((g.currentAmount / g.targetAmount) * 100),
+                    100
+                );
+            }
+        },
+
+        mounted() {
+            this.fetchGroups();
+        }
+    }).mount('#app');
+</script>

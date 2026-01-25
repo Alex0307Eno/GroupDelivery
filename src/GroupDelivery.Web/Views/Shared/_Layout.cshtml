@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - 外送湊單平台</title>
+    
+    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 (用於佈局輔助) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">🚀 外送湊單平台</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+
+    <!-- 首頁 / 探索湊單 -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Home/Index">探索店家</a>
+    </li>
+
+    <!-- 團購詳情（這個是範例 ID，進入後你自己換真正的 ID） -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Home/GroupDetail/1">團購詳情</a>
+    </li>
+
+    <!-- 店家開團頁 -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Home/CreateGroup">店家開團</a>
+    </li>
+
+    <!-- 我的訂單（目前沒有 View，先放 placeholder） -->
+    <li class="nav-item">
+        <a class="nav-link" href="#">我的訂單</a>
+    </li>
+
+</ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="container body-content">
+        @RenderBody()
+        <hr class="mt-5" />
+        <footer class="text-center text-muted pb-4">
+            <p>&copy; @DateTime.Now.Year - 外送湊單平台 (Alex Project)</p>
+        </footer>
+    </div>
+
+    <!-- Vue 3 & Axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "店家開團";
+}
+
+<div id="app" class="container py-4">
+
+    <div class="premium-card p-4 mx-auto" style="max-width: 720px;">
+        <h2 class="fw-bold mb-3 text-center">店家開團</h2>
+        <p class="text-muted text-center mb-4">設定你的湊單條件，開始接單賺起來！</p>
+
+        <!-- 店家資訊 -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">店家名稱</label>
+            <select class="form-select shadow-sm"
+                    v-model="form.storeId">
+                <option value="">請選擇店家</option>
+                <option v-for="s in stores" :value="s.storeId">
+                    {{ s.storeName }}
+                </option>
+            </select>
+        </div>
+
+        <!-- 目標金額 -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">湊單目標金額</label>
+            <div class="input-group shadow-sm">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" v-model="form.targetAmount" placeholder="例如：800">
+            </div>
+        </div>
+
+        <!-- 截止時間 -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">截止時間</label>
+            <input type="datetime-local" class="form-control shadow-sm"
+                   v-model="form.deadline">
+        </div>
+
+        <!-- 外送距離 -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">外送距離（公里）</label>
+            <input type="number" class="form-control shadow-sm"
+                   v-model="form.deliveryRange" placeholder="例如：3 公里">
+        </div>
+
+        <!-- 備註 -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">備註（可選）</label>
+            <textarea class="form-control shadow-sm"
+                      rows="3"
+                      v-model="form.remark"
+                      placeholder="例如：飲料團、晚餐團、主打王品便當..."></textarea>
+        </div>
+
+        <!-- 推薦到熱門湊單 -->
+        <div class="form-check form-switch mb-4">
+            <input class="form-check-input" type="checkbox" v-model="form.isFeatured">
+            <label class="form-check-label fw-bold">加入熱門湊單列表</label>
+        </div>
+
+        <button class="btn btn-premium w-100 py-3"
+                :disabled="submitting"
+                @@click ="submitForm">
+            {{ submitting ? '開團中...' : '確定開團' }}
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    stores: [],
+                    submitting: false,
+                    form: {
+                        storeId: "",
+                        targetAmount: "",
+                        deadline: "",
+                        deliveryRange: "",
+                        remark: "",
+                        isFeatured: false
+                    }
+                }
+            },
+
+            methods: {
+                fetchStores() {
+                    // 模擬 API
+                    setTimeout(() => {
+                        this.stores = [
+                            { storeId: 1, storeName: "麥當勞 台北店" },
+                            { storeId: 2, storeName: "迷克夏 飲料店" },
+                            { storeId: 3, storeName: "梁社漢排骨" }
+                        ];
+                    }, 300);
+                },
+
+                submitForm() {
+                    if (!this.form.storeId || !this.form.targetAmount || !this.form.deadline) {
+                        alert("請填寫必要欄位！");
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    axios.post('/api/groups/create', this.form)
+                        .then(() => {
+                            alert("開團成功！");
+                            window.location.href = "/";
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert("開團失敗！");
+                        })
+                        .finally(() => {
+                            this.submitting = false;
+                        });
+                }
+            },
+
+            mounted() {
+                this.fetchStores();
+            }
+        }).mount('#app');
+    </script>
+}
