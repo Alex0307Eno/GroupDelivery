@@ -1,154 +1,205 @@
 @{
-    ViewData["Title"] = "參加湊單";
+    ViewData["Title"] = "揪IN｜差你一個，立刻開鍋";
 }
 
-<div id="app">
-    <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
+<style>
+    .danger-wrap {
+        max-width: 680px;
+        margin: 0 auto;
+    }
 
-    <div v-else-if="group" class="row">
-        <!-- 左側：店家資訊與商品列表 -->
-        <div class="col-lg-8">
-            <div class="premium-card p-4 mb-4">
-                <div class="d-flex align-items-center mb-3">
-                    <h2 class="fw-bold mb-0">{{ group.Store.StoreName }}</h2>
-                    <span class="ms-3 store-badge">{{ group.Store.Phone }}</span>
-                </div>
-                <p class="text-muted"><i class="bi bi-geo-alt"></i> {{ group.Store.Address }}</p>
-                <hr />
-                <h5 class="fw-bold mb-3">商品菜單</h5>
-                <div class="list-group list-group-flush">
-                    <div v-for="product in products" :key="product.ProductId"
-                         class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-0 py-3">
-                        <div>
-                            <h6 class="mb-0 fw-bold">{{ product.ProductName }}</h6>
-                            <small class="text-muted">${{ product.Price }}</small>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <button class="btn btn-sm btn-outline-secondary rounded-circle" @@click="updateCart(product, -1)">-</button>
-                            <span class="mx-3 fw-bold">{{ getCartQty(product.ProductId) }}</span>
-                            <button class="btn btn-sm btn-outline-primary rounded-circle" @@click="updateCart(product, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
+    .danger-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+        .danger-title span {
+            color: #dc2626;
+        }
+
+    .countdown {
+        font-size: 2.6rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+    }
+
+        .countdown.warn {
+            color: #ea580c;
+        }
+
+        .countdown.danger {
+            color: #dc2626;
+            animation: shake 0.25s infinite alternate;
+        }
+
+    @@keyframes shake {
+        from
+
+    {
+        transform: translateX(-2px);
+    }
+
+    to {
+        transform: translateX(2px);
+    }
+
+    }
+
+    .progress-box {
+        background: #f9fafb;
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 26px rgba(0,0,0,.08);
+    }
+
+    .big-progress {
+        height: 16px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+
+    .big-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #22c55e, #16a34a);
+        transition: width .4s ease-out;
+    }
+
+    .action-btn {
+        font-size: 1.2rem;
+        font-weight: 800;
+        padding: 1rem 1.5rem;
+        border-radius: 999px;
+        box-shadow: 0 16px 36px rgba(220,38,38,.45);
+        animation: pulse 1.6s infinite;
+    }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.04);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+    }
+
+    .guilt-text {
+        font-size: .9rem;
+        color: #6b7280;
+        margin-top: .5rem;
+    }
+</style>
+
+<div id="app" class="container py-5">
+
+    <div class="danger-wrap text-center">
+
+        <!-- ① 主標 -->
+        <h1 class="danger-title mb-3">
+            差你一個，<span>立刻開鍋</span>
+        </h1>
+
+        <p class="text-muted mb-4">
+            你不進來，這團就不動
+        </p>
+
+        <!-- ② 倒數 -->
+        <div class="mb-4">
+            <div class="text-muted small mb-1">
+                剩餘時間
+            </div>
+            <div class="countdown"
+                 :class="countdownClass">
+                {{ remainText }}
             </div>
         </div>
 
-        <!-- 右側：湊單進度與購物車 -->
-        <div class="col-lg-4">
-            <div class="premium-card p-4 sticky-top" style="top: 100px;">
-                <h5 class="fw-bold mb-3">湊單進度</h5>
-                <div class="mb-4">
-                    <div class="progress progress-premium mb-2">
-                        <div class="progress-bar progress-bar-premium" :style="{ width: progressPercent + '%' }"></div>
-                    </div>
-                    <div class="d-flex justify-content-between small">
-                        <span>目前 ${{ group.CurrentAmount }}</span>
-                        <span>目標 ${{ group.TargetAmount }}</span>
-                    </div>
-                </div>
+        <!-- ③ 進度壓力 -->
+        <div class="progress-box mb-4">
+            <div class="mb-2 fw-bold">
+                已有 {{ currentPeople }} / {{ targetPeople }} 人
+            </div>
 
-                <h5 class="fw-bold mb-3">我的點餐</h5>
-                <div v-if="cart.length === 0" class="text-center py-3 text-muted">
-                    <small>尚未選擇商品</small>
-                </div>
-                <div v-else>
-                    <div v-for="item in cart" :key="item.ProductId" class="d-flex justify-content-between mb-2 small">
-                        <span>{{ item.ProductName }} x {{ item.Quantity }}</span>
-                        <span>${{ item.Price * item.Quantity }}</span>
-                    </div>
-                    <hr />
-                    <div class="d-flex justify-content-between fw-bold mb-4">
-                        <span>小計</span>
-                        <span class="text-primary">${{ cartTotal }}</span>
-                    </div>
-                    <button class="btn btn-premium w-100 py-3" @@click="submitOrder" :disabled="submitting">
-                        {{ submitting ? '處理中...' : '確認參加湊單' }}
-                    </button>
+            <div class="big-progress mb-2">
+                <div class="big-progress-bar"
+                     :style="{ width: percent + '%' }">
                 </div>
             </div>
+
+            <div class="text-danger fw-bold">
+                就差你一個
+            </div>
+        </div>
+
+        <!-- ④ 唯一行動 -->
+        <button class="btn btn-danger action-btn w-100"
+                @@click ="joinNow">
+            我來補最後一格
+        </button>
+
+        <div class="guilt-text">
+            點了不一定送，<br />
+            <strong>但你不點，一定不送</strong>
         </div>
     </div>
+
 </div>
+
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+<script>
+    const { createApp } = Vue;
 
-    <script>
-        const { createApp } = Vue;
-
-        createApp({
-            data() {
-                return {
-                    groupId: @ViewData["GroupId"],
-                    group: null,
-                    products: [],
-                    cart: [],
-                    loading: true,
-                    submitting: false
-                };
+    createApp({
+        data() {
+            return {
+                deadline: new Date(Date.now() + 8 * 60 * 1000), // demo：8 分鐘
+                now: new Date(),
+                currentPeople: 4,
+                targetPeople: 5
+            };
+        },
+        computed: {
+            remainSeconds() {
+                const diff = this.deadline - this.now;
+                return Math.max(Math.floor(diff / 1000), 0);
             },
-            computed: {
-                cartTotal() {
-                    return this.cart.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-                },
-                progressPercent() {
-                    if (!this.group) return 0;
-                    return Math.min(Math.round((this.group.CurrentAmount / this.group.TargetAmount) * 100), 100);
-                }
+            remainText() {
+                const m = Math.floor(this.remainSeconds / 60);
+                const s = this.remainSeconds % 60;
+                return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
             },
-            methods: {
-                fetchData() {
-                    this.loading = true;
-                    // 模擬 API 呼叫
-                    setTimeout(() => {
-                        this.group = {
-                            GroupOrderId: this.groupId,
-                            Store: {
-                                StoreName: '麥當勞 台北店',
-                                Phone: '02-2345-6789',
-                                Address: '台北市信義區忠孝東路五段'
-                            },
-                            TargetAmount: 1000,
-                            CurrentAmount: 650
-                        };
-                        this.products = [
-                            { ProductId: 101, ProductName: '大麥克套餐', Price: 160 },
-                            { ProductId: 102, ProductName: '勁辣雞腿堡套餐', Price: 155 },
-                            { ProductId: 103, ProductName: '六塊麥克雞塊', Price: 65 },
-                            { ProductId: 104, ProductName: '中杯可樂', Price: 35 }
-                        ];
-                        this.loading = false;
-                    }, 600);
-                },
-                updateCart(product, delta) {
-                    const item = this.cart.find(i => i.ProductId === product.ProductId);
-                    if (item) {
-                        item.Quantity += delta;
-                        if (item.Quantity <= 0) {
-                            this.cart = this.cart.filter(i => i.ProductId !== product.ProductId);
-                        }
-                    } else if (delta > 0) {
-                        this.cart.push({ ...product, Quantity: 1 });
-                    }
-                },
-                getCartQty(productId) {
-                    const item = this.cart.find(i => i.ProductId === productId);
-                    return item ? item.Quantity : 0;
-                },
-                submitOrder() {
-                    this.submitting = true;
-                    // 模擬提交
-                    setTimeout(() => {
-                        alert('成功加入湊單！目前總金額已更新。');
-                        window.location.href = '/';
-                    }, 1500);
-                }
+            percent() {
+                return Math.min(
+                    Math.round(this.currentPeople * 100 / this.targetPeople),
+                    100
+                );
             },
-            mounted() {
-                this.fetchData();
+            countdownClass() {
+                if (this.remainSeconds <= 300) return 'danger';
+                if (this.remainSeconds <= 900) return 'warn';
+                return '';
             }
-        }).mount('#app');
-    </script>
-
+        },
+        methods: {
+            joinNow() {
+                alert('你已經 IN 了，去拉下一個人');
+                // 這裡之後接 API 下單
+            }
+        },
+        mounted() {
+            setInterval(() => {
+                this.now = new Date();
+            }, 1000);
+        }
+    }).mount('#app');
+</script>

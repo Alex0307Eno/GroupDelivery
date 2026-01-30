@@ -1,68 +1,178 @@
 ﻿@{
-    ViewData["Title"] = "店家開團";
+    ViewData["Title"] = "揪IN｜商家開團";
 }
 
-<div id="app" class="container py-4">
+<style>
+    .create-wrap {
+        max-width: 760px;
+        margin: 0 auto;
+    }
 
-    <div class="premium-card p-4 mx-auto" style="max-width: 720px;">
-        <h2 class="fw-bold mb-3 text-center">店家開團</h2>
-        <p class="text-muted text-center mb-4">設定你的湊單條件，開始接單賺起來！</p>
+    .hero-box {
+        background: linear-gradient(135deg, #111827, #1f2937);
+        color: #fff;
+        border-radius: 1.4rem;
+        padding: 2rem 2.2rem;
+        box-shadow: 0 24px 48px rgba(0,0,0,.35);
+        margin-bottom: 2rem;
+    }
 
-        <!-- 店家資訊 -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">店家名稱</label>
-            <select class="form-select shadow-sm"
-                    v-model="form.storeId">
-                <option value="">請選擇店家</option>
-                <option v-for="s in stores" :value="s.storeId">
-                    {{ s.storeName }}
-                </option>
-            </select>
-        </div>
+    .hero-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
 
-        <!-- 目標金額 -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">湊單目標金額</label>
-            <div class="input-group shadow-sm">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" v-model="form.targetAmount" placeholder="例如：800">
+    .hero-sub {
+        color: #d1d5db;
+        margin-top: .6rem;
+        font-size: .95rem;
+    }
+
+    .card-box {
+        background: #ffffff;
+        border-radius: 1.4rem;
+        padding: 2rem 2.2rem;
+        box-shadow: 0 20px 40px rgba(15,23,42,.12);
+    }
+
+    .form-label {
+        font-weight: 700;
+        margin-bottom: .4rem;
+    }
+
+    .form-hint {
+        font-size: .85rem;
+        color: #6b7280;
+        margin-bottom: .6rem;
+    }
+
+    .divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 1.8rem 0;
+    }
+
+    .submit-btn {
+        font-size: 1.1rem;
+        font-weight: 800;
+        padding: 1rem;
+        border-radius: 999px;
+        box-shadow: 0 18px 36px rgba(37,99,235,.45);
+    }
+
+    .safe-box {
+        background: #f9fafb;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        font-size: .9rem;
+        color: #374151;
+        margin-top: 1.5rem;
+    }
+
+        .safe-box strong {
+            color: #111827;
+        }
+</style>
+
+<div id="app" class="container py-5">
+
+    <div class="create-wrap">
+
+        <!-- HERO -->
+        <div class="hero-box">
+            <div class="hero-title">
+                開一團，<br />
+                只送有把握的訂單
+            </div>
+            <div class="hero-sub">
+                人湊齊才出單，沒達標不送，成本你自己掌控
             </div>
         </div>
 
-        <!-- 截止時間 -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">截止時間</label>
-            <input type="datetime-local" class="form-control shadow-sm"
-                   v-model="form.deadline">
-        </div>
+        <!-- FORM -->
+        <div class="card-box">
 
-        <!-- 外送距離 -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">外送距離（公里）</label>
-            <input type="number" class="form-control shadow-sm"
-                   v-model="form.deliveryRange" placeholder="例如：3 公里">
-        </div>
+            <!-- 店家 -->
+            <div class="mb-4">
+                <label class="form-label">店家</label>
+                <input type="text"
+                       class="form-control shadow-sm"
+                       :value="storeName"
+                       disabled>
+                <div class="form-hint">
+                    已登入商家帳號，店家自動帶入
+                </div>
+            </div>
 
-        <!-- 備註 -->
-        <div class="mb-4">
-            <label class="form-label fw-bold">備註（可選）</label>
-            <textarea class="form-control shadow-sm"
-                      rows="3"
-                      v-model="form.remark"
-                      placeholder="例如：飲料團、晚餐團、主打王品便當..."></textarea>
-        </div>
+            <div class="divider"></div>
 
-        <!-- 推薦到熱門湊單 -->
-        <div class="form-check form-switch mb-4">
-            <input class="form-check-input" type="checkbox" v-model="form.isFeatured">
-            <label class="form-check-label fw-bold">加入熱門湊單列表</label>
-        </div>
+            <!-- 目標金額 -->
+            <div class="mb-4">
+                <label class="form-label">成團金額</label>
+                <div class="form-hint">
+                    達到這個金額才會出單，沒達標不會送
+                </div>
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text">$</span>
+                    <input type="number"
+                           class="form-control"
+                           v-model="form.targetAmount"
+                           placeholder="例如：800">
+                </div>
+            </div>
 
-        <button class="btn btn-premium w-100 py-3"
-                :disabled="submitting"
-                @@click ="submitForm">
-            {{ submitting ? '開團中...' : '確定開團' }}
-        </button>
+            <!-- 截止時間 -->
+            <div class="mb-4">
+                <label class="form-label">截止時間</label>
+                <div class="form-hint">
+                    建議設定 30～90 分鐘，轉換率最好
+                </div>
+                <input type="datetime-local"
+                       class="form-control shadow-sm"
+                       v-model="form.deadline">
+            </div>
+
+            <!-- 外送距離 -->
+            <div class="mb-4">
+                <label class="form-label">外送距離上限（公里）</label>
+                <div class="form-hint">
+                    只會推播給這個距離內的使用者
+                </div>
+                <input type="number"
+                       class="form-control shadow-sm"
+                       v-model="form.deliveryRange"
+                       placeholder="例如：3">
+            </div>
+
+            <!-- 備註 -->
+            <div class="mb-4">
+                <label class="form-label">團購說明（選填）</label>
+                <div class="form-hint">
+                    例如：午餐團、飲料團、只接便當
+                </div>
+                <textarea class="form-control shadow-sm"
+                          rows="3"
+                          v-model="form.remark"></textarea>
+            </div>
+
+            <!-- CTA -->
+            <button class="btn btn-primary w-100 submit-btn"
+                    :disabled="submitting"
+                    @@click="submitForm">
+                {{ submitting ? '建立中...' : '建立湊單團' }}
+            </button>
+
+            <!-- 安心說明 -->
+            <div class="safe-box">
+                <strong>你只需要做一件事：</strong><br />
+                設好條件，等人湊齊。<br />
+                <br />
+                沒達標：
+                <strong>不出單、不外送、不產生成本。</strong>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -73,56 +183,37 @@
         createApp({
             data() {
                 return {
-                    stores: [],
+                    storeName: "梁社漢排骨",
                     submitting: false,
                     form: {
-                        storeId: "",
                         targetAmount: "",
                         deadline: "",
-                        deliveryRange: "",
-                        remark: "",
-                        isFeatured: false
+                        deliveryRange: 3,
+                        remark: ""
                     }
                 }
             },
-
             methods: {
-                fetchStores() {
-                    // 模擬 API
-                    setTimeout(() => {
-                        this.stores = [
-                            { storeId: 1, storeName: "麥當勞 台北店" },
-                            { storeId: 2, storeName: "迷克夏 飲料店" },
-                            { storeId: 3, storeName: "梁社漢排骨" }
-                        ];
-                    }, 300);
-                },
-
                 submitForm() {
-                    if (!this.form.storeId || !this.form.targetAmount || !this.form.deadline) {
-                        alert("請填寫必要欄位！");
+                    if (!this.form.targetAmount || !this.form.deadline) {
+                        alert("請填寫成團金額與截止時間");
                         return;
                     }
 
                     this.submitting = true;
 
-                    axios.post('/api/groups/create', this.form)
+                    axios.post('/api/merchant/groups', this.form)
                         .then(() => {
-                            alert("開團成功！");
-                            window.location.href = "/";
+                            alert("開團成功");
+                            window.location.href = "/Merchant/Dashboard";
                         })
-                        .catch(err => {
-                            console.error(err);
-                            alert("開團失敗！");
+                        .catch(() => {
+                            alert("建立失敗，請稍後再試");
                         })
                         .finally(() => {
                             this.submitting = false;
                         });
                 }
-            },
-
-            mounted() {
-                this.fetchStores();
             }
         }).mount('#app');
     </script>

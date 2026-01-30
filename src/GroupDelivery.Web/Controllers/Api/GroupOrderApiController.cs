@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using GroupDelivery.Application.Services;
-using GroupDelivery.Domain.Entities;
+using GroupDelivery.Domain;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers.Api

@@ -9,6 +9,15 @@ namespace GroupDelivery.Web.Controllers
         {
             return View();
         }
+        //附近商家
+        public IActionResult NearbyStores()
+        {
+            return View();
+        }
+        public IActionResult StoreGroups()
+        {
+            return View();
+        }
 
         // 團購詳情頁面
         public IActionResult GroupDetail(int id)

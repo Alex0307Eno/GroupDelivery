@@ -2,48 +2,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using GroupDelivery.Domain.Entities;
+using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
+using GroupDelivery.Application.Abstractions;
 
-// 此類別為 GroupOrder 的資料存取物件
-// 負責讀取與寫入資料庫中的開團資訊
-public class GroupOrderRepository
+namespace GroupDelivery.Infrastructure.Repositories
 {
-    private readonly GroupDeliveryDbContext _db;
-
-    public GroupOrderRepository(GroupDeliveryDbContext db)
+    // 此類別為 GroupOrder 的資料存取物件
+    // 負責讀取與寫入資料庫中的開團資訊
+    public class GroupOrderRepository:IGroupOrderRepository
     {
-        _db = db;
-    }
+        private readonly GroupDeliveryDbContext _db;
 
-    // 依照主鍵取得單筆開團資料
-    public async Task<GroupOrder> GetByIdAsync(int id)
-    {
-        return await _db.GroupOrders
-            .Include(g => g.Store)
-            .FirstOrDefaultAsync(g => g.GroupOrderId == id);
-    }
+        public GroupOrderRepository(GroupDeliveryDbContext db)
+        {
+            _db = db;
+        }
 
-    // 取得所有進行中的開團資訊
-    public async Task<List<GroupOrder>> GetAllActiveAsync()
-    {
-        return await _db.GroupOrders
-            .Include(g => g.Store)
-            .Where(g => g.Status == "Active")
-            .ToListAsync();
-    }
+        // 依照主鍵取得單筆開團資料
+        public async Task<GroupOrder> GetByIdAsync(int id)
+        {
+            return await _db.GroupOrders
+                .Include(g => g.Store)
+                .FirstOrDefaultAsync(g => g.GroupOrderId == id);
+        }
 
-    // 新增開團資料
-    public async Task AddAsync(GroupOrder entity)
-    {
-        await _db.GroupOrders.AddAsync(entity);
-        await _db.SaveChangesAsync();
-    }
+        // 取得所有進行中的開團資訊
+        public async Task<List<GroupOrder>> GetAllActiveAsync()
+        {
+            return await _db.GroupOrders
+                .Include(g => g.Store)
+                .Where(g => g.Status == "Active")
+                .ToListAsync();
+        }
 
-    // 更新開團資料
-    public async Task UpdateAsync(GroupOrder entity)
-    {
-        _db.GroupOrders.Update(entity);
-        await _db.SaveChangesAsync();
+        // 新增開團資料
+        public async Task AddAsync(GroupOrder entity)
+        {
+            await _db.GroupOrders.AddAsync(entity);
+            await _db.SaveChangesAsync();
+        }
+
+        // 更新開團資料
+        public async Task UpdateAsync(GroupOrder entity)
+        {
+            _db.GroupOrders.Update(entity);
+            await _db.SaveChangesAsync();
+        }
     }
 }

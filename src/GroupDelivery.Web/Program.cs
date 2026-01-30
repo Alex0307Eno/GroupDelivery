@@ -1,12 +1,15 @@
+using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
+using GroupDelivery.Infrastructure.Data;
+using GroupDelivery.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using GroupDelivery.Infrastructure.Data;
-using GroupDelivery.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 
 namespace GroupDelivery.Web
 {
@@ -32,7 +35,7 @@ namespace GroupDelivery.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // DI 注入
-            builder.Services.AddScoped<GroupOrderRepository>();
+            builder.Services.AddScoped<IGroupOrderRepository, GroupOrderRepository>();
             builder.Services.AddScoped<GroupOrderService>();
 
             var app = builder.Build();

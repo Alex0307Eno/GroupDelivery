@@ -1,17 +1,17 @@
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using GroupDelivery.Domain.Entities;
-    using GroupDelivery.Infrastructure;
+using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Domain;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace GroupDelivery.Application.Services
 {
-
     // 此服務類別用於處理開團相關業務邏輯
     public class GroupOrderService
     {
-        private readonly GroupOrderRepository _groupOrderRepo;
+        private readonly IGroupOrderRepository _groupOrderRepo;
 
-        public GroupOrderService(GroupOrderRepository groupOrderRepo)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepo)
         {
             _groupOrderRepo = groupOrderRepo;
         }
@@ -47,7 +47,6 @@ namespace GroupDelivery.Application.Services
                 return;
             }
 
-            // 邏輯：如果金額達標則標記為成功
             if (group.CurrentAmount >= group.TargetAmount && group.Status == "Active")
             {
                 group.Status = "Success";

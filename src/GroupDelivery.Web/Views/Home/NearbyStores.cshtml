@@ -1,0 +1,168 @@
+﻿@{
+    ViewData["Title"] = "揪IN｜附近商家";
+}
+
+<style>
+    .store-card {
+        border-radius: 1.2rem;
+        background: #ffffff;
+        box-shadow: 0 10px 26px rgba(15,23,42,.08);
+        padding: 1.4rem;
+        height: 100%;
+        transition: transform .15s ease-out, box-shadow .15s ease-out;
+        position: relative;
+    }
+
+        .store-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(15,23,42,.14);
+        }
+
+    .store-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .store-distance {
+        font-size: .85rem;
+        color: #6b7280;
+    }
+
+    .store-hint {
+        font-size: .85rem;
+        margin-top: .4rem;
+        color: #16a34a;
+        font-weight: 600;
+    }
+
+        .store-hint.idle {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+    .store-cta {
+        margin-top: 1rem;
+        font-size: .9rem;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: .45rem 1rem;
+    }
+
+    .store-card.active::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        border: 2px solid rgba(34,197,94,.6);
+        pointer-events: none;
+    }
+
+    .page-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .page-sub {
+        font-size: .95rem;
+        color: #6b7280;
+    }
+</style>
+
+<div id="app" class="container py-5">
+
+    <!-- 頁首 -->
+    <div class="mb-4">
+        <div class="page-title">
+            附近有什麼可以揪的
+        </div>
+        <div class="page-sub mt-1">
+            有人正在揪的店，會排在前面
+        </div>
+    </div>
+
+    <!-- 商家列表 -->
+    <div class="row g-4">
+
+        <div v-for="store in sortedStores"
+             :key="store.storeId"
+             class="col-lg-4 col-md-6">
+
+            <div class="store-card"
+                 :class="{ 'active': store.hasActiveGroup }">
+
+                <div class="store-name">
+                    {{ store.storeName }}
+                </div>
+
+                <div class="store-distance">
+                    距離你 {{ store.distance }} 公尺
+                </div>
+
+                <!-- 狀態提示 -->
+                <div class="store-hint"
+                     v-if="store.hasActiveGroup">
+                    有人正在等你
+                </div>
+
+                <div class="store-hint idle"
+                     v-else>
+                    目前沒有團
+                </div>
+
+                <!-- CTA -->
+                <a :href="'/Store/' + store.storeId + '/Groups'"
+                   class="btn btn-outline-dark store-cta"
+                   v-if="store.hasActiveGroup">
+                    看正在揪的
+                </a>
+
+                <a :href="'/Store/' + store.storeId + '/CreateGroup'"
+                   class="btn btn-outline-secondary store-cta"
+                   v-else>
+                    開一團等人
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                stores: []
+            };
+        },
+        computed: {
+            sortedStores() {
+                // 有團的排前面，其餘照距離
+                return this.stores.slice().sort(function (a, b) {
+                    if (a.hasActiveGroup !== b.hasActiveGroup) {
+                        return a.hasActiveGroup ? -1 : 1;
+                    }
+                    return a.distance - b.distance;
+                });
+            }
+        },
+        methods: {
+            fetchStores() {
+                var self = this;
+                axios.get('/api/stores/nearby')
+                    .then(function (res) {
+                        self.stores = res.data || [];
+                    });
+            }
+        },
+        mounted() {
+            this.fetchStores();
+        }
+    }).mount('#app');
+</script>

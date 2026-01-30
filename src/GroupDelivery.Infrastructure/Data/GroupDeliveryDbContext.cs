@@ -1,5 +1,5 @@
+using GroupDelivery.Domain;
 using Microsoft.EntityFrameworkCore;
-using GroupDelivery.Domain.Entities;
 
 namespace GroupDelivery.Infrastructure.Data
 {
