@@ -12,16 +12,19 @@ namespace GroupDelivery.Domain
         [Key]
         public int UserId { get; set; }
 
-        [Required]
+        // LINE 登入用，核心欄位
+        [StringLength(50)]
+        public string LineUserId { get; set; }
+
+        // 顯示用，不強迫
         [StringLength(50)]
         public string DisplayName { get; set; }
 
+        // 手機登入或責任歸屬用
         [StringLength(20)]
         public string Phone { get; set; }
 
-        [StringLength(100)]
-        public string Email { get; set; }
-
         public DateTime CreatedAt { get; set; }
     }
+
 }
