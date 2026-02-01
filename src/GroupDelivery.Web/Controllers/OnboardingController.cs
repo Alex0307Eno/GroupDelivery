@@ -1,8 +1,9 @@
-﻿using GroupDelivery.Infrastructure.Data;
+﻿using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using GroupDelivery.Domain;
 
 namespace GroupDelivery.Web.Controllers
 {
@@ -14,16 +15,28 @@ namespace GroupDelivery.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SetRole(UserRole role,
-            [FromServices] GroupDeliveryDbContext db)
+        public async Task<IActionResult> SetRole(
+    string role,
+    [FromServices] GroupDeliveryDbContext db)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var user = await db.Users.FindAsync(userId);
+            var userId = int.Parse(
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
 
-            user.Role = role;
+            var user = await db.Users.FindAsync(userId);
+            if (user == null)
+                return Unauthorized();
+
+            if (!Enum.TryParse<UserRole>(role, out var parsedRole))
+                return BadRequest("Invalid role");
+
+            user.Role = parsedRole;
             await db.SaveChangesAsync();
+
+            if (user.Role == UserRole.Merchant)
+                return Redirect("/Home/CreateGroup");
 
             return Redirect("/");
         }
+
     }
 }

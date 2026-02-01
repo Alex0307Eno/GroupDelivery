@@ -2,13 +2,145 @@
     ViewData["Title"] = "選擇身分";
 }
 
-<h2 class="mb-4">請選擇你的身分</h2>
+<div id="app" class="container py-5"></div>
 
-<form method="post" action="/Onboarding/SetRole">
-    <button name="role" value="User" class="btn btn-primary btn-lg me-3">
-        我是使用者
-    </button>
-    <button name="role" value="Merchant" class="btn btn-warning btn-lg">
-        我是商家
-    </button>
-</form>
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .role-card {
+            transition: all .3s ease;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+            .role-card.show {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .role-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 12px 30px rgba(0,0,0,.12);
+            }
+
+        .diff-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+        }
+    </style>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    show: false
+                };
+            },
+            mounted() {
+                setTimeout(() => this.show = true, 100);
+            },
+                   methods: {
+            select(role) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/Onboarding/SetRole';
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'role';
+                input.value = role;
+                form.appendChild(input);
+
+                document.body.appendChild(form);
+                form.submit();
+                }
+        
+
+            },
+            template: `
+            <div>
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold mb-2">你想怎麼使用揪 IN？</h2>
+                    <p class="text-muted">
+                        不是點外送，是一起湊外送
+                    </p>
+                </div>
+
+                <!-- 差異說明 -->
+                <div class="diff-box text-center mb-5">
+                    <div class="fw-bold mb-1">揪 IN 跟外送平台的差別</div>
+                    <div>
+                        外送平台是「你一個人叫」<br/>
+                        <span class="fw-bold text-primary">
+                            揪 IN 是「大家一起湊，外送才成立」
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center g-4">
+
+                    <!-- 使用者 -->
+                    <div class="col-md-5">
+                        <div class="card role-card h-100 border-0"
+                             :class="{ show }">
+                            <div class="card-body p-4 d-flex flex-column">
+
+                                <h4 class="fw-bold mb-2">👤 使用者</h4>
+                                <p class="text-muted mb-3">
+                                    想吃，但不想一個人付外送費
+                                </p>
+
+                                <ul class="text-muted small mb-4">
+                                    <li>查看附近正在湊的團</li>
+                                    <li>人多才送，外送費一起分</li>
+                                    <li>不用自己揪，也不用先付高運費</li>
+                                </ul>
+
+                                <button class="btn btn-outline-primary mt-auto"
+                                        @@click="select('User')">
+                                    我要跟團
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商家 -->
+                    <div class="col-md-5">
+                        <div class="card role-card h-100 border-0 border-warning"
+                             :class="{ show }">
+                            <div class="card-body p-4 d-flex flex-column">
+
+                                <h4 class="fw-bold mb-2">🏪 商家</h4>
+                                <p class="text-muted mb-3">
+                                    有店面，想集中訂單再一起送
+                                </p>
+
+                                <ul class="text-muted small mb-4">
+                                    <li>設定外送門檻，人到才出</li>
+                                    <li>一次接多單，降低外送成本</li>
+                                    <li>曝光給正在附近找團的客人</li>
+                                </ul>
+
+                                <button class="btn btn-warning mt-auto"
+                                        @@click="select('Merchant')">
+                                    我要開團
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="text-center text-muted mt-4 small">
+                    身分之後都可以切換，不用擔心選錯
+                </p>
+            </div>
+            `
+        }).mount('#app');
+    </script>
+}

@@ -3,6 +3,47 @@
 }
 
 <div id="app" class="container py-5"></div>
+<!-- 商家專用欄位 -->
+<div v-if="isMerchant" class="mt-4 text-start">
+
+    <h6 class="fw-bold mb-3">商家資料（必填）</h6>
+
+    <div class="mb-3">
+        <label class="form-label text-muted">店名</label>
+        <input type="text"
+               class="form-control"
+               v-model="user.storeName"
+               placeholder="例如：梁社漢排骨" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-muted">店家電話</label>
+        <input type="tel"
+               class="form-control"
+               v-model="user.storePhone"
+               placeholder="例如：02-2345-6789" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-muted">店家地址</label>
+        <textarea class="form-control"
+                  rows="2"
+                  v-model="user.storeAddress"
+                  placeholder="請定位或手動輸入"></textarea>
+    </div>
+
+    <button class="btn btn-outline-secondary w-100 mb-3"
+            :disabled="locating"
+            @@click="locate">
+        {{ locating ? '定位中…' : '📍 使用目前位置自動填入地址' }}
+    </button>
+
+    <button class="btn btn-warning w-100"
+            @@click="saveMerchantInfo">
+        儲存商家資料
+    </button>
+</div>
+
 
 @section Scripts {
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -11,12 +52,14 @@
         const { createApp } = Vue;
 
         createApp({
-            data() {
-                return {
-                    user: null,
-                    loading: true
-                };
-            },
+                    data() {
+            return {
+                user: null,
+                loading: true,
+                locating: false
+            };
+        },
+
             async mounted() {
                 const res = await axios.get('/Account/ProfileData');
                 this.user = res.data;
@@ -26,7 +69,77 @@
                 isMerchant() {
                     return this.user?.role === 'Merchant';
                 }
+                    },methods: {
+            async savePhone() {
+                await axios.post('/Account/UpdatePhone', {
+                    phone: this.user.phone
+                });
+                alert('已儲存');
+            }
+        },
+                methods: {
+            async savePhone() {
+                await axios.post('/Account/UpdatePhone', {
+                    phone: this.user.phone
+                });
+                alert('已儲存');
             },
+            async saveMerchantInfo() {
+                if (!this.user.storeName || !this.user.storeAddress || !this.user.storePhone) {
+                    alert('請填寫完整的店家資料');
+                    return;
+                }
+
+                await axios.post('/Account/UpdateMerchantInfo', {
+                    storeName: this.user.storeName,
+                    storeAddress: this.user.storeAddress,
+                    storePhone: this.user.storePhone,
+                    lat: this.user.lat,
+                    lng: this.user.lng
+                });
+
+                alert('商家資料已儲存');
+            },
+            locate() {
+                if (!navigator.geolocation) {
+                    alert('瀏覽器不支援定位');
+                    return;
+                }
+
+                this.locating = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    async pos => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+
+                        this.user.lat = lat;
+                        this.user.lng = lng;
+
+                        // 用 Google Maps Geocoding（你之後可換）
+                        const res = await axios.get(
+                            `https://nominatim.openstreetmap.org/reverse`,
+                            {
+                                params: {
+                                    lat,
+                                    lon: lng,
+                                    format: 'json'
+                                }
+                            }
+                        );
+
+                        this.user.storeAddress = res.data.display_name;
+                        this.locating = false;
+                    },
+                    () => {
+                        alert('定位失敗');
+                        this.locating = false;
+                    }
+                );
+            }
+        },
+
+
             template: `
             <div v-if="loading" class="text-center text-muted">
                 載入中…
@@ -63,12 +176,20 @@
 
                             <hr class="my-4"/>
 
-                            <div class="text-start small text-muted mb-4">
-                                <div>LINE User ID</div>
-                                <div class="fw-monospace">
-                                    {{ user.lineUserId }}
-                                </div>
-                            </div>
+                                    <div class="text-start small mb-4">
+            <label class="form-label text-muted">
+                手機號碼
+            </label>
+            <input type="tel"
+                   class="form-control"
+                   placeholder="請輸入手機號碼"
+                   v-model="user.phone" />
+        </div>
+
+                <button class="btn btn-outline-primary"
+                @@click="savePhone">
+            儲存手機號碼
+        </button>
 
                             <div class="d-grid gap-2">
                                 <a v-if="!isMerchant"

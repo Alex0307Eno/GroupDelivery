@@ -21,7 +21,7 @@ namespace GroupDelivery.Domain
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; } // Pending, Active, Success, Failed
+        public GroupOrderStatus Status { get; set; } // Pending, Active, Success, Failed
 
         [StringLength(500)]
         public string Remark { get; set; }

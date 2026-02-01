@@ -1,46 +1,47 @@
-﻿using GroupDelivery.Application.Services;
+﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace GroupDelivery.Web.Controllers.Api
 {
     [ApiController]
     [Route("api/merchant")]
+    [Authorize]
     public class MerchantGroupController : ControllerBase
     {
-        private readonly GroupOrderService _groupOrderService;
+        private readonly IGroupOrderService _groupOrderService;
 
-        public MerchantGroupController(GroupOrderService groupOrderService)
+        public MerchantGroupController(IGroupOrderService groupOrderService)
         {
             _groupOrderService = groupOrderService;
         }
 
         [HttpPost("groups")]
-        public IActionResult CreateGroup([FromBody] CreateGroupRequest request)
+        public async Task<IActionResult> CreateGroup(
+            [FromBody] CreateGroupRequest request)
         {
             if (request == null)
                 return BadRequest("請求資料為空");
 
-            if (request.TargetAmount <= 0)
-                return BadRequest("成團金額不正確");
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized();
 
-            if (request.Deadline <= DateTime.Now.AddMinutes(30))
-                return BadRequest("截止時間需至少 30 分鐘後");
+            var userId = int.Parse(claim.Value);
 
-            // 暫時先不處理登入，之後再補
-            var group = new GroupOrder
+            try
             {
-                StoreId = request.StoreId,
-                CreatorUserId = request.CreatorUserId,
-                TargetAmount = request.TargetAmount,
-                Deadline = request.Deadline,
-                Remark = request.Remark
-            };
-
-            _groupOrderService.CreateGroupAsync(group).Wait();
-
-            return Ok(new { message = "開團成功" });
+                await _groupOrderService.CreateGroupAsync(userId, request);
+                return Ok(new { message = "開團成功" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

@@ -50,8 +50,12 @@ namespace GroupDelivery.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // DI 注入
+            builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
             builder.Services.AddScoped<IGroupOrderRepository, GroupOrderRepository>();
-            builder.Services.AddScoped<GroupOrderService>();
+
+            builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+            builder.Services.AddScoped<IStoreService, StoreService>();
+
 
             var app = builder.Build();
 

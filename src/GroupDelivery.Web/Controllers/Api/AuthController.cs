@@ -28,7 +28,7 @@ namespace GroupDelivery.Web.Controllers.Api
         public IActionResult LineLogin()
         {
             var redirectUri = Uri.EscapeDataString(
-                "https://074fa8b7ff3b.ngrok-free.app/signin-line"
+                "https://b3dfaabfa881.ngrok-free.app/signin-line"
             );
 
             var url =
@@ -54,15 +54,15 @@ namespace GroupDelivery.Web.Controllers.Api
 
             var client = new HttpClient();
 
-            // 1️⃣ 用 code 換 token
+            //  用 code 換 token
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
-    {
-        { "grant_type", "authorization_code" },
-        { "code", code },
-        { "redirect_uri", "https://074fa8b7ff3b.ngrok-free.app/signin-line" },
-        { "client_id", _config["Line:ChannelId"] },
-        { "client_secret", _config["Line:ChannelSecret"] }
-    });
+            {
+                { "grant_type", "authorization_code" },
+                { "code", code },
+                { "redirect_uri", "https://b3dfaabfa881.ngrok-free.app/signin-line" },
+                { "client_id", _config["Line:ChannelId"] },
+                { "client_secret", _config["Line:ChannelSecret"] }
+            });
 
             var tokenRes = await client.PostAsync(
                 "https://api.line.me/oauth2/v2.1/token",
@@ -82,7 +82,7 @@ namespace GroupDelivery.Web.Controllers.Api
                 .GetProperty("access_token")
                 .GetString();
 
-            // 2️⃣ 用 access_token 拿 LINE 使用者資料
+            //  用 access_token 拿 LINE 使用者資料
             client.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
@@ -99,7 +99,7 @@ namespace GroupDelivery.Web.Controllers.Api
 
             
 
-            // 3️⃣ 查 DB，有沒有這個 LINE 使用者
+            //  查 DB，有沒有這個 LINE 使用者
             var user = await db.Users
                 .FirstOrDefaultAsync(x => x.LineUserId == lineUserId);
 
@@ -124,10 +124,10 @@ namespace GroupDelivery.Web.Controllers.Api
                 user.PictureUrl = pictureUrl;
             }
 
-            // ❗ 不管新舊，只存一次
+            
             await db.SaveChangesAsync();
 
-            // 4️⃣ 發你自己系統的登入 Cookie
+            //  發你自己系統的登入 Cookie
             var claims = new List<System.Security.Claims.Claim>
     {
         new System.Security.Claims.Claim(
@@ -146,7 +146,7 @@ namespace GroupDelivery.Web.Controllers.Api
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new System.Security.Claims.ClaimsPrincipal(identity));
 
-            // 5️⃣ 回首頁
+            // 回首頁
             if (user.Role == UserRole.None)
             {
                 return Redirect("/Onboarding/ChooseRole");

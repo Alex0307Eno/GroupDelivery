@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Infrastructure.Data;
+using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -46,5 +47,46 @@ public class AccountController : Controller
 
         return Json(user);
     }
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> UpdatePhone(
+    [FromBody] UpdatePhoneRequest req)
+    {
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+        var user = await _db.Users.FindAsync(userId);
+        user.Phone = req.Phone;
+
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+
+    public class UpdatePhoneRequest
+    {
+        public string Phone { get; set; }
+    }
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> UpdateMerchantInfo(
+        [FromBody] MerchantInfoDto dto,
+        [FromServices] GroupDeliveryDbContext db)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var user = await db.Users.FindAsync(userId);
+
+        if (user == null)
+            return Unauthorized();
+
+        user.StoreName = dto.StoreName;
+        user.StoreAddress = dto.StoreAddress;
+        user.StorePhone = dto.StorePhone;
+        user.Lat = dto.Lat;
+        user.Lng = dto.Lng;
+
+        await db.SaveChangesAsync();
+        return Ok();
+    }
+
 
 }

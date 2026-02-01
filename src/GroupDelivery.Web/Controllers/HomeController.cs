@@ -26,9 +26,6 @@ namespace GroupDelivery.Web.Controllers
             return View();
         }
 
-        public  IActionResult CreateGroup()
-         {
-            return View();
-        }
+        
     }
 }
