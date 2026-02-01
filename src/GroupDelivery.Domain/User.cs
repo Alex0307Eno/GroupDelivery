@@ -19,12 +19,22 @@ namespace GroupDelivery.Domain
         // 顯示用，不強迫
         [StringLength(50)]
         public string DisplayName { get; set; }
+        public UserRole Role { get; set; }
+        public string PictureUrl { get; set; }
+
+
 
         // 手機登入或責任歸屬用
         [StringLength(20)]
         public string Phone { get; set; }
 
         public DateTime CreatedAt { get; set; }
+    }
+    public enum UserRole
+    {
+        None = 0,
+        User = 1,
+        Merchant = 2
     }
 
 }

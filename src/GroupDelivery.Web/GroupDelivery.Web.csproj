@@ -6,6 +6,7 @@
 		<UserSecretsId>233b3891-3b9b-47a9-b232-6dd7fa106d6e</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
+	  <PackageReference Include="AspNet.Security.OAuth.Line" Version="8.0.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2">
 			<PrivateAssets>all</PrivateAssets>

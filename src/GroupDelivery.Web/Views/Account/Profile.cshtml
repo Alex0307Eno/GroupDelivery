@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "個人資料";
+}
+
+<div id="app" class="container py-5"></div>
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    user: null,
+                    loading: true
+                };
+            },
+            async mounted() {
+                const res = await axios.get('/Account/ProfileData');
+                this.user = res.data;
+                this.loading = false;
+            },
+            computed: {
+                isMerchant() {
+                    return this.user?.role === 'Merchant';
+                }
+            },
+            template: `
+            <div v-if="loading" class="text-center text-muted">
+                載入中…
+            </div>
+
+            <div v-else class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+
+                            <!-- Avatar -->
+                            <div class="mb-3">
+                                        <div class="mb-3">
+            <img v-if="user.pictureUrl"
+                 :src="user.pictureUrl"
+                 class="rounded-circle shadow-sm mx-auto d-block"
+                 style="width:96px;height:96px;object-fit:cover;" />
+
+            <div v-else
+                 class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto"
+                 style="width:96px;height:96px;font-size:32px;">
+                {{ user.displayName.charAt(0) }}
+            </div>
+        </div>
+
+                            </div>
+
+                            <h4 class="fw-bold mb-1">{{ user.displayName }}</h4>
+
+                            <span class="badge"
+                                  :class="isMerchant ? 'bg-warning text-dark' : 'bg-secondary'">
+                                {{ isMerchant ? '商家身分' : '一般使用者' }}
+                            </span>
+
+                            <hr class="my-4"/>
+
+                            <div class="text-start small text-muted mb-4">
+                                <div>LINE User ID</div>
+                                <div class="fw-monospace">
+                                    {{ user.lineUserId }}
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a v-if="!isMerchant"
+                                   href="/Merchant/Apply"
+                                   class="btn btn-outline-warning">
+                                    升級為商家
+                                </a>
+
+                                <a href="/Auth/Logout"
+                                   class="btn btn-outline-danger">
+                                    登出
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        }).mount('#app');
+    </script>
+}

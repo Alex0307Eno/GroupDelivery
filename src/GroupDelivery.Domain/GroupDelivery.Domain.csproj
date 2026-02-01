@@ -4,7 +4,7 @@
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 	</PropertyGroup>
-
 	<ItemGroup>
+	  <PackageReference Include="AspNet.Security.OAuth.Line" Version="8.0.0" />
 	</ItemGroup>
 </Project>

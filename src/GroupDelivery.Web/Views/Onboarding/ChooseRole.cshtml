@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "選擇身分";
+}
+
+<h2 class="mb-4">請選擇你的身分</h2>
+
+<form method="post" action="/Onboarding/SetRole">
+    <button name="role" value="User" class="btn btn-primary btn-lg me-3">
+        我是使用者
+    </button>
+    <button name="role" value="Merchant" class="btn btn-warning btn-lg">
+        我是商家
+    </button>
+</form>

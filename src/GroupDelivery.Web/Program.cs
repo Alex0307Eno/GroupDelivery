@@ -2,6 +2,7 @@ using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
 using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AspNet.Security.OAuth.Line;
+using Microsoft.AspNetCore.Http;
+
 
 
 namespace GroupDelivery.Web
@@ -19,7 +23,7 @@ namespace GroupDelivery.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 註冊 MVC + API（唯一一次）
+            // 註冊 MVC + API
             builder.Services.AddControllersWithViews()
                 .AddJsonOptions(o =>
                 {
@@ -29,6 +33,17 @@ namespace GroupDelivery.Web
                     // 避免循環參考
                     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 });
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
+
+            builder.Services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie();
+
+
 
             // 註冊資料庫
             builder.Services.AddDbContext<GroupDeliveryDbContext>(options =>
@@ -50,6 +65,7 @@ namespace GroupDelivery.Web
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
