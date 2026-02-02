@@ -32,7 +32,7 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             return await _db.GroupOrders
                 .Include(g => g.Store)
-                .Where(g => g.Status == "Active")
+                .Where(g => g.Status == GroupOrderStatus.Open)
                 .ToListAsync();
         }
 

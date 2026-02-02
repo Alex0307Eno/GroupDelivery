@@ -1,0 +1,47 @@
+﻿@using GroupDelivery.Domain
+@model User
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold">完成你的個人資料</h4>
+                        <div class="text-muted small">
+                            只需要 30 秒
+                        </div>
+                    </div>
+
+                    <form method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label">顯示名稱 / 暱稱</label>
+                            <input type="text"
+                                   name="displayName"
+                                   class="form-control"
+                                   placeholder="例如：Alex"
+                                   required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">手機號碼</label>
+                            <input type="tel"
+                                   name="phone"
+                                   class="form-control"
+                                   placeholder="09xxxxxxxx"
+                                   required />
+                        </div>
+
+                        <button class="btn btn-success w-100">
+                            完成設定
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

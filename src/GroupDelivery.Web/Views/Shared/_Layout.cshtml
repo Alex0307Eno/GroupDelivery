@@ -85,10 +85,14 @@
                     else
                     {
                         <li class="nav-item">
-                            <a class="nav-link text-success fw-bold" href="/Auth/LineLogin">
-                                用 LINE 登入
+                            <a class="nav-link fw-bold"
+                               href="#"
+                               data-bs-toggle="modal"
+                               data-bs-target="#authModal">
+                                登入 / 註冊
                             </a>
                         </li>
+
                     }
 
                 </ul>
@@ -96,6 +100,53 @@
             </div>
         </div>
     </nav>
+    <div class="modal fade" id="authModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content auth-card">
+
+                <div class="modal-body p-4 p-md-5">
+
+                    <!-- Logo / Title -->
+                    <div class="text-center mb-4">
+                        <img src="/img/jouin-logo.png" style="height:42px" class="mb-3" />
+                        <h4 class="fw-bold mb-1">歡迎回來</h4>
+                        <div class="text-muted small">
+                            登入或註冊 JO U IN，只要一封信
+                        </div>
+                    </div>
+
+                    <!-- Email login -->
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Email</label>
+                        <input type="email"
+                               class="form-control form-control-lg"
+                               placeholder="you@example.com"
+                               id="loginEmail">
+                    </div>
+
+                    <button class="btn btn-warning btn-lg w-100 mb-3"
+                            onclick="sendLoginEmail()">
+                        寄送登入驗證信
+                    </button>
+
+                    <div class="text-center text-muted small my-3">
+                        或使用快速登入
+                    </div>
+
+                    <!-- LINE -->
+                    <a href="/Auth/LineLogin"
+                       class="btn btn-outline-success btn-lg w-100" style="color:#22c55e;">
+                        使用 LINE 登入
+                    </a>
+
+                    <div class="text-center text-muted small mt-4">
+                        我們不使用密碼，避免外洩風險
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container body-content">
         @RenderBody()
@@ -106,6 +157,7 @@
     </div>
 
     <!-- Vue 3 & Axios -->
+    <script src="/js/layout.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <!-- Bootstrap JS -->

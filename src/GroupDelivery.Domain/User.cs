@@ -12,23 +12,26 @@ namespace GroupDelivery.Domain
         [Key]
         public int UserId { get; set; }
 
-        // LINE 登入
-        [StringLength(50)]
-        public string LineUserId { get; set; }
+        // ===== 核心身分 =====
+        [StringLength(100)]
+        public string Email { get; set; }   
+
+        public UserRole Role { get; set; }
 
         [StringLength(50)]
         public string DisplayName { get; set; }
 
-        public UserRole Role { get; set; }
-
         public string PictureUrl { get; set; }
 
-        // 共用
+        // ===== 登入來源（先保留 LINE） =====
+        [StringLength(50)]
+        public string LineUserId { get; set; }
+
+        // ===== 共用 =====
         [StringLength(20)]
         public string Phone { get; set; }
 
-        // ===== 商家專用（Role = Merchant 才會用） =====
-
+        // ===== 商家專用 =====
         [StringLength(100)]
         public string StoreName { get; set; }
 
@@ -38,11 +41,11 @@ namespace GroupDelivery.Domain
         [StringLength(20)]
         public string StorePhone { get; set; }
 
-        // 定位用
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public DateTime? LastLoginAt { get; set; }
     }
 
     public enum UserRole

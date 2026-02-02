@@ -3,212 +3,187 @@
 }
 
 <div id="app" class="container py-5"></div>
-<!-- 商家專用欄位 -->
-<div v-if="isMerchant" class="mt-4 text-start">
-
-    <h6 class="fw-bold mb-3">商家資料（必填）</h6>
-
-    <div class="mb-3">
-        <label class="form-label text-muted">店名</label>
-        <input type="text"
-               class="form-control"
-               v-model="user.storeName"
-               placeholder="例如：梁社漢排骨" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label text-muted">店家電話</label>
-        <input type="tel"
-               class="form-control"
-               v-model="user.storePhone"
-               placeholder="例如：02-2345-6789" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label text-muted">店家地址</label>
-        <textarea class="form-control"
-                  rows="2"
-                  v-model="user.storeAddress"
-                  placeholder="請定位或手動輸入"></textarea>
-    </div>
-
-    <button class="btn btn-outline-secondary w-100 mb-3"
-            :disabled="locating"
-            @@click="locate">
-        {{ locating ? '定位中…' : '📍 使用目前位置自動填入地址' }}
-    </button>
-
-    <button class="btn btn-warning w-100"
-            @@click="saveMerchantInfo">
-        儲存商家資料
-    </button>
-</div>
-
 
 @section Scripts {
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
         const { createApp } = Vue;
 
-        createApp({
-                    data() {
+    createApp({
+        data() {
             return {
                 user: null,
                 loading: true,
                 locating: false
             };
         },
-
-            async mounted() {
-                const res = await axios.get('/Account/ProfileData');
-                this.user = res.data;
-                this.loading = false;
-            },
-            computed: {
-                isMerchant() {
-                    return this.user?.role === 'Merchant';
-                }
-                    },methods: {
-            async savePhone() {
-                await axios.post('/Account/UpdatePhone', {
-                    phone: this.user.phone
-                });
-                alert('已儲存');
+        computed: {
+            isMerchant() {
+                return this.user && this.user.role === 'Merchant';
             }
         },
-                methods: {
-            async savePhone() {
-                await axios.post('/Account/UpdatePhone', {
-                    phone: this.user.phone
-                });
-                alert('已儲存');
-            },
-            async saveMerchantInfo() {
-                if (!this.user.storeName || !this.user.storeAddress || !this.user.storePhone) {
-                    alert('請填寫完整的店家資料');
-                    return;
-                }
-
-                await axios.post('/Account/UpdateMerchantInfo', {
-                    storeName: this.user.storeName,
-                    storeAddress: this.user.storeAddress,
-                    storePhone: this.user.storePhone,
-                    lat: this.user.lat,
-                    lng: this.user.lng
-                });
-
-                alert('商家資料已儲存');
-            },
-            locate() {
-                if (!navigator.geolocation) {
-                    alert('瀏覽器不支援定位');
-                    return;
-                }
-
-                this.locating = true;
-
-                navigator.geolocation.getCurrentPosition(
-                    async pos => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-
-                        this.user.lat = lat;
-                        this.user.lng = lng;
-
-                        // 用 Google Maps Geocoding（你之後可換）
-                        const res = await axios.get(
-                            `https://nominatim.openstreetmap.org/reverse`,
-                            {
-                                params: {
-                                    lat,
-                                    lon: lng,
-                                    format: 'json'
-                                }
-                            }
-                        );
-
-                        this.user.storeAddress = res.data.display_name;
-                        this.locating = false;
-                    },
-                    () => {
-                        alert('定位失敗');
-                        this.locating = false;
-                    }
-                );
-            }
+            methods: {
+        async savePhone() {
+            await axios.post('/Account/UpdatePhone', {
+                phone: this.user.phone
+            });
+            alert('已儲存');
         },
 
+        async saveMerchantInfo() {
+            if (!this.user.storeName || !this.user.storeAddress || !this.user.storePhone) {
+                alert('請填寫完整的店家資料');
+                return;
+            }
 
+            await axios.post('/Account/UpdateMerchantInfo', {
+                storeName: this.user.storeName,
+                storeAddress: this.user.storeAddress,
+                storePhone: this.user.storePhone,
+                lat: this.user.lat,
+                lng: this.user.lng
+            });
+
+            alert('商家資料已儲存');
+        },
+
+        locate() {
+            if (!navigator.geolocation) {
+                alert('瀏覽器不支援定位');
+                return;
+            }
+
+            this.locating = true;
+
+            navigator.geolocation.getCurrentPosition(
+                async pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+
+                    this.user.lat = lat;
+                    this.user.lng = lng;
+
+                    const res = await axios.get(
+                        'https://nominatim.openstreetmap.org/reverse',
+                        { params: { lat, lon: lng, format: 'json' } }
+                    );
+
+                    this.user.storeAddress = res.data.display_name;
+                    this.locating = false;
+                },
+                () => {
+                    alert('定位失敗');
+                    this.locating = false;
+                }
+            );
+        }
+    },
+        async mounted() {
+        const res = await axios.get('/Account/ProfileData');
+        this.user = res.data;
+        this.loading = false;
+    },
             template: `
-            <div v-if="loading" class="text-center text-muted">
-                載入中…
-            </div>
-
-            <div v-else class="row justify-content-center">
-                <div class="col-md-6 col-lg-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center p-4">
-
-                            <!-- Avatar -->
-                            <div class="mb-3">
-                                        <div class="mb-3">
-            <img v-if="user.pictureUrl"
-                 :src="user.pictureUrl"
-                 class="rounded-circle shadow-sm mx-auto d-block"
-                 style="width:96px;height:96px;object-fit:cover;" />
-
-            <div v-else
-                 class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto"
-                 style="width:96px;height:96px;font-size:32px;">
-                {{ user.displayName.charAt(0) }}
-            </div>
+        <div v-if="loading" class="text-center text-muted">
+            載入中…
         </div>
 
-                            </div>
+        <div v-else class="row justify-content-center">
+            <div class="col-md-7 col-lg-6">
 
-                            <h4 class="fw-bold mb-1">{{ user.displayName }}</h4>
+                <!-- 個人卡片 -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center p-4">
 
-                            <span class="badge"
-                                  :class="isMerchant ? 'bg-warning text-dark' : 'bg-secondary'">
-                                {{ isMerchant ? '商家身分' : '一般使用者' }}
-                            </span>
+                        <img v-if="user.pictureUrl"
+                             :src="user.pictureUrl"
+                             class="rounded-circle mb-3"
+                             style="width:96px;height:96px;object-fit:cover;" />
 
-                            <hr class="my-4"/>
-
-                                    <div class="text-start small mb-4">
-            <label class="form-label text-muted">
-                手機號碼
-            </label>
-            <input type="tel"
-                   class="form-control"
-                   placeholder="請輸入手機號碼"
-                   v-model="user.phone" />
-        </div>
-
-                <button class="btn btn-outline-primary"
-                @@click="savePhone">
-            儲存手機號碼
-        </button>
-
-                            <div class="d-grid gap-2">
-                                <a v-if="!isMerchant"
-                                   href="/Merchant/Apply"
-                                   class="btn btn-outline-warning">
-                                    升級為商家
-                                </a>
-
-                                <a href="/Auth/Logout"
-                                   class="btn btn-outline-danger">
-                                    登出
-                                </a>
-                            </div>
-
+                        <div v-else
+                             class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3"
+                             style="width:96px;height:96px;font-size:32px;">
+                            {{ user.displayName.charAt(0) }}
                         </div>
+
+                        <h4 class="fw-bold">{{ user.displayName }}</h4>
+
+                        <span class="badge"
+                              :class="isMerchant ? 'bg-warning text-dark' : 'bg-secondary'">
+                            {{ isMerchant ? '商家身分' : '一般使用者' }}
+                        </span>
+
+                        <hr>
+
+                        <div class="text-start mb-3">
+                            <label class="form-label text-muted">手機號碼</label>
+                            <input class="form-control"
+                                   v-model="user.phone"
+                                   placeholder="請輸入手機號碼">
+                        </div>
+
+                        <button class="btn btn-outline-primary w-100 mb-2"
+                                @@click="savePhone">
+                            儲存手機號碼
+                        </button>
+
+                        <a v-if="!isMerchant"
+                           href="/Merchant/Apply"
+                           class="btn btn-outline-warning w-100 mb-2">
+                            升級為商家
+                        </a>
+
+                        <a href="/Auth/Logout"
+                           class="btn btn-outline-danger w-100">
+                            登出
+                        </a>
                     </div>
                 </div>
+
+                <!-- 商家專用 -->
+                <div v-if="isMerchant" class="card border-0 shadow-sm">
+                    <div class="card-body p-4 text-start">
+
+                        <h6 class="fw-bold mb-3">商家資料</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">店名</label>
+                            <input class="form-control"
+                                   v-model="user.storeName">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">店家電話</label>
+                            <input class="form-control"
+                                   v-model="user.storePhone">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">店家地址</label>
+                            <textarea class="form-control"
+                                      rows="2"
+                                      v-model="user.storeAddress"></textarea>
+                        </div>
+
+                        <button class="btn btn-outline-secondary w-100 mb-2"
+                                :disabled="locating"
+                                @@click="locate">
+                            {{ locating ? '定位中…' : '📍 使用目前位置自動填入地址' }}
+                        </button>
+
+                        <button class="btn btn-warning w-100"
+                                @@click="saveMerchantInfo">
+                            儲存商家資料
+                        </button>
+
+                    </div>
+                </div>
+
             </div>
-            `
+        </div>
+        `
         }).mount('#app');
     </script>
 }
+

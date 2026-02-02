@@ -1,19 +1,18 @@
+using AspNet.Security.OAuth.Line;
 using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
+using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AspNet.Security.OAuth.Line;
-using Microsoft.AspNetCore.Http;
-
-
 
 namespace GroupDelivery.Web
 {
@@ -23,40 +22,68 @@ namespace GroupDelivery.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 註冊 MVC + API
+           
+            // MVC + JSON 設定
+            
             builder.Services.AddControllersWithViews()
                 .AddJsonOptions(o =>
                 {
-                    // 小寫 JSON 字串（Vue 才吃得到）
+                    // Vue 友善 camelCase
                     o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
-                    // 避免循環參考
+                    // 避免 EF 循環參考爆炸
                     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 });
-            builder.Services.ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            });
+
+
+            // Authentication
+            // Cookie = 站內登入
+            // LINE = 第三方登入
 
             builder.Services
-                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie();
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "GroupDelivery.Auth";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+    });
+   
 
 
 
-            // 註冊資料庫
+
+            // Email 設定
+
+            builder.Services.Configure<EmailSettings>(
+                builder.Configuration.GetSection("EmailSettings"));
+
+            
+            // Database
+            
             builder.Services.AddDbContext<GroupDeliveryDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")));
 
+           
             // DI 注入
+           
+            builder.Services.AddScoped<EmailService>();
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<ILoginTokenService, LoginTokenService>();
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
             builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
             builder.Services.AddScoped<IGroupOrderRepository, GroupOrderRepository>();
 
-            builder.Services.AddScoped<IStoreRepository, StoreRepository>();
             builder.Services.AddScoped<IStoreService, StoreService>();
+            builder.Services.AddScoped<IStoreRepository, StoreRepository>();
 
-
+            
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())
@@ -69,6 +96,7 @@ namespace GroupDelivery.Web
             app.UseStaticFiles();
 
             app.UseRouting();
+
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -9,6 +9,7 @@ namespace GroupDelivery.Infrastructure.Data
             : base(options)
         {
         }
+        public DbSet<EmailLoginToken> EmailLoginTokens { get; set; }
 
         public DbSet<Store> Stores { get; set; }
         public DbSet<StoreProduct> StoreProducts { get; set; }

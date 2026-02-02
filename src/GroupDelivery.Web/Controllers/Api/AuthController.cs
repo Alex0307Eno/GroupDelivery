@@ -1,34 +1,60 @@
-﻿using GroupDelivery.Domain;
+﻿using AspNet.Security.OAuth.Line;
+using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
+using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 using Microsoft.EntityFrameworkCore;
-using AspNet.Security.OAuth.Line;
-using System.Collections.Generic;
-using System.Net.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 
 namespace GroupDelivery.Web.Controllers.Api
 {
+    [Route("Auth")]
     public class AuthController : Controller
     {
+        private readonly EmailService _emailService;
         private readonly IConfiguration _config;
+        private readonly IAuthService _authService;
 
-        public AuthController(IConfiguration config)
+
+        public AuthController(
+            EmailService emailService,
+            IConfiguration config,
+            IAuthService authService)
         {
+            _emailService = emailService;
             _config = config;
+            _authService = authService;
         }
+
+        [HttpPost("SendLoginLink")]
+        public async Task<IActionResult> SendLoginLink([FromBody] SendLoginRequest req)
+        {
+            await _authService.SendLoginLinkAsync(req.Email);
+            return Ok();
+        }
+        [HttpGet("VerifyEmail")]
+        public async Task<IActionResult> VerifyEmail(string token)
+        {
+            await _authService.SignInByTokenAsync(token, HttpContext);
+            
+            return Redirect("/Account/AfterLogin");
+        }
+        [HttpGet("LineLogin")]
         public IActionResult LineLogin()
         {
             var redirectUri = Uri.EscapeDataString(
-                "https://b3dfaabfa881.ngrok-free.app/signin-line"
+                "https://2e889bf31304.ngrok-free.app/signin-line"
             );
 
             var url =
@@ -59,7 +85,7 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", "https://b3dfaabfa881.ngrok-free.app/signin-line" },
+                { "redirect_uri", "https://2e889bf31304.ngrok-free.app/signin-line" },
                 { "client_id", _config["Line:ChannelId"] },
                 { "client_secret", _config["Line:ChannelSecret"] }
             });

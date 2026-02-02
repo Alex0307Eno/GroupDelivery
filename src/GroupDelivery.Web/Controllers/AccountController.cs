@@ -1,5 +1,7 @@
-﻿using GroupDelivery.Infrastructure.Data;
+﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,22 +13,74 @@ using System.Threading.Tasks;
 public class AccountController : Controller
 {
     private readonly GroupDeliveryDbContext _db;
+    private readonly IUserRepository _userRepo;
+    private readonly IAuthService _authService;
 
-    public AccountController(GroupDeliveryDbContext db)
+    public AccountController(GroupDeliveryDbContext db, IUserRepository userRepo, IAuthService authService)
     {
         _db = db;
+        _userRepo = userRepo;
+        _authService = authService;
     }
 
     public async Task<IActionResult> Profile()
     {
         var userId = int.Parse(
-            User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        var user = await _db.Users
-            .FirstAsync(x => x.UserId == userId);
+        var user = await _userRepo.GetByIdAsync(userId);
+
+        if (user == null)
+            return Redirect("/Auth/Logout");
 
         return View(user);
     }
+    [Authorize]
+    public async Task<IActionResult> CompleteProfile()
+    {
+        var userId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var user = await _userRepo.GetByIdAsync(userId);
+
+        if (user == null)
+            return Redirect("/Auth/Logout");
+
+        return View(user);
+    }
+
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> CompleteProfile(
+    string displayName,
+    string phone)
+    {
+        var userId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var user = await _userRepo.GetByIdAsync(userId);
+
+        if (user == null)
+            return Redirect("/Auth/Logout");
+
+        user.DisplayName = displayName;
+        user.Phone = phone;
+
+        await _db.SaveChangesAsync();
+
+        return Redirect("/");
+    }
+
+    [Authorize]
+    public async Task<IActionResult> AfterLogin()
+    {
+        if (!_authService.IsProfileCompleted(User))
+            return Redirect("/Account/CompleteProfile");
+
+        return Redirect("/");
+    }
+
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> ProfileData()
