@@ -1,6 +1,12 @@
 ﻿@{
     ViewData["Title"] = "個人資料";
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
 
 <div id="app" class="container py-5"></div>
 
@@ -20,8 +26,8 @@
         },
         computed: {
             isMerchant() {
-                return this.user && this.user.role === 'Merchant';
-            }
+        return this.user && this.user.isMerchant;
+                }
         },
             methods: {
         async savePhone() {
@@ -129,7 +135,7 @@
                         </button>
 
                         <a v-if="!isMerchant"
-                           href="/Merchant/Apply"
+                               href="/Account/UpgradeToMerchant"
                            class="btn btn-outline-warning w-100 mb-2">
                             升級為商家
                         </a>

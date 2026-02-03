@@ -1,17 +1,15 @@
-﻿using GroupDelivery.Domain;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GroupDelivery.Domain;
 
 namespace GroupDelivery.Application.Abstractions
 {
-    public interface IStoreRepository
+    public interface IMerchantService
     {
-        void Add(Store store);
-        Store GetByOwner(int ownerUserId);
-
+         Task  UpgradeToMerchant(int userId, UpgradeMerchantRequest request);
     }
 
 }

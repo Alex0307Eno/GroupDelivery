@@ -13,7 +13,7 @@ namespace GroupDelivery.Application.Abstractions
         Task SendLoginLinkAsync(string email);
         Task SignInByTokenAsync(string token, HttpContext httpContext);
         bool IsProfileCompleted(ClaimsPrincipal user);
-
+        Task RefreshSignInAsync(int userId);
     }
 
 }

@@ -54,7 +54,7 @@ namespace GroupDelivery.Web.Controllers.Api
         public IActionResult LineLogin()
         {
             var redirectUri = Uri.EscapeDataString(
-                "https://2e889bf31304.ngrok-free.app/signin-line"
+                "https://a91c2b75965b.ngrok-free.app/signin-line"
             );
 
             var url =
@@ -85,7 +85,7 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", "https://2e889bf31304.ngrok-free.app/signin-line" },
+                { "redirect_uri", "https://a91c2b75965b.ngrok-free.app/signin-line" },
                 { "client_id", _config["Line:ChannelId"] },
                 { "client_secret", _config["Line:ChannelSecret"] }
             });
@@ -155,14 +155,14 @@ namespace GroupDelivery.Web.Controllers.Api
 
             //  發你自己系統的登入 Cookie
             var claims = new List<System.Security.Claims.Claim>
-    {
-        new System.Security.Claims.Claim(
-            System.Security.Claims.ClaimTypes.NameIdentifier,
-            user.UserId.ToString()),
-        new System.Security.Claims.Claim(
-            System.Security.Claims.ClaimTypes.Name,
-            user.DisplayName)
-    };
+            {
+                new System.Security.Claims.Claim(
+                    System.Security.Claims.ClaimTypes.NameIdentifier,
+                    user.UserId.ToString()),
+                new System.Security.Claims.Claim(
+                    System.Security.Claims.ClaimTypes.Name,
+                    user.DisplayName)
+            };
 
             var identity = new System.Security.Claims.ClaimsIdentity(
                 claims,
@@ -180,7 +180,9 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Redirect("/");
         }
-        [HttpGet]
+
+        
+        [HttpGet("Logout")]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(

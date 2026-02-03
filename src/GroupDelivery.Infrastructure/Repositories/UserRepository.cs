@@ -15,7 +15,15 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             _db = db;
         }
-
+        public User GetById(int userId)
+        {
+            return _db.Users.Find(userId);
+        }
+        public void Update(User user)
+        {
+            _db.Update(user);
+            _db.SaveChanges();
+        }
         public async Task<User> GetByIdAsync(int userId)
         {
             return await _db.Users

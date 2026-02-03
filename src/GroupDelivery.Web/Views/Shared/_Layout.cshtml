@@ -1,3 +1,7 @@
+@{
+    var role = User.FindFirst("Role")?.Value;
+}
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -35,32 +39,56 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
 
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
 
-                    <!-- 一般導覽連結 -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/Index">探索店家</a>
+                    <!-- 探索（所有人都能看） -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+                            探索
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/Home/Index">探索店家</a></li>
+                            <li><a class="dropdown-item" href="/Home/NearbyStores">附近商家</a></li>
+                            <li><a class="dropdown-item" href="/Home/StoreGroups">正在揪團</a></li>
+                        </ul>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/NearbyStores">附近商家</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/StoreGroups">商家正在揪團</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Store/CreateGroup">店家開團</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">我的訂單</a>
-                    </li>
-
-                    <!-- 🔽 身分相關（永遠放最右邊） -->
                     @if (User.Identity.IsAuthenticated)
                     {
+                        <!-- 我的（所有登入者都有） -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
+                                我的
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/Account/Orders">我的訂單</a></li>
+                            </ul>
+                        </li>
+
+                        @* 只有店家才顯示 *@
+                        @if (role == "2")
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle"
+                                   href="#"
+                                   role="button"
+                                   data-bs-toggle="dropdown">
+                                    店家中心
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/Store/CreateGroup">開新團</a></li>
+                                    <li><a class="dropdown-item" href="/Store/MyGroups">我的團單</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        <!-- 帳號 -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle fw-bold"
                                href="#"
@@ -69,12 +97,7 @@
                                 @User.Identity.Name
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="/Account/Profile">個人資料</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/Account/Orders">我的訂單</a>
-                                </li>
+                                <li><a class="dropdown-item" href="/Account/Profile">個人資料</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item text-danger" href="/Auth/Logout">登出</a>
@@ -92,7 +115,6 @@
                                 登入 / 註冊
                             </a>
                         </li>
-
                     }
 
                 </ul>

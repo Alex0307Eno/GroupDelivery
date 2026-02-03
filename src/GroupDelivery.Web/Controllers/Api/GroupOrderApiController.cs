@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
+using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers.Api
@@ -11,11 +12,10 @@ namespace GroupDelivery.Web.Controllers.Api
     [Route("api/groups")]
     public class GroupOrderApiController : ControllerBase
     {
-        private readonly GroupOrderService _service;
-
-        public GroupOrderApiController(GroupOrderService service)
+        private readonly IGroupOrderService _groupOrderService;
+        public GroupOrderApiController(IGroupOrderService groupOrderService)
         {
-            _service = service;
+            _groupOrderService = groupOrderService;
         }
 
         // GET: api/groups
@@ -25,7 +25,7 @@ namespace GroupDelivery.Web.Controllers.Api
             try
             {
                 List<GroupOrder> groups =
-                    await _service.GetActiveGroupsAsync();   
+                    await _groupOrderService.GetActiveGroupsAsync();   
 
                 return Ok(groups);
             }
@@ -40,7 +40,7 @@ namespace GroupDelivery.Web.Controllers.Api
         public async Task<IActionResult> GetGroup(int id)
         {
             GroupOrder group =
-                await _service.GetGroupDetailAsync(id);     
+                await _groupOrderService.GetGroupDetailAsync(id);     
 
             if (group == null)
             {

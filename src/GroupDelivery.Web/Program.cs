@@ -67,9 +67,10 @@ namespace GroupDelivery.Web
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
-           
+            builder.Services.AddHttpContextAccessor();
+
             // DI 注入
-           
+
             builder.Services.AddScoped<EmailService>();
 
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -82,8 +83,9 @@ namespace GroupDelivery.Web
 
             builder.Services.AddScoped<IStoreService, StoreService>();
             builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
 
-            
+
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

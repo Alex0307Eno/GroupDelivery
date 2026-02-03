@@ -2,6 +2,7 @@
 using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +16,14 @@ public class AccountController : Controller
     private readonly GroupDeliveryDbContext _db;
     private readonly IUserRepository _userRepo;
     private readonly IAuthService _authService;
+    private readonly IMerchantService _merchantService;
 
-    public AccountController(GroupDeliveryDbContext db, IUserRepository userRepo, IAuthService authService)
+    public AccountController(GroupDeliveryDbContext db, IUserRepository userRepo, IAuthService authService, IMerchantService merchantService)
     {
         _db = db;
         _userRepo = userRepo;
         _authService = authService;
+        _merchantService = merchantService;
     }
 
     public async Task<IActionResult> Profile()
@@ -80,6 +83,17 @@ public class AccountController : Controller
 
         return Redirect("/");
     }
+    [Authorize]
+    [HttpGet]
+    public IActionResult UpgradeToMerchant()
+    {
+        // 已是商家就不要再來
+        if (User.FindFirst("Role")?.Value == nameof(UserRole.Merchant))
+            return RedirectToAction("Profile");
+
+        return View();
+    }
+
 
     [Authorize]
     [HttpGet]
@@ -115,6 +129,19 @@ public class AccountController : Controller
         await _db.SaveChangesAsync();
         return Ok();
     }
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> UpgradeToMerchant(UpgradeMerchantRequest request)
+    {
+        var userId = int.Parse(User.FindFirst("UserID").Value);
+
+        await _merchantService.UpgradeToMerchant(userId, request);
+
+        await _authService.RefreshSignInAsync(userId);
+        TempData["Success"] = "已成功升級為商家，請完成商家資料設定";
+        return RedirectToAction("Profile");
+    }
+
 
     public class UpdatePhoneRequest
     {

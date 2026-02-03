@@ -20,19 +20,23 @@ namespace GroupDelivery.Application.Services
         private readonly EmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IUserRepository _userRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
 
         public AuthService(
             ILoginTokenService tokenService,
             IUserRepository userRepo,
             EmailService emailService,
             IConfiguration config,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IHttpContextAccessor httpContextAccessor)
         {
             _tokenService = tokenService;
             _userRepo = userRepo;
             _emailService = emailService;
             _config = config;
             _userRepository = userRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task SendLoginLinkAsync(string email)
@@ -86,6 +90,27 @@ namespace GroupDelivery.Application.Services
                 && !string.IsNullOrWhiteSpace(dbUser.Phone);
         }
 
+        public async Task RefreshSignInAsync(int userId)
+        {
+            var user = _userRepo.GetById(userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            var claims = new List<Claim>
+        {
+            new Claim("UserId", user.UserId.ToString()),
+            new Claim(ClaimTypes.Name, user.DisplayName ?? "使用者"),
+            new Claim("Role", ((int)user.Role).ToString())
+        };
+
+            var identity = new ClaimsIdentity(claims, "Cookies");
+            var principal = new ClaimsPrincipal(identity);
+
+            var context = _httpContextAccessor.HttpContext;
+
+            await context.SignOutAsync("Cookies");
+            await context.SignInAsync("Cookies", principal);
+        }
     }
 
 }
