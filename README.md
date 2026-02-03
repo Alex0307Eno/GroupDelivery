@@ -1,142 +1,150 @@
-揪IN（JOUIN）
+JOUIN
 
-不是外送平台，而是對傳統外送模式的修正。
+Not a food delivery platform.
+A correction to the food delivery model.
 
-傳統外送平台同時讓三方不滿意：
+Traditional delivery platforms frustrate everyone involved:
 
-店家被高抽成壓榨
+Merchants lose margin to high commissions
 
-消費者花更多、吃更少、等更久
+Consumers pay more, get less, and wait longer
 
-平台被迫維持高成本物流體系
+Platforms carry heavy logistics and labor costs
 
-揪IN 從一開始就選擇不走那條路。
+Join deliberately avoids this model.
 
-傳統外送平台的結構性問題
-對消費者來說
+Why Consumers Are Tired of Food Delivery Platforms
+1️⃣ Less food, higher prices
 
-1️⃣ 餐點變少、價格變高
+To survive 25%–35% platform commissions, restaurants:
 
-店家為了支付 25%～35% 抽成
+Reduce portion sizes
 
-縮水份量、提高單價
+Increase menu prices
 
-消費者實際買到的價值下降
+Consumers pay more for less value
 
-2️⃣ 額外費用不斷疊加
+2️⃣ Fees stacked on top of fees
 
-外送費
+A single order often includes:
 
-平台服務費
+Delivery fee
 
-高峰加價
+Platform service fee
 
-小額訂單費
+Peak-time surcharge
 
-一餐還沒吃到，費用先疊好幾層。
+Small order fee
 
-3️⃣ 送餐時間不可預期
+The price inflates before the food even arrives.
 
-顯示 30 分鐘，實際 60 分鐘
+3️⃣ Unreliable delivery times
 
-餐點先做好但卡在外送員
+Promised 30 minutes, delivered in 60
 
-到手已冷，體驗失敗
+Food prepared early but delayed by driver batching
 
-4️⃣ 被迫購買「即時配送」
-多數人其實不需要立刻送到，只需要：
+Meals arrive cold and disappointing
 
-價格合理
+4️⃣ Forced “instant delivery”
 
-份量正常
+Most people don’t actually need food immediately.
+They want:
 
-時間可預期
+Predictable timing
 
-但外送平台只提供一種選項。
+Reasonable pricing
 
-對店家來說
+Normal portions
 
-高抽成導致利潤被壓縮
+Delivery platforms force everyone into the same “instant” model, whether it makes sense or not.
 
-不參與平台就沒有流量
+Why Merchants Are Also Stuck
 
-平台掌握價格與顧客關係
+High commissions crush margins
 
-揪IN 的核心差異
-1️⃣ 不做物流，不養外送員
+Opting out means losing visibility
 
-平台完全不處理配送
+Platforms control pricing and customer access
 
-店家可選擇自送或自取
+How Join Is Fundamentally Different
+1️⃣ No logistics, no drivers
 
-不將物流成本轉嫁給消費者
+Join does not manage delivery
 
-結果是：
-平台結構更輕，費用更低。
+Merchants choose:
 
-2️⃣ 不靠抽成，靠訂閱
+Self-delivery
 
-傳統外送：每單抽成
+Pickup only
 
-揪IN：月費 / 功能訂閱制
+Logistics costs are not pushed onto consumers
 
-訂單越多：
+Result: a lighter, cheaper platform structure.
 
-店家越賺
+2️⃣ Subscription-based, not commission-based
 
-消費者越划算
+Traditional platforms: take a cut from every order
 
-平台與雙方利益一致
+Join: monthly / feature-based subscriptions
 
-3️⃣ 團購成團制，提高訂單密度
+More orders mean:
 
-不追求一單一送
+Merchants earn more
 
-以團購集中需求
+Consumers pay less
 
-一次出餐，多筆成交
+Platform incentives align with both sides
 
-特別適合：
+3️⃣ Group-buying instead of single-order delivery
 
-社區
+Demand is aggregated before fulfillment
 
-辦公室
+One preparation, multiple orders
 
-熟客圈
+Higher order density, lower operational waste
 
-4️⃣ 先確定需求，再出餐
+Ideal for:
 
-設定截止時間
+Offices
 
-達標才成團
+Residential communities
 
-出餐與取餐時間事前明確
+Repeat customers
 
-不是賭外送運氣，
-而是事前就講清楚。
+4️⃣ Demand confirmed before cooking
 
-5️⃣ 平台是「成交放大器」，不是中間商
+Clear deadlines
 
-平台只專注於：
+Minimum target required to activate a campaign
 
-成團機制
+Preparation and pickup times are defined upfront
 
-訂單與狀態追蹤
+No guessing.
+No waiting on driver availability.
 
-訂閱與金流管理
+5️⃣ The platform as a “transaction amplifier”
 
-不干涉：
+Join focuses only on:
 
-店家定價
+Group formation logic
 
-出餐方式
+Order and status tracking
 
-顧客關係
+Subscription and payment management
 
-一句話總結
+Join does not:
 
-外送平台賣的是「即時」，
-揪IN 解決的是「合理」。
+Set prices
 
-把零散、被迫、昂貴的消費，
-變成可預期、可負擔、可持續的成交。
+Control menus
+
+Own customer relationships
+
+One-Sentence Summary
+
+Delivery platforms sell “instant.”
+Join restores “reasonable.”
+
+Turning fragmented, expensive, unpredictable orders
+into predictable, affordable, sustainable transactions.
