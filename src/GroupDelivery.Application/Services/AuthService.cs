@@ -97,19 +97,30 @@ namespace GroupDelivery.Application.Services
                 throw new Exception("User not found");
 
             var claims = new List<Claim>
-        {
-            new Claim("UserId", user.UserId.ToString()),
-            new Claim(ClaimTypes.Name, user.DisplayName ?? "使用者"),
-            new Claim("Role", ((int)user.Role).ToString())
-        };
+    {
+        // 🔑 核心：系統 UserId 一定要放在 NameIdentifier
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
 
-            var identity = new ClaimsIdentity(claims, "Cookies");
+        new Claim(ClaimTypes.Name, user.DisplayName ?? "使用者"),
+
+        // 角色用標準 ClaimTypes.Role
+        new Claim(ClaimTypes.Role, user.Role.ToString())
+    };
+
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
             var principal = new ClaimsPrincipal(identity);
 
             var context = _httpContextAccessor.HttpContext;
+            if (context == null)
+                throw new Exception("HttpContext is null");
 
-            await context.SignOutAsync("Cookies");
-            await context.SignInAsync("Cookies", principal);
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await context.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal);
         }
     }
 

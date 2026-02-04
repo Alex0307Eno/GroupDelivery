@@ -130,17 +130,31 @@ public class AccountController : Controller
         return Ok();
     }
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> UpgradeToMerchant(UpgradeMerchantRequest request)
+    [Authorize] 
+    public async Task<IActionResult> UpgradeToMerchant(
+    [FromBody] UpgradeMerchantRequest request)
     {
-        var userId = int.Parse(User.FindFirst("UserID").Value);
+        if (request == null)
+            return BadRequest("請求資料為空");
+
+        if (!User.Identity.IsAuthenticated)
+            return Unauthorized("未登入");
+
+        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (claim == null)
+            return Unauthorized("登入狀態失效");
+
+        int userId;
+        if (!int.TryParse(claim.Value, out userId))
+            return Unauthorized("使用者識別錯誤");
 
         await _merchantService.UpgradeToMerchant(userId, request);
 
         await _authService.RefreshSignInAsync(userId);
-        TempData["Success"] = "已成功升級為商家，請完成商家資料設定";
-        return RedirectToAction("Profile");
+
+        return Ok(new { success = true });
     }
+
 
 
     public class UpdatePhoneRequest

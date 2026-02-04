@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -54,7 +55,7 @@ namespace GroupDelivery.Web.Controllers.Api
         public IActionResult LineLogin()
         {
             var redirectUri = Uri.EscapeDataString(
-                "https://a91c2b75965b.ngrok-free.app/signin-line"
+                "https://120c-106-107-190-121.ngrok-free.app/signin-line"
             );
 
             var url =
@@ -85,7 +86,7 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", "https://a91c2b75965b.ngrok-free.app/signin-line" },
+                { "redirect_uri", "https://120c-106-107-190-121.ngrok-free.app/signin-line" },
                 { "client_id", _config["Line:ChannelId"] },
                 { "client_secret", _config["Line:ChannelSecret"] }
             });
@@ -154,15 +155,14 @@ namespace GroupDelivery.Web.Controllers.Api
             await db.SaveChangesAsync();
 
             //  發你自己系統的登入 Cookie
-            var claims = new List<System.Security.Claims.Claim>
+            var claims = new List<Claim>
             {
-                new System.Security.Claims.Claim(
-                    System.Security.Claims.ClaimTypes.NameIdentifier,
-                    user.UserId.ToString()),
-                new System.Security.Claims.Claim(
-                    System.Security.Claims.ClaimTypes.Name,
-                    user.DisplayName)
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.DisplayName),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim("LineUserId", user.LineUserId)
             };
+
 
             var identity = new System.Security.Claims.ClaimsIdentity(
                 claims,
@@ -182,6 +182,7 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         
+
         [HttpGet("Logout")]
         public async Task<IActionResult> Logout()
         {
