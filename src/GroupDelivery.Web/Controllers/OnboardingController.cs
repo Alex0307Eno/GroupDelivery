@@ -33,7 +33,7 @@ namespace GroupDelivery.Web.Controllers
             await db.SaveChangesAsync();
 
             if (user.Role == UserRole.Merchant)
-                return Redirect("/Home/CreateGroup");
+                return Redirect("/Store/CreateGroup");
 
             return Redirect("/");
         }

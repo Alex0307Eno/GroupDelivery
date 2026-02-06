@@ -45,7 +45,11 @@ namespace GroupDelivery.Application.Services
 
             var encodedToken = Uri.EscapeDataString(token);
 
-            var link = $"{_config["App:BaseUrl"]}/Auth/VerifyEmail?token={encodedToken}";
+            var baseUrl = _config["App:BaseUrl"];
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                baseUrl = _config["AppBaseUrl"];
+
+            var link = $"{baseUrl}/Auth/VerifyEmail?token={encodedToken}";
 
             await _emailService.SendLoginMail(email, link);
         }
