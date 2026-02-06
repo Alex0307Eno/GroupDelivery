@@ -11,11 +11,13 @@ namespace GroupDelivery.Application.Services
     {
         private readonly IGroupOrderRepository _groupOrderRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IStoreRepository _storeRepo;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepo, IUserRepository userRepository)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepo, IUserRepository userRepository, IStoreRepository storeRepository)
         {
             _groupOrderRepo = groupOrderRepo;
             _userRepo = userRepository;
+            _storeRepo = storeRepository;
         }
 
         // 取得所有進行中的團購
@@ -43,11 +45,15 @@ namespace GroupDelivery.Application.Services
             if (user.Role != UserRole.Merchant)
                 throw new Exception("只有商家可以開團");
 
+            var store = _storeRepo.GetByOwner(userId);
+            if (store == null)
+                throw new Exception("找不到商家店家資料");
+
             var now = DateTime.Now;
 
             var group = new GroupOrder
             {
-                StoreId = user.UserId,
+                StoreId = store.StoreId,
                 CreatorUserId = userId,
                 TargetAmount = request.TargetAmount,
                 Deadline = request.Deadline,

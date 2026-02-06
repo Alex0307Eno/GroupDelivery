@@ -88,7 +88,7 @@ public class AccountController : Controller
     public IActionResult UpgradeToMerchant()
     {
         // 已是商家就不要再來
-        if (User.FindFirst("Role")?.Value == nameof(UserRole.Merchant))
+        if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(UserRole.Merchant))
             return RedirectToAction("Profile");
 
         return View();
@@ -109,7 +109,14 @@ public class AccountController : Controller
                 displayName = x.DisplayName,
                 lineUserId = x.LineUserId,
                 pictureUrl = x.PictureUrl,
-                role = x.Role.ToString()
+                role = x.Role.ToString(),
+                isMerchant = x.Role == UserRole.Merchant,
+                phone = x.Phone,
+                storeName = x.StoreName,
+                storePhone = x.StorePhone,
+                storeAddress = x.StoreAddress,
+                lat = x.Lat,
+                lng = x.Lng
             })
             .FirstAsync();
 

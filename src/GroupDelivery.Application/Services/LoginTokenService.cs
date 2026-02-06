@@ -69,7 +69,14 @@ namespace GroupDelivery.Application.Services
 
         private string Sign(string text)
         {
-            var key = Encoding.UTF8.GetBytes(_config["App:LoginSecret"]);
+            var secret = _config["App:LoginSecret"];
+            if (string.IsNullOrWhiteSpace(secret))
+                secret = _config["AppLoginSecret"];
+
+            if (string.IsNullOrWhiteSpace(secret))
+                throw new Exception("App LoginSecret 未設定");
+
+            var key = Encoding.UTF8.GetBytes(secret);
             using (var hmac = new HMACSHA256(key))
             {
                 return Convert.ToBase64String(

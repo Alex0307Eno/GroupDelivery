@@ -164,6 +164,9 @@
                 axios.get('/api/store/groups')
                     .then(res => {
                         self.groups = res.data || [];
+                        if (self.groups.length > 0 && self.groups[0].storeName) {
+                            self.storeName = self.groups[0].storeName;
+                        }
                     });
             },
             remainMinutes(deadline) {
