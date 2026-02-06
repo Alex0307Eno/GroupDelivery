@@ -28,6 +28,13 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             return _db.Stores.FirstOrDefault(x => x.OwnerUserId == ownerUserId);
         }
+        public List<Store> GetByOwnerUserId(int ownerUserId)
+        {
+            return _db.Stores
+                .Where(s => s.OwnerUserId == ownerUserId)
+                .ToList();
+        }
+
     }
 
 }

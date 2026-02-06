@@ -1,10 +1,13 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Linq;
+
 
 namespace GroupDelivery.Web.Controllers.Api
 {
@@ -14,10 +17,12 @@ namespace GroupDelivery.Web.Controllers.Api
     public class MerchantGroupController : ControllerBase
     {
         private readonly IGroupOrderService _groupOrderService;
+        private readonly IStoreRepository _storeRepository;
 
-        public MerchantGroupController(IGroupOrderService groupOrderService)
+        public MerchantGroupController(IGroupOrderService groupOrderService, IStoreRepository storeRepository)
         {
             _groupOrderService = groupOrderService;
+            _storeRepository = storeRepository;
         }
 
         [HttpPost("groups")]
@@ -42,6 +47,23 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 return BadRequest(new { error = ex.Message });
             }
+
+        }
+        [HttpGet("stores")]
+        public IActionResult GetMyStores()
+        {
+            // 一定要用正確的 Claim
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var stores = _storeRepository.GetByOwnerUserId(userId);
+
+            var result = stores.Select(s => new
+            {
+                storeId = s.StoreId,
+                storeName = s.StoreName
+            });
+
+            return Ok(result);
         }
     }
 }

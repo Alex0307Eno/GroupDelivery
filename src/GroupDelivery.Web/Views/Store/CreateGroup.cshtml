@@ -71,9 +71,33 @@
             <!-- 店家 -->
             <div class="mb-4">
                 <label class="form-label">店家</label>
-                <input class="form-control shadow-sm"
-                       :value="storeName"
-                       disabled>
+                <div class="mb-4">
+                    <label class="form-label">店家</label>
+
+                    <!-- 只有一家 -->
+                    <input v-if="stores.length === 1"
+                           class="form-control shadow-sm"
+                           :value="stores[0].storeName"
+                           disabled>
+
+                    <!-- 多家 -->
+                    <select v-else
+                            class="form-select shadow-sm"
+                            v-model="selectedStoreId"
+                            @@change ="form.storeId = selectedStoreId">
+                        <option disabled value="">請選擇店家</option>
+                        <option v-for="s in stores"
+                                :key="s.storeId"
+                                :value="s.storeId">
+                            {{ s.storeName }}
+                        </option>
+                    </select>
+
+                    <div class="form-hint">
+                        已登入商家帳號
+                    </div>
+                </div>
+
                 <div class="form-hint">
                     已登入商家帳號
                 </div>
@@ -159,18 +183,37 @@
         const { createApp } = Vue;
 
         createApp({
-            data() {
-                return {
-                    storeName: "梁社漢排骨",
-                    submitting: false,
-                    form: {
-                        targetAmount: null,
-                        deadline: "",
-                        deliveryRange: 3,
-                        remark: ""
-                    }
+                   data() {
+            return {
+                stores: [],              // 登入者擁有的店家清單
+                selectedStoreId: null,   // 目前選中的店
+                submitting: false,
+                form: {
+                    storeId: null,       // 建團一定要送給後端
+                    targetAmount: null,
+                    deadline: "",
+                    deliveryRange: 3,
+                    remark: ""
                 }
-            },
+            }
+        },
+            mounted() {
+            axios.get('/api/merchant/stores')
+                .then(res => {
+                    this.stores = res.data;
+
+                    // 只有一家店，自動選
+                    if (this.stores.length === 1) {
+                        this.selectedStoreId = this.stores[0].storeId;
+                        this.form.storeId = this.selectedStoreId;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("無法取得店家資料");
+                });
+        },
+
             computed: {
                 targetHint() {
                     if (!this.form.targetAmount) return "";

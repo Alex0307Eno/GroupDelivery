@@ -55,7 +55,7 @@ namespace GroupDelivery.Web.Controllers.Api
         public IActionResult LineLogin()
         {
             var redirectUri = Uri.EscapeDataString(
-                "https://120c-106-107-190-121.ngrok-free.app/signin-line"
+                "https://5cdb-106-107-190-121.ngrok-free.app/signin-line"
             );
 
             var url =
@@ -86,7 +86,7 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", "https://120c-106-107-190-121.ngrok-free.app/signin-line" },
+                { "redirect_uri", "https://5cdb-106-107-190-121.ngrok-free.app/signin-line" },
                 { "client_id", _config["Line:ChannelId"] },
                 { "client_secret", _config["Line:ChannelSecret"] }
             });

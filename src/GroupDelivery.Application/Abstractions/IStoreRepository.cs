@@ -11,7 +11,7 @@ namespace GroupDelivery.Application.Abstractions
     {
         void Add(Store store);
         Store GetByOwner(int ownerUserId);
-
+        List<Store> GetByOwnerUserId(int ownerUserId);
     }
 
 }
