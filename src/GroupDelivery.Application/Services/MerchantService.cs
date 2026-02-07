@@ -21,7 +21,9 @@ namespace GroupDelivery.Application.Services
             _storeRepo = storeRepo;
         }
 
-        public async Task UpgradeToMerchant(int userId, UpgradeMerchantRequest request)
+        public async Task UpgradeToMerchant(
+            int userId,
+            UpgradeMerchantRequest request)
         {
             var user = _userRepo.GetById(userId);
             if (user == null)
@@ -30,7 +32,8 @@ namespace GroupDelivery.Application.Services
             if (user.Role == UserRole.Merchant)
                 return;
 
-            var store = _storeRepo.GetByOwner(userId);
+            var store = await _storeRepo.GetFirstByOwnerAsync(userId);
+
             if (store == null)
             {
                 store = new Store
@@ -44,11 +47,11 @@ namespace GroupDelivery.Application.Services
                     ModifiedAt = DateTime.Now
                 };
 
-                _storeRepo.Add(store);
+                await _storeRepo.CreateAsync(store);
             }
 
             user.Role = UserRole.Merchant;
-            _userRepo.Update(user);
+            _userRepo.Update(user); 
         }
     }
 

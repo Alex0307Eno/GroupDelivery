@@ -1,12 +1,14 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Repositories;
+using GroupDelivery.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq;
+
 
 
 namespace GroupDelivery.Web.Controllers.Api
@@ -14,15 +16,15 @@ namespace GroupDelivery.Web.Controllers.Api
     [ApiController]
     [Route("api/merchant")]
     [Authorize]
-    public class MerchantGroupController : ControllerBase
+    public class MerchantGroupApiController : ControllerBase
     {
         private readonly IGroupOrderService _groupOrderService;
-        private readonly IStoreRepository _storeRepository;
+        private readonly IStoreService _storeService;
 
-        public MerchantGroupController(IGroupOrderService groupOrderService, IStoreRepository storeRepository)
+        public MerchantGroupApiController(IGroupOrderService groupOrderService, IStoreService storeService)
         {
             _groupOrderService = groupOrderService;
-            _storeRepository = storeRepository;
+            _storeService = storeService;
         }
 
         [HttpPost("groups")]
@@ -50,12 +52,13 @@ namespace GroupDelivery.Web.Controllers.Api
 
         }
         [HttpGet("stores")]
-        public IActionResult GetMyStores()
+        [HttpGet]
+        public async Task<IActionResult> GetMyStores()
         {
-            // 一定要用正確的 Claim
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var stores = _storeRepository.GetByOwnerUserId(userId);
+            var stores = await _storeService.GetMyStoresAsync(userId);
 
             var result = stores.Select(s => new
             {

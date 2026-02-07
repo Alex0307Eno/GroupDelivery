@@ -1,10 +1,9 @@
 ﻿using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Application.Abstractions;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Infrastructure.Repositories
@@ -18,23 +17,46 @@ namespace GroupDelivery.Infrastructure.Repositories
             _db = db;
         }
 
-        public void Add(Store store)
+        public async Task<Store> GetByIdAndOwnerAsync(int storeId, int ownerUserId)
         {
-            _db.Stores.Add(store);
-            _db.SaveChanges();
+            return await _db.Stores
+                .FirstOrDefaultAsync(x =>
+                    x.StoreId == storeId &&
+                    x.OwnerUserId == ownerUserId);
         }
 
-        public Store GetByOwner(int ownerUserId)
+        public async Task<List<Store>> GetByOwnerAsync(int ownerUserId)
         {
-            return _db.Stores.FirstOrDefault(x => x.OwnerUserId == ownerUserId);
+            return await _db.Stores
+                .Where(x => x.OwnerUserId == ownerUserId)
+                .ToListAsync();
         }
-        public List<Store> GetByOwnerUserId(int ownerUserId)
+        public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
         {
-            return _db.Stores
-                .Where(s => s.OwnerUserId == ownerUserId)
-                .ToList();
+            return await _db.Stores
+                .Where(x => x.OwnerUserId == ownerUserId)
+                .OrderBy(x => x.StoreId)
+                .FirstOrDefaultAsync();
         }
 
+
+        public async Task<int> CreateAsync(Store store)
+        {
+            await _db.Stores.AddAsync(store);
+            await _db.SaveChangesAsync();
+            return store.StoreId;
+        }
+
+        public async Task UpdateAsync(Store store)
+        {
+            _db.Stores.Update(store);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Store store)
+        {
+            _db.Stores.Remove(store);
+            await _db.SaveChangesAsync();
+        }
     }
-
 }

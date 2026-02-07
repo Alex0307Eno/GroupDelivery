@@ -11,9 +11,16 @@ namespace GroupDelivery.Domain
         [Key]
         public int StoreId { get; set; }
 
-        // 店家擁有者（對應 User）
-        [Required]
+        // ======================
+        // 關聯
+        // ======================
+
+        // 店家擁有者（系統指定，不由使用者輸入）
         public int OwnerUserId { get; set; }
+
+        // ======================
+        // 基本資訊（使用者會填）
+        // ======================
 
         // 店名
         [Required]
@@ -25,20 +32,68 @@ namespace GroupDelivery.Domain
         [StringLength(20)]
         public string Phone { get; set; }
 
-        // 地址（初始化階段可為空）
+        // 地址（可選）
         [StringLength(255)]
         public string Address { get; set; }
+        public string Description { get; set; }
+
+        // ======================
+        // 地理位置
+        // ======================
 
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
 
-        // 店家狀態：Draft / Active / Suspended
-        [Required]
+        // ======================
+        // 營運資訊（第一階段）
+        // ======================
+
+        // 營業開始時間
+        public TimeSpan? OpenTime { get; set; }
+
+        // 營業結束時間
+        public TimeSpan? CloseTime { get; set; }
+
+        // 是否接單中（臨時關店用）
+        public bool IsAcceptingOrders { get; set; }
+
+        // 最低成團金額
+        public decimal? MinOrderAmount { get; set; }
+
+        // ======================
+        // 圖片（URL 即可，先別做太複雜）
+        // ======================
+
+        // 店家封面照
+        [StringLength(255)]
+        public string CoverImageUrl { get; set; }
+
+        // 菜單圖片
+        [StringLength(255)]
+        public string MenuImageUrl { get; set; }
+
+        // ======================
+        // 補充說明
+        // ======================
+
+        // 店家備註（如：假日較忙、辣度可調）
+        [StringLength(500)]
+        public string Notice { get; set; }
+
+        // ======================
+        // 系統欄位
+        // ======================
+
+        // Draft / Active / Suspended
         [StringLength(20)]
         public string Status { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+
+        // ======================
+        // 關聯集合
+        // ======================
 
         public virtual ICollection<StoreProduct> Products { get; set; }
     }

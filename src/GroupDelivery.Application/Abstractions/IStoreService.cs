@@ -1,15 +1,16 @@
 ﻿using GroupDelivery.Domain;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Application.Abstractions
 {
     public interface IStoreService
     {
-        int CreateStore(int userId, StoreInitRequest request);
-    }
+        Task<List<Store>> GetMyStoresAsync(int userId);
+        Task<Store> GetMyStoreAsync(int storeId, int userId);
 
+        Task<int> CreateAsync(int userId, StoreInitRequest request);
+        Task UpdateAsync(int userId, StoreUpdateRequest request);
+        Task DeleteAsync(int userId, int storeId);
+    }
 }

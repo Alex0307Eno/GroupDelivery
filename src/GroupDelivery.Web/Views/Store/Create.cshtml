@@ -1,0 +1,93 @@
+﻿@model GroupDelivery.Domain.StoreInitRequest
+
+<h3 class="fw-bold mb-4">新增商店</h3>
+
+<form asp-action="Create"
+      asp-controller="Store"
+      method="post"
+      enctype="multipart/form-data">
+
+    @Html.AntiForgeryToken()
+
+    <!-- 基本資訊 -->
+    <h5 class="fw-bold mb-3">基本資訊</h5>
+
+    <div class="mb-3">
+        <label class="form-label">商店名稱</label>
+        <input class="form-control" asp-for="StoreName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">電話</label>
+        <input class="form-control" asp-for="Phone" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">地址</label>
+        <input class="form-control" asp-for="Address" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">商店介紹</label>
+        <textarea class="form-control"
+                  asp-for="Description"
+                  rows="3"></textarea>
+    </div>
+
+    <hr />
+
+    <!-- 營業資訊 -->
+    <h5 class="fw-bold mb-3">營業資訊</h5>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">開始時間</label>
+            <input type="time"
+                   class="form-control"
+                   asp-for="OpenTime" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">結束時間</label>
+            <input type="time"
+                   class="form-control"
+                   asp-for="CloseTime" />
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input"
+               asp-for="IsAcceptingOrders" />
+        <label class="form-check-label">目前接受訂單</label>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">公告</label>
+        <textarea class="form-control"
+                  asp-for="Notice"></textarea>
+    </div>
+
+    <hr />
+
+    <!-- 圖片 -->
+    <h5 class="fw-bold mb-3">商店圖片</h5>
+
+    <div class="mb-3">
+        <label class="form-label">店家封面照片</label>
+        <input type="file"
+               class="form-control"
+               asp-for="CoverImage"
+               accept="image/*" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">菜單照片（可多張）</label>
+        <input type="file"
+               class="form-control"
+               asp-for="MenuImages"
+               accept="image/*"
+               multiple />
+    </div>
+
+    <button class="btn btn-success">建立商店</button>
+    <a href="/Store/MyStores" class="btn btn-secondary">返回</a>
+</form>

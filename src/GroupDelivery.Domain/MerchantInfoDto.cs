@@ -8,6 +8,8 @@ namespace GroupDelivery.Domain
 {
     public class MerchantInfoDto
     {
+        public int? StoreId { get; set; }
+
         public string StoreName { get; set; }
         public string StoreAddress { get; set; }
         public string StorePhone { get; set; }

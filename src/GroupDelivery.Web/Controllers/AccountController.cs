@@ -171,55 +171,32 @@ public class AccountController : Controller
     }
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> UpdateMerchantInfo(
+    public async Task<IActionResult> CreateMerchant(
     [FromBody] MerchantInfoDto dto,
     [FromServices] GroupDeliveryDbContext db)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        var user = await db.Users.FindAsync(userId);
-        if (user == null)
-            return Unauthorized();
-
-        // 找這個使用者的店
-        var store = await db.Stores
-            .FirstOrDefaultAsync(s => s.OwnerUserId == userId);
-
-        if (store == null)
+        var store = new Store
         {
-            store = new Store
-            {
-                StoreName = dto.StoreName,
-                Phone = dto.StorePhone,
-                Address = dto.StoreAddress,
-                Latitude = dto.Lat,
-                Longitude = dto.Lng,
-                OwnerUserId = userId,
-                Status = "Draft",
-                CreatedAt = DateTime.UtcNow,
-                ModifiedAt = DateTime.UtcNow
-            };
+            StoreName = dto.StoreName,
+            Phone = dto.StorePhone,
+            Address = dto.StoreAddress,
+            Latitude = dto.Lat,
+            Longitude = dto.Lng,
+            OwnerUserId = userId,
+            Status = "Draft",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedAt = DateTime.UtcNow
+        };
 
-            db.Stores.Add(store);
-
-
-            db.Stores.Add(store);
-        }
-        else
-        {
-            // 已有商家 → 更新
-            store.StoreName = dto.StoreName;
-            store.Phone = dto.StorePhone;
-            store.Address = dto.StoreAddress;
-            store.Latitude = dto.Lat;
-            store.Longitude = dto.Lng;
-            store.ModifiedAt = DateTime.UtcNow;
-
-        }
-
+        db.Stores.Add(store);
         await db.SaveChangesAsync();
-        return Ok();
+
+        return Ok(store.StoreId);
     }
+
+
 
 
 

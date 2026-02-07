@@ -45,7 +45,7 @@ namespace GroupDelivery.Application.Services
             if (user.Role != UserRole.Merchant)
                 throw new Exception("只有商家可以開團");
 
-            var store = _storeRepo.GetByOwner(userId);
+            var store = await _storeRepo.GetFirstByOwnerAsync(userId);
             if (store == null)
                 throw new Exception("找不到商家店家資料");
 

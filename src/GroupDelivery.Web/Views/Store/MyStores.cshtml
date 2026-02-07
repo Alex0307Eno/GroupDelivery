@@ -1,0 +1,82 @@
+﻿@model IEnumerable<Store>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">我的商店</h3>
+    <a class="btn btn-success" href="/Store/Create">＋ 新增商店</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light text-center py-5">
+        <div class="fw-bold mb-2">你還沒有建立任何商店</div>
+        <div class="text-muted mb-3">
+            建立商店後，才能開始被消費者看到
+        </div>
+        <a class="btn btn-success" href="/Store/Create">
+            建立第一家商店
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var store in Model)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+
+                    <!-- 封面 -->
+                    <div class="ratio ratio-16x9 bg-light">
+                        <img src="@(string.IsNullOrEmpty(store.CoverImageUrl)
+                                                                 ? "/img/store-placeholder.jpg"
+                                                                 : store.CoverImageUrl)"
+                     class="w-100 h-100 object-fit-cover" />
+            </div>
+
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">@store.StoreName</h5>
+
+                    @if (store.IsAcceptingOrders)
+                            {
+                                <span class="badge bg-success">營業中</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">暫停接單</span>
+                            }
+                        </div>
+
+                        <div class="text-muted small mb-2">
+                            @store.Address
+                        </div>
+
+                        <div class="text-muted small">
+                            營業時間：
+                            @store.OpenTime
+                            –
+                            @store.CloseTime
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="/Store/Edit/@store.StoreId">
+                            編輯商店
+                        </a>
+
+                        <form method="post"
+                              action="/Store/Delete/@store.StoreId"
+                              onsubmit="return confirm('確定刪除這家商店？');">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-outline-danger btn-sm">
+                                刪除
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

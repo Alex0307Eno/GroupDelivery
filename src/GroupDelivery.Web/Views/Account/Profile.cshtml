@@ -107,7 +107,7 @@
 
                     this.savingMerchant = true;
                     try {
-                        await axios.post('/Account/UpdateMerchantInfo', {
+                        await axios.post('/Account/CreateMerchant', {
                             storeName: this.user.storeName,
                             storePhone: this.user.storePhone,
                             storeAddress: this.user.storeAddress,
