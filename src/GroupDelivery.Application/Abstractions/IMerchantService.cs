@@ -10,6 +10,8 @@ namespace GroupDelivery.Application.Abstractions
     public interface IMerchantService
     {
          Task  UpgradeToMerchant(int userId, UpgradeMerchantRequest request);
+        Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto);
+
     }
 
 }

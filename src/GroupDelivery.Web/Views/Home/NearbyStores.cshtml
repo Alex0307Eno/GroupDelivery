@@ -1,130 +1,271 @@
 ﻿@{
-    ViewData["Title"] = "揪IN｜附近商家";
+    ViewData["Title"] = "揪IN｜附近揪團";
 }
 
 <style>
-    .store-card {
-        border-radius: 1.2rem;
-        background: #ffffff;
-        box-shadow: 0 10px 26px rgba(15,23,42,.08);
-        padding: 1.4rem;
-        height: 100%;
-        transition: transform .15s ease-out, box-shadow .15s ease-out;
-        position: relative;
+    body {
+        background: linear-gradient(135deg, #f8fafc, #eef2ff);
     }
 
-        .store-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 36px rgba(15,23,42,.14);
-        }
-
-    .store-name {
-        font-weight: 700;
-        font-size: 1.05rem;
-    }
-
-    .store-distance {
-        font-size: .85rem;
-        color: #6b7280;
-    }
-
-    .store-hint {
-        font-size: .85rem;
-        margin-top: .4rem;
-        color: #16a34a;
-        font-weight: 600;
-    }
-
-        .store-hint.idle {
-            color: #9ca3af;
-            font-weight: 500;
-        }
-
-    .store-cta {
-        margin-top: 1rem;
-        font-size: .9rem;
-        font-weight: 600;
-        border-radius: 999px;
-        padding: .45rem 1rem;
-    }
-
-    .store-card.active::before {
-        content: "";
-        position: absolute;
-        inset: -2px;
-        border-radius: inherit;
-        border: 2px solid rgba(34,197,94,.6);
-        pointer-events: none;
+    .page-header {
+        margin-bottom: 1.8rem;
     }
 
     .page-title {
-        font-size: 1.6rem;
-        font-weight: 800;
+        font-size: 1.9rem;
+        font-weight: 900;
+        letter-spacing: -.6px;
     }
 
     .page-sub {
-        font-size: .95rem;
         color: #6b7280;
+        font-size: .95rem;
+    }
+
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin-bottom: .2rem;
+    }
+
+    .section-sub {
+        font-size: .9rem;
+        color: #6b7280;
+        margin-bottom: 1.2rem;
+    }
+
+    .store-card {
+        border-radius: 1.4rem;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 14px 40px rgba(15,23,42,.08);
+        transition: transform .25s ease, box-shadow .25s ease;
+        animation: fadeUp .6s ease both;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+        .store-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 60px rgba(15,23,42,.18);
+        }
+
+        .store-card.urgent {
+            outline: 2px solid rgba(239,68,68,.6);
+        }
+
+    .store-cover {
+        height: 150px;
+        background-size: cover;
+        background-position: center;
+        background-color: #e5e7eb;
+    }
+
+    .store-body {
+        padding: 1.2rem 1.4rem 1.4rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .store-name {
+        font-weight: 800;
+        font-size: 1.05rem;
+    }
+
+    .store-meta {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-top: .2rem;
+    }
+
+    .badge-tag {
+        font-size: .7rem;
+        font-weight: 800;
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        display: inline-block;
+    }
+
+    .badge-new {
+        background: #8b5cf6;
+        color: #fff;
+    }
+
+    .badge-urgent {
+        background: #ef4444;
+        color: #fff;
+        animation: pulse 1.2s infinite;
+    }
+
+    .badge-active {
+        background: #22c55e;
+        color: #fff;
+    }
+
+    .store-cta {
+        margin-top: .9rem;
+        border-radius: 999px;
+        font-weight: 800;
+    }
+
+    .store-footer-text {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-top: .4rem;
+    }
+
+    .empty-hint {
+        font-size: .9rem;
+        color: #9ca3af;
+    }
+
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: .4;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: .4;
+        }
     }
 </style>
 
 <div id="app" class="container py-5">
 
     <!-- 頁首 -->
-    <div class="mb-4">
-        <div class="page-title">
-            附近有什麼可以揪的
-        </div>
-        <div class="page-sub mt-1">
-            有人正在揪的店，會排在前面
+    <div class="page-header">
+        <div class="page-title">附近正在揪的店</div>
+        <div class="page-sub">
+            上面是正在開團的店，下方是還沒有人動手開團的店。
         </div>
     </div>
 
-    <!-- 商家列表 -->
-    <div class="row g-4">
-
-        <div v-for="store in sortedStores"
-             :key="store.storeId"
-             class="col-lg-4 col-md-6">
-
-            <div class="store-card"
-                 :class="{ 'active': store.hasActiveGroup }">
-
-                <div class="store-name">
-                    {{ store.storeName }}
-                </div>
-
-                <div class="store-distance">
-                    距離你 {{ store.distance }} 公尺
-                </div>
-
-                <!-- 狀態提示 -->
-                <div class="store-hint"
-                     v-if="store.hasActiveGroup">
-                    有人正在等你
-                </div>
-
-                <div class="store-hint idle"
-                     v-else>
-                    目前沒有團
-                </div>
-
-                <!-- CTA -->
-                <a :href="'/Store/' + store.storeId + '/Groups'"
-                   class="btn btn-outline-dark store-cta"
-                   v-if="store.hasActiveGroup">
-                    看正在揪的
-                </a>
-
-                <a :href="'/Store/' + store.storeId + '/CreateGroup'"
-                   class="btn btn-outline-secondary store-cta"
-                   v-else>
-                    開一團等人
-                </a>
-            </div>
-
+    <!-- 正在開團區塊 -->
+    <div class="mb-5">
+        <div class="section-title">🔥 正在開團</div>
+        <div class="section-sub">
+            越接近截止、越靠近你的，會排在前面。
         </div>
 
+        <div v-if="activeStores.length === 0" class="empty-hint mb-4">
+            目前附近沒有正在開團的店家，可以從下面挑一間幫他開第一團。
+        </div>
+
+        <div class="row g-4" v-if="activeStores.length > 0">
+            <div class="col-lg-4 col-md-6"
+                 v-for="(s, i) in activeStores"
+                 :key="s.storeId"
+                 :style="{ animationDelay: (i * 0.08) + 's' }">
+
+                <div class="store-card"
+                     :class="{ urgent: s.isUrgent }">
+
+                    <div class="store-cover"
+                         :style="{ backgroundImage: 'url(' + (s.coverImageUrl || '/images/store-placeholder.jpg') + ')' }">
+                    </div>
+
+                    <div class="store-body">
+                        <div class="d-flex gap-2 mb-2">
+                            <span v-if="s.isUrgent" class="badge-tag badge-urgent">快截止</span>
+                            <span v-else-if="s.isNew" class="badge-tag badge-new">NEW</span>
+                            <span class="badge-tag badge-active">開團中</span>
+                        </div>
+
+                        <div class="store-name">{{ s.storeName }}</div>
+                        <div class="store-meta">
+                            {{ s.openTime }} - {{ s.closeTime }} · 距離你 {{ s.distance }} 公尺
+                        </div>
+
+                        <div v-if="s.isUrgent"
+                             class="text-danger fw-bold small mt-1">
+                            剩 {{ s.minutesLeft }} 分鐘就截止
+                        </div>
+
+                        <a :href="'/Store/' + s.storeId + '/Groups'"
+                           class="btn btn-success w-100 store-cta">
+                            立刻加入這一團
+                        </a>
+
+                        <div class="store-footer-text">
+                            現在加入，最容易湊到「值得送」的單。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 尚未開團區塊 -->
+    <div>
+        <div class="section-title">🌱 尚未開團</div>
+       
+
+        <div class="section-sub">
+            這些店附近也有人，只是還沒人開頭。你可以當第一個發起人。
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6"
+                 v-for="(s, i) in idleStores"
+                 :key="s.storeId"
+                 :style="{ animationDelay: (i * 0.05) + 's' }">
+
+                <div class="store-card">
+                    <div class="store-cover"
+                         :style="{ backgroundImage: 'url(' + (s.coverImageUrl || '/images/store-placeholder.jpg') + ')' }">
+                    </div>
+
+                    <div class="store-body">
+                        <div class="store-name">{{ s.storeName }}</div>
+                        <div class="store-meta">
+                            {{ s.openTime }} - {{ s.closeTime }} · 距離你 {{ s.distance }} 公尺
+                        </div>
+
+                        <!-- 可接單 -->
+                        <a v-if="s.isAcceptingOrders"
+                           :href="'/Store/' + s.storeId + '/CreateGroup'"
+                           class="btn btn-outline-secondary w-100 store-cta">
+                            幫這間店開一團
+                        </a>
+
+                        <!-- 暫停接單 -->
+                        <button v-else
+                                class="btn btn-outline-secondary w-100 store-cta"
+                                disabled>
+                            暫停接單中
+                        </button>
+
+
+                        <div class="store-footer-text">
+                            只要有人跟，你就變成這一區的發起人。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="idleStores.length === 0"
+                 class="empty-hint mt-3">
+                這一帶目前只有正在開團的店家。
+            </div>
+        </div>
     </div>
 
 </div>
@@ -142,26 +283,88 @@
             };
         },
         computed: {
-            sortedStores() {
-                // 有團的排前面，其餘照距離
-                return this.stores.slice().sort(function (a, b) {
-                    if (a.hasActiveGroup !== b.hasActiveGroup) {
-                        return a.hasActiveGroup ? -1 : 1;
-                    }
-                    return a.distance - b.distance;
-                });
-            }
-        },
-        methods: {
-            fetchStores() {
-                var self = this;
-                axios.get('/api/stores/nearby')
-                    .then(function (res) {
-                        self.stores = res.data || [];
+            // 上半部：有正在開團的店
+            activeStores() {
+                return this.stores
+                    .filter(function (s) { return s.hasActiveGroup; })
+                    .sort(function (a, b) {
+                        // 先比剩餘時間，再比距離
+                        if (a.minutesLeft !== b.minutesLeft) {
+                            return a.minutesLeft - b.minutesLeft;
+                        }
+                        return a.distance - b.distance;
+                    });
+            },
+            // 下半部：沒有開團的店
+            idleStores() {
+                return this.stores
+                    .filter(function (s) { return !s.hasActiveGroup; })
+                    .sort(function (a, b) {
+                        return a.distance - b.distance;
                     });
             }
         },
-        mounted() {
+        methods: {
+            enrichStore: function (store) {
+                // 沒有開團就不用算 NEW / 緊急
+                if (!store.hasActiveGroup) {
+                    store.isUrgent = false;
+                    store.isNew = false;
+                    store.minutesLeft = 9999;
+                    return store;
+                }
+
+                try {
+                    var now = new Date();
+
+                    var deadline = store.activeGroupDeadline
+                        ? new Date(store.activeGroupDeadline)
+                        : null;
+
+                    var createdAt = store.activeGroupCreatedAt
+                        ? new Date(store.activeGroupCreatedAt)
+                        : null;
+
+                    var minutesLeft = 9999;
+                    if (deadline && !isNaN(deadline.getTime())) {
+                        minutesLeft = Math.floor((deadline - now) / 60000);
+                    }
+
+                    var minutesSinceCreate = 9999;
+                    if (createdAt && !isNaN(createdAt.getTime())) {
+                        minutesSinceCreate = Math.floor((now - createdAt) / 60000);
+                    }
+
+                    store.minutesLeft = Math.max(minutesLeft, 0);
+                    store.isUrgent = minutesLeft > 0 && minutesLeft <= 15;
+
+                    store.isNew = minutesSinceCreate <= 10 && minutesSinceCreate >= 0;
+                } catch (e) {
+                    store.isUrgent = false;
+                    store.isNew = false;
+                    store.minutesLeft = 9999;
+                }
+
+                return store;
+            },
+            fetchStores: function () {
+                var self = this;
+
+                axios.get('/api/stores/nearby')
+                    .then(function (res) {
+                        var list = res.data || [];
+
+                        self.stores = list.map(function (s) {
+                            // 後端沒給的欄位先用預設值補上
+                            s.coverImageUrl = s.coverImageUrl || null;
+                            s.openTime = s.openTime || '尚未設定';
+                            s.closeTime = s.closeTime || '';
+                            return self.enrichStore(s);
+                        });
+                    });
+            }
+        },
+        mounted: function () {
             this.fetchStores();
         }
     }).mount('#app');

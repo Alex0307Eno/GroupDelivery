@@ -1,49 +1,64 @@
 ﻿@{
-    ViewData["Title"] = "個人資料";
-}
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["Success"]
-    </div>
+    ViewData["Title"] = "我的檔案";
 }
 
 <style>
     body {
-        background: radial-gradient(circle at top, #fef5e6 0, #f5f7fb 40%, #edf0ff 100%);
+        background: linear-gradient(135deg, #fff7ed 0%, #f5f7fb 50%, #eef2ff 100%);
+    }
+
+    .profile-hero {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        border-radius: 22px;
+        box-shadow: 0 25px 60px rgba(99,102,241,.35);
     }
 
     .profile-card {
-        border-radius: 18px;
+        border-radius: 20px;
         box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
         border: 0;
     }
 
     .profile-mini-card {
-        border-radius: 14px;
+        border-radius: 18px;
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
         border: 0;
     }
 
-    .btn-soft {
-        transition: transform .15s ease, box-shadow .15s ease;
+    .lift {
+        transition: transform .2s ease, box-shadow .2s ease;
     }
 
-        .btn-soft:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(0,0,0,.12);
+        .lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,.12);
         }
 
-    .fade-enter-active,
-    .fade-leave-active {
-        transition: opacity .25s ease, transform .25s ease;
+    .fade-up {
+        animation: fadeUp .6s ease both;
     }
 
-    .fade-enter-from,
-    .fade-leave-to {
-        opacity: 0;
-        transform: translateY(8px);
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 99px;
+        background: rgba(255,255,255,.3);
+    }
+
+    .progress-bar {
+        background: #22c55e;
     }
 </style>
 
@@ -61,192 +76,114 @@
                 return {
                     user: null,
                     loading: true,
-                    locating: false,
-                    savingPhone: false,
-                    savingMerchant: false
+                    saving: false
                 };
             },
             computed: {
-                isMerchant() {
-                    return this.user && this.user.isMerchant === true;
+                profileCompletion() {
+                    let score = 0;
+                    if (this.user.phone) score += 20;
+                    if (this.user.city) score += 20;
+                    if (this.user.bio) score += 20;
+                    if (this.user.foodPreference) score += 20;
+                    if (this.user.notifyOptIn) score += 20;
+                    return score;
                 }
             },
             async mounted() {
-                try {
-                    const res = await axios.get('/Account/ProfileData');
-                    this.user = res.data;
-                } catch (e) {
-                    alert('載入個人資料失敗');
-                } finally {
-                    this.loading = false;
-                }
+                const res = await axios.get('/Account/ProfileData');
+                this.user = {
+                    ...res.data,
+                    bio: res.data.bio || '',
+                    city: res.data.city || '',
+                    foodPreference: res.data.foodPreference || '',
+                    notifyOptIn: res.data.notifyOptIn ?? true
+                };
+                this.loading = false;
             },
             methods: {
-                async savePhone() {
-                    if (!this.user.phone) {
-                        alert('請輸入手機號碼');
-                        return;
-                    }
-
-                    this.savingPhone = true;
-                    try {
-                        await axios.post('/Account/UpdatePhone', {
-                            phone: this.user.phone
-                        });
-                        alert('手機號碼已儲存');
-                    } finally {
-                        this.savingPhone = false;
-                    }
-                },
-
-                async saveMerchantInfo() {
-                    if (!this.user.storeName || !this.user.storePhone || !this.user.storeAddress) {
-                        alert('請填寫完整商家資料');
-                        return;
-                    }
-
-                    this.savingMerchant = true;
-                    try {
-                        await axios.post('/Account/CreateMerchant', {
-                            storeName: this.user.storeName,
-                            storePhone: this.user.storePhone,
-                            storeAddress: this.user.storeAddress,
-                            lat: this.user.lat,
-                            lng: this.user.lng
-                        });
-                        alert('商家資料已儲存');
-                    } finally {
-                        this.savingMerchant = false;
-                    }
-                },
-
-                locate() {
-                    if (!navigator.geolocation) {
-                        alert('瀏覽器不支援定位');
-                        return;
-                    }
-
-                    this.locating = true;
-
-                    navigator.geolocation.getCurrentPosition(async pos => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-
-                        this.user.lat = lat;
-                        this.user.lng = lng;
-
-                        const res = await axios.get('https://nominatim.openstreetmap.org/reverse', {
-                            params: { lat, lon: lng, format: 'json' }
-                        });
-
-                        if (res.data?.display_name) {
-                            this.user.storeAddress = res.data.display_name;
-                        }
-
-                        this.locating = false;
-                    }, () => {
-                        alert('定位失敗');
-                        this.locating = false;
-                    });
+                async saveProfile() {
+                    this.saving = true;
+                    await axios.post('/Account/UpdateProfile', this.user);
+                    this.saving = false;
+                    alert('已儲存，你離快速成團更近了');
                 }
             },
             template: `
-            <transition name="fade">
-                <div v-if="loading" class="text-center text-muted py-5">
-                    載入中…
-                </div>
-            </transition>
+            <div v-if="loading" class="text-center py-5 text-muted">載入中…</div>
 
-            <transition name="fade">
-                <div v-if="!loading && user" class="row justify-content-center">
-                    <div class="col-md-7 col-lg-6">
+            <div v-else class="row justify-content-center">
+                <div class="col-lg-7">
 
-                        <!-- 個人卡 -->
-                        <div class="card profile-card mb-4">
-                            <div class="card-body text-center">
-
-                                <img v-if="user.pictureUrl"
-                                     :src="user.pictureUrl"
-                                     class="rounded-circle mb-3"
-                                     style="width:96px;height:96px;object-fit:cover;">
-
-                                <div v-else
-                                     class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3"
-                                     style="width:96px;height:96px;font-size:32px;">
-                                    {{ user.displayName?.charAt(0) || '?' }}
+                    <!-- HERO -->
+                    <div class="profile-hero p-4 mb-4 fade-up">
+                        <div class="d-flex align-items-center">
+                            <img v-if="user.pictureUrl"
+                                 :src="user.pictureUrl"
+                                 class="rounded-circle me-3"
+                                 style="width:88px;height:88px;object-fit:cover;">
+                            <div>
+                                <h4 class="fw-bold mb-1">{{ user.displayName }}</h4>
+                                <div class="small opacity-75">
+                                    個人完成度 {{ profileCompletion }}%
                                 </div>
-
-                                <h4 class="fw-bold">{{ user.displayName }}</h4>
-
-                                <span class="badge"
-                                      :class="isMerchant ? 'bg-warning text-dark' : 'bg-secondary'">
-                                    {{ isMerchant ? '商家身分' : '一般使用者' }}
-                                </span>
-
-                                <hr>
-
-                                <div class="text-start mb-3">
-                                    <label class="form-label">手機號碼</label>
-                                    <input class="form-control" v-model="user.phone">
+                                <div class="progress mt-2">
+                                    <div class="progress-bar"
+                                         :style="{ width: profileCompletion + '%' }"></div>
                                 </div>
-
-                                <button class="btn btn-outline-primary w-100 mb-2 btn-soft"
-                                        v-on:click="savePhone"
-                                        :disabled="savingPhone">
-                                    儲存手機號碼
-                                </button>
-
-                                <a v-if="!isMerchant"
-                                   href="/Account/UpgradeToMerchant"
-                                   class="btn btn-warning w-100 mb-2 btn-soft">
-                                    升級為商家
-                                </a>
-
-                                <a href="/Auth/Logout"
-                                   class="btn btn-outline-danger w-100 btn-soft">
-                                    登出
-                                </a>
                             </div>
                         </div>
-
-                        <!-- 商家區 -->
-                        <div v-if="isMerchant" class="card profile-mini-card">
-                            <div class="card-body">
-
-                                <h6 class="fw-bold mb-3">商家資料</h6>
-
-                                <div class="mb-2">
-                                    <input class="form-control" placeholder="店名" v-model="user.storeName">
-                                </div>
-
-                                <div class="mb-2">
-                                    <input class="form-control" placeholder="店家電話" v-model="user.storePhone">
-                                </div>
-
-                                <div class="mb-3">
-                                    <textarea class="form-control" rows="2"
-                                              placeholder="店家地址"
-                                              v-model="user.storeAddress"></textarea>
-                                </div>
-
-                                <button class="btn btn-outline-secondary w-100 mb-2 btn-soft"
-                                        v-on:click="locate"
-                                        :disabled="locating">
-                                    使用目前位置填入地址
-                                </button>
-
-                                <button class="btn btn-warning w-100 btn-soft"
-                                        v-on:click="saveMerchantInfo"
-                                        :disabled="savingMerchant">
-                                    儲存商家資料
-                                </button>
-
-                            </div>
-                        </div>
-
                     </div>
+
+                    <!-- 快速配對 -->
+                    <div class="profile-mini-card p-4 mb-3 lift fade-up">
+                        <h6 class="fw-bold mb-2">📍 快速配對設定</h6>
+                        <p class="small text-muted mb-3">
+                            填寫常用地區，系統會優先幫你配對附近即將成團的訂單，
+                            <strong>成團速度會快很多。</strong>
+                        </p>
+
+                        <input class="form-control mb-2"
+                               placeholder="常出沒城市（例如：台中 西屯）"
+                               v-model="user.city">
+
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   v-model="user.notifyOptIn">
+                            <label class="form-check-label small">
+                                優先接收附近揪團通知
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 偏好 -->
+                    <div class="profile-mini-card p-4 mb-3 lift fade-up">
+                        <h6 class="fw-bold mb-3">🍽 偏好</h6>
+
+                        <select class="form-select mb-2"
+                                v-model="user.foodPreference">
+                            <option value="">飲食偏好（選填）</option>
+                            <option>辣</option>
+                            <option>不辣</option>
+                            <option>素食</option>
+                        </select>
+
+                        <textarea class="form-control"
+                                  rows="2"
+                                  placeholder="一句介紹你自己"
+                                  v-model="user.bio"></textarea>
+                    </div>
+
+                    <!-- CTA -->
+                    <button class="btn btn-primary w-100 py-3 fw-bold lift"
+                            :disabled="saving"
+                            v-on:click="saveProfile">
+                        儲存設定，開始更快成團
+                    </button>
+
                 </div>
-            </transition>
+            </div>
             `
         }).mount('#app');
     </script>

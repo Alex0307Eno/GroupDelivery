@@ -49,5 +49,13 @@ namespace GroupDelivery.Infrastructure.Repositories
             _db.GroupOrders.Update(entity);
             await _db.SaveChangesAsync();
         }
+        public async Task<GroupOrder> GetDetailAsync(int groupId)
+        {
+            return await _db.GroupOrders
+                .Include(g => g.Store)
+                .ThenInclude(s => s.MenuImageUrl)
+                .FirstOrDefaultAsync(g => g.GroupOrderId == groupId);
+        }
+
     }
 }

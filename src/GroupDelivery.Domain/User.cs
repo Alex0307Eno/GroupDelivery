@@ -31,21 +31,18 @@ namespace GroupDelivery.Domain
         [StringLength(20)]
         public string Phone { get; set; }
 
-        // ===== 商家專用 =====
-        [StringLength(100)]
-        public string StoreName { get; set; }
-
-        [StringLength(200)]
-        public string StoreAddress { get; set; }
-
-        [StringLength(20)]
-        public string StorePhone { get; set; }
-
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
+        // tbUser 新增
+        public string Nickname { get; set; }
+        public string Bio { get; set; }
+        public string City { get; set; }
+        public string FoodPreference { get; set; }
+        public bool NotifyOptIn { get; set; }
+
     }
 
     public enum UserRole

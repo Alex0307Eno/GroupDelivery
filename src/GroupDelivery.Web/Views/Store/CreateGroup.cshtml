@@ -235,7 +235,7 @@
 
                     axios.post('/api/merchant/groups', this.form)
                         .then(() => {
-                            location.href = "/Merchant/Dashboard";
+                            location.href = "/Home/Index";
                         })
                         .catch(() => {
                             alert("建立失敗，請稍後再試");

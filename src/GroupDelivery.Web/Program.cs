@@ -73,10 +73,10 @@ namespace GroupDelivery.Web
             // DI 注入
 
             builder.Services.AddScoped<EmailService>();
-
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ILoginTokenService, LoginTokenService>();
 
+            builder.Services.AddScoped<IUserService,UserService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();

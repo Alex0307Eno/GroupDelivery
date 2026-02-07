@@ -14,5 +14,7 @@ namespace GroupDelivery.Application.Abstractions
         Task<User> GetOrCreateByEmail(string email);
         User GetById(int userId);
         void Update(User user);
+
+        Task UpdateAsync(User user);
     }
 }

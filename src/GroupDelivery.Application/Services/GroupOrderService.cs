@@ -3,6 +3,7 @@ using GroupDelivery.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace GroupDelivery.Application.Services
 {
@@ -27,9 +28,24 @@ namespace GroupDelivery.Application.Services
         }
 
         // 取得團購詳情
-        public async Task<GroupOrder> GetGroupDetailAsync(int id)
+        public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
         {
-            return await _groupOrderRepo.GetByIdAsync(id);
+            var group = await _groupOrderRepo.GetDetailAsync(groupId);
+            if (group == null)
+                return null;
+
+            return new GroupDetailDto
+            {
+                GroupId = group.GroupOrderId,
+                StoreName = group.Store.StoreName,
+                TargetAmount = group.TargetAmount,
+                CurrentAmount = group.CurrentAmount,
+                Deadline = group.Deadline,
+                MenuImages = group.Store.MenuImageUrl
+    ?.Split(',')
+    .ToList()
+
+            };
         }
 
         // 建立新團購

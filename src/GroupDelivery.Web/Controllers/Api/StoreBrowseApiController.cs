@@ -2,6 +2,7 @@ using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,21 +19,45 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         [HttpGet("/api/stores/nearby")]
+        
         public async Task<IActionResult> NearbyStores()
         {
-            var activeStoreIds = await _db.GroupOrders
-                .Where(x => x.Status == GroupOrderStatus.Open)
-                .Select(x => x.StoreId)
-                .Distinct()
+            var activeGroups = await _db.GroupOrders
+                .Where(g => g.Status == GroupOrderStatus.Open)
+                .GroupBy(g => g.StoreId)
+                .Select(g => new
+                {
+                    StoreId = g.Key,
+                    Deadline = g.Min(x => x.Deadline),
+                    CreatedAt = g.Max(x => x.CreatedAt)
+                })
                 .ToListAsync();
 
+            var activeGroupMap = activeGroups
+                .ToDictionary(x => x.StoreId, x => x);
+
             var stores = await _db.Stores
-                .Select(x => new
+                .Select(s => new
                 {
-                    storeId = x.StoreId,
-                    storeName = x.StoreName,
+                    storeId = s.StoreId,
+                    storeName = s.StoreName,
                     distance = 0,
-                    hasActiveGroup = activeStoreIds.Contains(x.StoreId)
+
+                    hasActiveGroup = activeGroupMap.ContainsKey(s.StoreId),
+
+                    activeGroupDeadline = activeGroupMap.ContainsKey(s.StoreId)
+                        ? activeGroupMap[s.StoreId].Deadline
+                        : (DateTime?)null,
+
+                    activeGroupCreatedAt = activeGroupMap.ContainsKey(s.StoreId)
+                        ? activeGroupMap[s.StoreId].CreatedAt
+                        : (DateTime?)null,
+
+                    coverImageUrl = s.CoverImageUrl,
+                    openTime = s.OpenTime,
+                    closeTime = s.CloseTime,
+
+                    isAcceptingOrders = s.IsAcceptingOrders
                 })
                 .ToListAsync();
 

@@ -20,7 +20,26 @@ namespace GroupDelivery.Application.Services
             _userRepo = userRepo;
             _storeRepo = storeRepo;
         }
+        public async Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.StoreName))
+                throw new Exception("店名不可為空");
 
+            var store = new Store
+            {
+                StoreName = dto.StoreName,
+                Phone = dto.StorePhone,
+                Address = dto.StoreAddress,
+                Latitude = dto.Lat,
+                Longitude = dto.Lng,
+                OwnerUserId = userId,
+                Status = "Draft",
+                CreatedAt = DateTime.UtcNow,
+                ModifiedAt = DateTime.UtcNow
+            };
+
+            return await _storeRepo.CreateAsync(store);
+        }
         public async Task UpgradeToMerchant(
             int userId,
             UpgradeMerchantRequest request)

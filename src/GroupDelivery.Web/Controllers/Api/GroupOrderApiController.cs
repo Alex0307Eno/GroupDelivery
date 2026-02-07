@@ -39,8 +39,8 @@ namespace GroupDelivery.Web.Controllers.Api
         [HttpGet("{id}")]
         public async Task<IActionResult> GetGroup(int id)
         {
-            GroupOrder group =
-                await _groupOrderService.GetGroupDetailAsync(id);     
+            var group =
+                await _groupOrderService.GetGroupDetailAsync(id);
 
             if (group == null)
             {
@@ -49,5 +49,15 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok(group);
         }
+        [HttpGet("groups/{groupId}")]
+        public async Task<IActionResult> GetGroupDetail(int groupId)
+        {
+            var result = await _groupOrderService.GetGroupDetailAsync(groupId);
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
     }
 }

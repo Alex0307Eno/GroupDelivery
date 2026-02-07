@@ -8,9 +8,11 @@ namespace GroupDelivery.Application.Abstractions
     {
         Task<List<GroupOrder>> GetActiveGroupsAsync();
 
-        Task<GroupOrder> GetGroupDetailAsync(int id);
 
         Task CreateGroupAsync(int userId, CreateGroupRequest request);
+
+        Task<GroupDetailDto> GetGroupDetailAsync(int groupId);
+
 
         //Task RefreshGroupStatusAsync(int groupId);
     }

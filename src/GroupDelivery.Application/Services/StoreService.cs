@@ -56,6 +56,11 @@ namespace GroupDelivery.Infrastructure.Services
             store.StoreName = request.StoreName;
             store.Phone = request.Phone;
             store.Address = request.Address;
+            store.Description = request.Description;
+            store.OpenTime = request.OpenTime;
+            store.CloseTime = request.CloseTime;
+            store.IsAcceptingOrders = request.IsAcceptingOrders;
+            store.Notice = request.Notice;
             store.ModifiedAt = DateTime.UtcNow;
 
             await _storeRepo.UpdateAsync(store);
@@ -69,5 +74,22 @@ namespace GroupDelivery.Infrastructure.Services
 
             await _storeRepo.DeleteAsync(store);
         }
+        public async Task UpdateCoverImageAsync(int storeId, int ownerUserId,string url)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            store.CoverImageUrl = url;
+            store.ModifiedAt = DateTime.UtcNow;
+            await _storeRepo.UpdateAsync(store);
+        }
+
+        public async Task UpdateMenuImageAsync(int storeId, int ownerUserId, string url)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            store.MenuImageUrl = url;
+            store.ModifiedAt = DateTime.UtcNow;
+            await _storeRepo.UpdateAsync(store);
+        }
+        
+
     }
 }

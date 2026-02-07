@@ -14,17 +14,17 @@ using System.Threading.Tasks;
 [Authorize]
 public class AccountController : Controller
 {
-    private readonly GroupDeliveryDbContext _db;
     private readonly IUserRepository _userRepo;
     private readonly IAuthService _authService;
     private readonly IMerchantService _merchantService;
+    private readonly IUserService _userService;
 
-    public AccountController(GroupDeliveryDbContext db, IUserRepository userRepo, IAuthService authService, IMerchantService merchantService)
+    public AccountController(  IUserRepository userRepo, IAuthService authService, IMerchantService merchantService, IUserService userService)
     {
-        _db = db;
         _userRepo = userRepo;
         _authService = authService;
         _merchantService = merchantService;
+        _userService = userService;
     }
 
     public async Task<IActionResult> Profile()
@@ -39,6 +39,21 @@ public class AccountController : Controller
 
         return View(user);
     }
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> ProfileData()
+    {
+        var userId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var profile = await _userService.GetProfileAsync(userId);
+
+        if (profile == null)
+            return Unauthorized();
+
+        return Json(profile);
+    }
+
     [Authorize]
     public async Task<IActionResult> CompleteProfile()
     {
@@ -71,7 +86,6 @@ public class AccountController : Controller
         user.DisplayName = displayName;
         user.Phone = phone;
 
-        await _db.SaveChangesAsync();
 
         return Redirect("/");
     }
@@ -97,46 +111,19 @@ public class AccountController : Controller
 
 
     [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> ProfileData()
-    {
-        var userId = int.Parse(
-            User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-        var user = await _db.Users
-            .Where(x => x.UserId == userId)
-            .Select(x => new
-            {
-                displayName = x.DisplayName,
-                lineUserId = x.LineUserId,
-                pictureUrl = x.PictureUrl,
-                role = x.Role.ToString(),
-                isMerchant = x.Role == UserRole.Merchant,
-                phone = x.Phone,
-                storeName = x.StoreName,
-                storePhone = x.StorePhone,
-                storeAddress = x.StoreAddress,
-                lat = x.Lat,
-                lng = x.Lng
-            })
-            .FirstAsync();
-
-        return Json(user);
-    }
-    [Authorize]
     [HttpPost]
-    public async Task<IActionResult> UpdatePhone(
-    [FromBody] UpdatePhoneRequest req)
+    public async Task<IActionResult> UpdateProfile(
+    [FromBody] UpdateProfileRequest req)
     {
         var userId = int.Parse(
-            User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        var user = await _db.Users.FindAsync(userId);
-        user.Phone = req.Phone;
+        await _userService.UpdateProfileAsync(userId, req);
 
-        await _db.SaveChangesAsync();
         return Ok();
     }
+
+    
     [HttpPost]
     [Authorize] 
     public async Task<IActionResult> UpgradeToMerchant(
@@ -172,29 +159,19 @@ public class AccountController : Controller
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateMerchant(
-    [FromBody] MerchantInfoDto dto,
-    [FromServices] GroupDeliveryDbContext db)
+    [FromBody] MerchantInfoDto dto)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        if (dto == null)
+            return BadRequest("請求資料為空");
 
-        var store = new Store
-        {
-            StoreName = dto.StoreName,
-            Phone = dto.StorePhone,
-            Address = dto.StoreAddress,
-            Latitude = dto.Lat,
-            Longitude = dto.Lng,
-            OwnerUserId = userId,
-            Status = "Draft",
-            CreatedAt = DateTime.UtcNow,
-            ModifiedAt = DateTime.UtcNow
-        };
+        var userId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        db.Stores.Add(store);
-        await db.SaveChangesAsync();
+        var storeId = await _merchantService.CreateStoreAsync(userId, dto);
 
-        return Ok(store.StoreId);
+        return Ok(new { storeId });
     }
+
 
 
 

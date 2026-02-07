@@ -8,6 +8,8 @@ namespace GroupDelivery.Application.Abstractions
     {
         Task<List<GroupOrder>> GetAllActiveAsync();
         Task<GroupOrder> GetByIdAsync(int id);
+        Task<GroupOrder> GetDetailAsync(int groupId);
+
         Task AddAsync(GroupOrder group);
         Task UpdateAsync(GroupOrder group);
     }
