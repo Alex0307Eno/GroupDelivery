@@ -93,14 +93,10 @@
                         </option>
                     </select>
 
-                    <div class="form-hint">
-                        已登入商家帳號
-                    </div>
+                    
                 </div>
 
-                <div class="form-hint">
-                    已登入商家帳號
-                </div>
+                
             </div>
 
             <div class="divider"></div>
@@ -129,12 +125,59 @@
             <!-- 截止時間 -->
             <div class="mb-4 fade-up fade-delay-2">
                 <label class="form-label">截止時間</label>
-                <div class="form-hint">
-                    建議 30～90 分鐘
+
+                <!-- 快捷按鈕 -->
+                <div class="btn-group w-100 mb-2">
+                    <button class="btn"
+                            :class="selectedPreset === 30 ? 'btn-primary' : 'btn-outline-primary'"
+                            @@click ="setDeadline(30)">
+                        30 分鐘
+                    </button>
+
+                    <button class="btn"
+                            :class="selectedPreset === 45 ? 'btn-primary' : 'btn-outline-primary'"
+                            @@click ="setDeadline(45)">
+                        45 分鐘
+                    </button>
+
+                    <button class="btn"
+                            :class="selectedPreset === 60 ? 'btn-primary' : 'btn-outline-primary'"
+                            @@click ="setDeadline(60)">
+                        60 分鐘
+                    </button>
                 </div>
-                <input type="datetime-local"
-                       class="form-control shadow-sm"
-                       v-model="form.deadline">
+
+
+                <!-- 自訂 -->
+                <div class="mt-2">
+                    <button class="btn btn-link p-0"
+                            @@click ="showCustom = !showCustom">
+                        {{ showCustom ? '收起自訂時間' : '需要自訂時間？' }}
+                    </button>
+                </div>
+
+                <div v-if="showCustom" class="mt-2">
+                    <div class="input-group">
+                        <input type="number"
+                               class="form-control"
+                               min="10"
+                               max="240"
+                               placeholder="輸入分鐘數（例如 75）"
+                               v-model.number="customMinutes">
+                        <span class="input-group-text">分鐘後</span>
+                    </div>
+
+                    <button class="btn btn-outline-secondary w-100 mt-2"
+                            @@click ="applyCustomDeadline">
+                        套用自訂時間
+                    </button>
+                </div>
+
+                <!-- 顯示結果 -->
+                <div class="small text-muted mt-2">
+                    截止時間：<strong>{{ formattedDeadline }}</strong>
+                </div>
+
             </div>
 
             <!-- 外送距離 -->
@@ -179,42 +222,53 @@
 </div>
 
 @section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <script>
         const { createApp } = Vue;
 
         createApp({
-                   data() {
-            return {
-                stores: [],              // 登入者擁有的店家清單
-                selectedStoreId: null,   // 目前選中的店
-                submitting: false,
-                form: {
-                    storeId: null,       // 建團一定要送給後端
-                    targetAmount: null,
-                    deadline: "",
-                    deliveryRange: 3,
-                    remark: ""
-                }
-            }
-        },
-            mounted() {
-            axios.get('/api/merchant/stores')
-                .then(res => {
-                    this.stores = res.data;
+            data() {
+                return {
+                    stores: [],
+                    selectedStoreId: null,
+                     selectedPreset: null,
+                    showCustom: false,
+                    customMinutes: null,
+                    submitting: false,
 
-                    // 只有一家店，自動選
-                    if (this.stores.length === 1) {
-                        this.selectedStoreId = this.stores[0].storeId;
-                        this.form.storeId = this.selectedStoreId;
+                    form: {
+                        storeId: null,
+                        targetAmount: null,
+                        deadline: "",
+                        deliveryRange: 3,
+                        remark: ""
                     }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("無法取得店家資料");
-                });
-        },
+                };
+            },
+
+            mounted() {
+                axios.get('/api/merchant/stores')
+                    .then(res => {
+                        this.stores = res.data || [];
+
+                        if (this.stores.length === 1) {
+                            this.selectedStoreId = this.stores[0].storeId;
+                            this.form.storeId = this.selectedStoreId;
+                        }
+                    })
+                    .catch(() => {
+                        alert("無法取得店家資料");
+                    });
+            },
 
             computed: {
+                formattedDeadline() {
+                    if (!this.form.deadline) return '尚未設定';
+                    return new Date(this.form.deadline).toLocaleString();
+                },
+
                 targetHint() {
                     if (!this.form.targetAmount) return "";
                     if (this.form.targetAmount < 500)
@@ -224,8 +278,39 @@
                     return "金額偏高，建議搭配推播";
                 }
             },
+
             methods: {
+                setDeadline(minutes) {
+                    const d = new Date();
+                    d.setMinutes(d.getMinutes() + minutes);
+                    this.form.deadline = d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0') + 'T' +
+                    String(d.getHours()).padStart(2, '0') + ':' +
+                    String(d.getMinutes()).padStart(2, '0');
+
+                    this.selectedPreset = minutes;
+                    this.showCustom = false;
+                },
+
+                applyCustomDeadline() {
+                    if (!this.customMinutes || this.customMinutes < 10) {
+                        alert('請輸入至少 10 分鐘');
+                        return;
+                    }
+
+                    const d = new Date();
+                    d.setMinutes(d.getMinutes() + this.customMinutes);
+                    this.form.deadline = d.toISOString();
+                    this.selectedPreset = null;
+                },
+
                 submitForm() {
+                    if (!this.form.storeId) {
+                        alert("請選擇店家");
+                        return;
+                    }
+
                     if (!this.form.targetAmount || !this.form.deadline) {
                         alert("請填寫成團金額與截止時間");
                         return;

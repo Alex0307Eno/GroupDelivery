@@ -602,49 +602,72 @@
 
             <div class="card card-group position-relative">
 
+                <!-- Ribbon -->
                 <div class="card-ribbon"
                      :class="{ 'card-ribbon-hot': isHot(group) }">
                     {{ isHot(group) ? '🔥 快成團' : '揪團進行中' }}
                 </div>
 
-                <div class="card-img-top cover"
-                     :style="{ backgroundImage: 'url(/img/food-sample.jpg)' }">
-                </div>
+                <!-- 圖片區 -->
+                <div class="card-img-top cover position-relative"
+                     :style="{
+                    backgroundImage: `url(${group.store && group.store.coverImageUrl
+                        ? group.store.coverImageUrl
+                        : '/img/store-placeholder.jpg'})`
+                 }">
 
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <!-- 店名遮罩 -->
+                    <div class="position-absolute bottom-0 start-0 w-100 p-2"
+                         style="background:linear-gradient(transparent, rgba(0,0,0,.65))">
                         <span class="badge bg-dark">
                             {{ group.store.storeName }}
                         </span>
-                        <span class="text-muted small">
-                            還剩 {{ remainingMinutes(group.deadline) }} 分鐘
+                    </div>
+                </div>
+
+                <!-- 內容區 -->
+                <div class="card-body d-flex flex-column">
+
+                    <!-- 剩餘時間 + 百分比 -->
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">
+                            ⏳ 剩 {{ remainingMinutes(group.deadline) }} 分鐘
+                        </span>
+                        <span class="small fw-bold"
+                              :class="isHot(group) ? 'text-danger' : 'text-success'">
+                            {{ calculatePercent(group) }}%
                         </span>
                     </div>
 
+                    <!-- 進度條 -->
+                    <div class="progress progress-sm mb-2">
+                        <div class="progress-bar"
+                             :class="isHot(group) ? 'bg-danger' : 'bg-success'"
+                             :style="{ width: calculatePercent(group) + '%' }">
+                        </div>
+                    </div>
+
+                    <!-- 團說明 -->
                     <h5 class="fw-bold mb-2">
                         {{ group.remark || group.store.storeName + ' 午餐揪團' }}
                     </h5>
 
-                    <p class="text-muted small mb-2">
+                    <!-- 金額 -->
+                    <p class="text-muted small mb-3">
                         已湊 <strong>${{ group.currentAmount }}</strong>，
-                        還差 <strong>${{ leftAmount(group) }}</strong> 就出發
+                        還差 <strong>${{ leftAmount(group) }}</strong> 出發
                     </p>
 
-                    <div class="mb-3">
-                        <div class="progress progress-sm">
-                            <div class="progress-bar bg-success"
-                                 :style="{ width: calculatePercent(group) + '%' }">
-                            </div>
-                        </div>
-                    </div>
-
+                    <!-- CTA -->
                     <a :href="'/Home/GroupDetail/' + group.groupOrderId"
                        class="btn btn-dark w-100 mt-auto">
                         立刻跟上
                     </a>
+
                 </div>
             </div>
         </div>
+    </div>
 
         <div v-if="filteredGroups.length === 0"
              class="col-12 text-center text-muted py-5">
@@ -657,7 +680,7 @@
     <div class="platform-diff-section">
         <div class="section-title">
             <div>
-                <h4>揪IN 不是外送平台，是揪團系統</h4>
+                <h4>JOUIN 不是外送平台，是揪團系統</h4>
                 <div class="section-sub">
                     商家不被抽到懷疑人生；使用者不被運費磨到心累。
                 </div>
@@ -672,7 +695,7 @@
                     <ul class="mt-3">
                         <li>一個人點餐也照送，但外送費和服務費偏高。</li>
                         <li>商家被抽成，只能在菜單價格裡偷偷補回來。</li>
-                        <li>騎手為了趕單，繞半個城市送一兩份。</li>
+                        <li>外送員為了趕單，繞半個城市送一兩份。</li>
                     </ul>
                 </div>
             </div>
@@ -680,11 +703,11 @@
             <div class="col-md-6">
                 <div class="platform-card good">
                     <div class="platform-tag">我們的選擇</div>
-                    <h5>揪IN 的規則</h5>
+                    <h5>JOUIN的規則</h5>
                     <ul class="mt-3">
                         <li>人湊到門檻才送，一趟車載滿一整車。</li>
                         <li>商家不用硬吞抽成，可以開合理的揪團優惠。</li>
-                        <li>使用者一起揪，一起分運費，平均下來更便宜。</li>
+                        <li>一個人也不用擔心點不到餐點。</li>
                     </ul>
                 </div>
             </div>
