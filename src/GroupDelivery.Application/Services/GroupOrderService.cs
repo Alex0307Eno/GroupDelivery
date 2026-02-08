@@ -95,7 +95,13 @@ namespace GroupDelivery.Application.Services
 
         }
         #endregion
-
+        #region 取得我開的團列表
+        public async Task<List<GroupOrder>> GetMyGroupOrdersAsync(int userId)
+        {
+            // 這裡定義「我開的團」的語意
+            return await _groupOrderRepository.GetByCreatorAsync(userId);
+        }
+        #endregion
 
     }
 }

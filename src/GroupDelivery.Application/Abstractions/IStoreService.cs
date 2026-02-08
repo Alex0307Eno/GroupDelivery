@@ -81,6 +81,7 @@ namespace GroupDelivery.Application.Abstractions
             int storeId,
             int ownerUserId,
             List<int> days);
+
     }
 }
 

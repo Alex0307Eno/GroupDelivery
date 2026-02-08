@@ -31,6 +31,7 @@ namespace GroupDelivery.Domain
         public TimeSpan CloseTime { get; set; }
         public List<int> WeeklyClosedDays { get; set; }
 
+        public string BusinessTimePreset { get; set; }
 
         // 商家目前是否接受訂單（暫停營業用）
         public bool IsAcceptingOrders { get; set; }

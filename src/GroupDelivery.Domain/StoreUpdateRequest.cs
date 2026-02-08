@@ -25,6 +25,8 @@ namespace GroupDelivery.Domain
         public string Address { get; set; }
         // 給消費者看的店家介紹（可選）
         public string Description { get; set; }
+        //營業時間
+        public string BusinessTimePreset { get; set; }
 
         // 營業開始時間
         public TimeSpan? OpenTime { get; set; }
@@ -41,6 +43,13 @@ namespace GroupDelivery.Domain
         public IFormFile[] NewMenuImages { get; set; }
         // 每週固定公休（0=週日、1=週一...6=週六）
         public List<StoreClosedDate> ClosedDates { get; set; }
+
+        public bool IsOnHoliday { get; set; }
+
+        // 可選，先留著未來用
+        public DateTime? HolidayStartDate { get; set; }
+        public DateTime? HolidayEndDate { get; set; }
+
 
     }
 }

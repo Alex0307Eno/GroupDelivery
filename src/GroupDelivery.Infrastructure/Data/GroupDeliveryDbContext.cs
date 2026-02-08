@@ -23,7 +23,8 @@ namespace GroupDelivery.Infrastructure.Data
         // 商店主體資料
         public DbSet<Store> Stores { get; set; }
 
-        
+        //團購資料
+        public DbSet<Group> Groups { get; set; }
 
         // =========================
         // 揪團 / 團購相關

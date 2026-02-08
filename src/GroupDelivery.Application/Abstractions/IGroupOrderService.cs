@@ -17,6 +17,9 @@ namespace GroupDelivery.Application.Abstractions
         // 會整合多個資料來源並轉換為 DTO
         // 供團單詳情頁使用，避免 Controller 直接操作 Domain Model
         Task<GroupDetailDto> GetGroupDetailAsync(int groupId);
+        //取得我的揪團列表
+        Task<List<GroupOrder>> GetMyGroupOrdersAsync(int userId);
+
     }
 
 }

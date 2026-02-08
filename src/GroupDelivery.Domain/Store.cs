@@ -87,8 +87,20 @@ namespace GroupDelivery.Domain
         [StringLength(20)]
         public string Status { get; set; }
 
+        
+
+        // 給前端用的即時計算結果
+        public bool IsOpenNow { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        // 是否在放假中（由系統計算得出，非使用者輸入）
+        public bool IsOnHoliday { get; set; }
+
+        public DateTime? HolidayStartDate { get; set; }
+
+        public DateTime? HolidayEndDate { get; set; }
+
 
         // ======================
         // 關聯集合

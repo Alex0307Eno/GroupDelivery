@@ -20,7 +20,8 @@ namespace GroupDelivery.Application.Abstractions
         Task<int> CreateAsync(Store store);
         Task UpdateAsync(Store store);
         Task DeleteAsync(Store store);
-
         
+
+
     }
 }

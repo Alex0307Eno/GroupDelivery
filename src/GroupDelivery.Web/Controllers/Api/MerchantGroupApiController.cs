@@ -60,11 +60,16 @@ namespace GroupDelivery.Web.Controllers.Api
 
             var stores = await _storeService.GetMyStoresAsync(userId);
 
-            var result = stores.Select(s => new
-            {
-                storeId = s.StoreId,
-                storeName = s.StoreName
-            });
+            var result = stores
+                    .Where(s => s.IsOpenNow)
+                    .Select(s => new
+                    {
+                        storeId = s.StoreId,
+                        storeName = s.StoreName,
+                        isOpenNow = s.IsOpenNow
+
+                    });
+
 
             return Ok(result);
         }

@@ -69,35 +69,39 @@
         <div class="card-box fade-up fade-delay-1">
 
             <!-- 店家 -->
-            <div class="mb-4">
-                <label class="form-label">店家</label>
                 <div class="mb-4">
                     <label class="form-label">店家</label>
 
-                    <!-- 只有一家 -->
-                    <input v-if="stores.length === 1"
-                           class="form-control shadow-sm"
-                           :value="stores[0].storeName"
-                           disabled>
+                <!-- 沒有可開團的店 -->
+                <div v-if="availableStores.length === 0"
+                     class="alert alert-warning">
+                    目前沒有營業中的商店，請先取消休息設定
+                </div>
 
-                    <!-- 多家 -->
-                    <select v-else
-                            class="form-select shadow-sm"
-                            v-model="selectedStoreId"
-                            @@change ="form.storeId = selectedStoreId">
-                        <option disabled value="">請選擇店家</option>
-                        <option v-for="s in stores"
-                                :key="s.storeId"
-                                :value="s.storeId">
-                            {{ s.storeName }}
-                        </option>
-                    </select>
+                <!-- 只有一家可開團 -->
+                <input v-else-if="availableStores.length === 1"
+                       class="form-control shadow-sm"
+                       :value="availableStores[0].storeName"
+                       disabled>
+
+                <!-- 多家可開團 -->
+                <select v-else
+                        class="form-select shadow-sm"
+                        v-model="selectedStoreId"
+                        @@change ="form.storeId = selectedStoreId">
+                    <option disabled value="">請選擇店家</option>
+                    <option v-for="s in availableStores"
+                            :key="s.storeId"
+                            :value="s.storeId">
+                        {{ s.storeName }}
+                    </option>
+                </select>
+
 
                     
                 </div>
 
                 
-            </div>
 
             <div class="divider"></div>
 
@@ -248,22 +252,27 @@
                 };
             },
 
-            mounted() {
-                axios.get('/api/merchant/stores')
-                    .then(res => {
-                        this.stores = res.data || [];
+        mounted() {
+            axios.get('/api/merchant/stores')
+                .then(res => {
+                    this.stores = res.data || [];
 
-                        if (this.stores.length === 1) {
-                            this.selectedStoreId = this.stores[0].storeId;
-                            this.form.storeId = this.selectedStoreId;
-                        }
-                    })
-                    .catch(() => {
-                        alert("無法取得店家資料");
-                    });
-            },
+                    const openStores = this.availableStores;
+
+                    if (openStores.length === 1) {
+                        this.selectedStoreId = openStores[0].storeId;
+                        this.form.storeId = this.selectedStoreId;
+                    }
+                })
+                .catch(() => {
+                    alert("無法取得店家資料");
+                });
+        },
 
             computed: {
+                    availableStores() {
+            return this.stores.filter(s => s.isOpenNow);
+        },
                 formattedDeadline() {
                     if (!this.form.deadline) return '尚未設定';
                     return new Date(this.form.deadline).toLocaleString();

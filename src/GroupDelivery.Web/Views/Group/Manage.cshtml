@@ -1,157 +1,185 @@
-﻿@if (TempData["Message"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["Message"]
-    </div>
+﻿@model GroupDelivery.Domain.GroupOrder
+
+@{
+    ViewData["Title"] = "團主控制台";
+    var percent = Model.TargetAmount > 0
+        ? (int)((Model.CurrentAmount * 100) / Model.TargetAmount)
+        : 0;
 }
 
-<div class="mb-4">
-    <h2 class="fw-bold mb-1">管理我的團</h2>
-    <div class="text-muted">
-        你是這一團的團主，可以查看狀態並進行管理操作
-    </div>
-</div>
+<div class="page-wrap">
 
-<!-- 團主操作區 -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
+    <!-- 團狀態總覽 -->
+    <div class="status-card fade-up">
+        <div class="d-flex justify-content-between align-items-center">
 
-        <h5 class="fw-bold mb-3">團主操作</h5>
-        <div class="alert alert-warning small mb-3">
-            ⚠ 以下操作將影響整個團，請確認後再進行
-        </div>
+            <div>
+                <div class="status-label">目前狀態</div>
 
-        <div class="row g-3">
+                @if (Model.Status == GroupOrderStatus.Open)
+                {
+                    <div class="status-value status-open">揪團進行中</div>
+                }
+                else if (Model.Status == GroupOrderStatus.Success)
+                {
+                    <div class="status-value status-success">🎉 成團成功</div>
+                }
+                else if (Model.Status == GroupOrderStatus.Expired)
+                {
+                    <div class="status-value status-expired">未成團</div>
+                }
+                else if (Model.Status == GroupOrderStatus.Cancelled)
+                {
+                    <div class="status-value status-cancelled">已取消</div>
+                }
 
-            <!-- 提前結團 -->
-            <div class="col-md-6">
-                <form method="post" action="/group/@Model.GroupId/close">
-                    <button class="btn btn-success w-100">
-                        🟢 提前結團
-                    </button>
-                </form>
-
-                <div class="small text-muted mt-1">
-                    不論是否達標，直接結束揪團
+                <div class="status-sub">
+                    截止時間：@Model.Deadline.ToString("yyyy/MM/dd HH:mm")
                 </div>
             </div>
 
-            <!-- 暫停加入 -->
-            <div class="col-md-6">
-                <button class="btn btn-outline-secondary w-100">
-                    🔒 暫停加入
-                </button>
-                <div class="small text-muted mt-1">
-                    暫時不接受新成員加入
+            <div class="status-progress">
+                <div class="progress-circle">
+                    @percent%
                 </div>
-            </div>
-
-            <!-- 取消整團 -->
-            <div class="col-md-6">
-                <button class="btn btn-outline-danger w-100"
-                        data-bs-toggle="modal"
-                        data-bs-target="#cancelGroupModal">
-                    🔴 取消整團
-                </button>
-
                 <div class="small text-muted mt-1">
-                    取消後，所有訂單將失效
-                </div>
-            </div>
-
-            <!-- 通知團員 -->
-            <div class="col-md-6">
-                <button class="btn btn-outline-primary w-100">
-                    📣 通知團員
-                </button>
-                <div class="small text-muted mt-1">
-                    發送通知給所有團員
+                    達成率
                 </div>
             </div>
 
         </div>
 
-    </div>
-</div>
-<!-- 成員列表 -->
-<!-- 成員列表 -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">成員列表</h5>
-            <span class="badge bg-secondary">
-                @ViewBag.MemberCount ?? 0 人
-            </span>
+        <div class="progress mt-3" style="height:8px;">
+            <div class="progress-bar"
+                 role="progressbar"
+                 style="width:@percent%">
+            </div>
         </div>
 
-        @if ((ViewBag.MemberCount ?? 0) == 0)
-        {
-            <!-- 空狀態 -->
-            <div class="text-center py-5 text-muted">
-                <div class="mb-2" style="font-size:2rem;">👥</div>
-                <div class="fw-bold mb-1">目前還沒有成員加入</div>
-                <div class="small">分享團連結，邀請朋友一起湊團</div>
-            </div>
-        }
-        else
-        {
-            <!-- 表格版（之後接資料） -->
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>名稱</th>
-                            <th class="text-center">數量</th>
-                            <th class="text-center">狀態</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @* 之後 foreach 成員 *@
-                    </tbody>
-                </table>
-            </div>
-        }
-
+        <div class="small text-muted mt-2">
+            已湊 @Model.CurrentAmount / 目標 @Model.TargetAmount
+        </div>
     </div>
+
+    <!-- 團主操作 -->
+    @if (Model.Status == GroupOrderStatus.Open)
+    {
+        <div class="card shadow-sm fade-up fade-delay-1 mb-5">
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-3">團主操作</h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <form method="post" action="/group/@Model.GroupOrderId/close">
+                            <button class="btn btn-primary w-100 main-action">
+                                提前結束揪團
+                            </button>
+                        </form>
+                        <div class="small text-muted mt-1">
+                            依目前金額判定是否成團
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-danger w-100"
+                                data-bs-toggle="modal"
+                                data-bs-target="#cancelGroupModal">
+                            取消整團
+                        </button>
+                        <div class="small text-muted mt-1">
+                            立即取消，無法復原
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 成員列表 -->
+    <div class="card shadow-sm fade-up fade-delay-2">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">目前成員</h5>
+                <span class="badge bg-primary">
+                    @ViewBag.MemberCount ?? 0 人
+                </span>
+            </div>
+
+            @if ((ViewBag.MemberCount ?? 0) == 0)
+            {
+                <div class="empty-state">
+                    <div class="emoji">👥</div>
+                    <div class="fw-bold mb-1">
+                        尚未有人加入
+                    </div>
+                    <div class="small text-muted">
+                        分享團連結，邀請朋友一起湊團
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>成員</th>
+                                <th class="text-center">數量</th>
+                                <th class="text-center">狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @* foreach 成員 *@
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+
 </div>
-<!-- 取消團確認 Modal -->
+
+<!-- 取消 Modal -->
 <div class="modal fade" id="cancelGroupModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content fade-up">
 
-            <div class="modal-header">
-                <h5 class="modal-title text-danger fw-bold">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-danger">
                     確認取消整團
                 </h5>
-                <button type="button" class="btn-close"
+                <button type="button"
+                        class="btn-close"
                         data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-                <p class="mb-2">
-                    你確定要取消這一團嗎？
+                <p class="mb-1">
+                    此操作會立即取消整個團單。
                 </p>
                 <p class="text-muted small mb-0">
-                    取消後，所有成員的訂單將失效，且無法復原。
+                    所有訂單將失效，且無法復原。
                 </p>
             </div>
 
-            <div class="modal-footer">
-                <button class="btn btn-secondary"
+            <div class="modal-footer border-0">
+                <button class="btn btn-light"
                         data-bs-dismiss="modal">
                     返回
                 </button>
 
-                <form method="post" action="/group/@Model.GroupId/cancel">
+                <form method="post" action="/group/@Model.GroupOrderId/cancel">
                     <button class="btn btn-danger">
                         確認取消
                     </button>
                 </form>
-
             </div>
 
         </div>
     </div>
 </div>
-

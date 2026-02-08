@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using GroupDelivery.Application.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using GroupDelivery.Application.Abstractions;
+using System.Threading.Tasks;
 
 
 namespace GroupDelivery.Web.Controllers
@@ -16,18 +17,10 @@ namespace GroupDelivery.Web.Controllers
 
         [Authorize]
         [HttpGet("/group/{id}/manage")]
-        public IActionResult Manage(int id)
+        public async Task<IActionResult> Manage(int id)
         {
-            var userId = int.Parse(
-                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value
-            );
-
-            //if (!_groupService.IsOwner(id, userId))
-            //    return Forbid();
-
-            var group = _groupService.GetById(id);
-
-            return View(group);
+            var groupOrder = await _groupService.GetByIdAsync(id);
+            return View(groupOrder);
         }
 
         [HttpGet("/group/{id}")]
@@ -42,18 +35,14 @@ namespace GroupDelivery.Web.Controllers
             return View(group);
         }
         [Authorize]
-        [HttpPost("/group/{id}/close")]
-        public IActionResult Close(int id)
+        [HttpPost("api/group/{groupId}/close")]
+        public async Task<IActionResult> Close(int groupId)
         {
-            // 先只驗證身分，不改資料
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
-            if (!_groupService.IsOwner(id, userId))
-                return Forbid();
-
-            // TODO: 之後才真的結團
-            TempData["Message"] = "團已提前結束（模擬）";
-            return Redirect($"/group/{id}/manage");
+            var userId = GetUserId();
+            await _groupService.CloseAsync(groupId, userId);
+            return Ok();
         }
+
 
         [Authorize]
         [HttpPost("/group/{id}/cancel")]
@@ -66,6 +55,11 @@ namespace GroupDelivery.Web.Controllers
             TempData["Message"] = "團已取消（模擬）";
             return Redirect("/Store/MyGroups");
         }
-
+        private int GetUserId()
+        {
+            return int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier).Value
+            );
+        }
     }
 }

@@ -30,5 +30,8 @@ namespace GroupDelivery.Application.Abstractions
         // 取得「已超過截止時間但尚未處理狀態」的團單清單
         // 通常用於背景排程，將團單狀態更新為 Closed
         Task<List<GroupOrder>> GetActiveOverdueAsync(DateTime now);
+        // 取得指定使用者所建立的所有團單
+        Task<List<GroupOrder>> GetByCreatorAsync(int creatorUserId);
+
     }
 }

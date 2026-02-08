@@ -4,6 +4,7 @@ using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupDelivery.Infrastructure.Migrations
 {
     [DbContext(typeof(GroupDeliveryDbContext))]
-    partial class GroupDeliveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260208123401_IsOpenNow")]
+    partial class IsOpenNow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,31 +24,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("GroupDelivery.Domain.Group", b =>
-                {
-                    b.Property<int>("GroupId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("OwnerUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("GroupId");
-
-                    b.ToTable("Groups");
-                });
 
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
@@ -116,16 +94,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("HolidayEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("HolidayStartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsAcceptingOrders")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsOnHoliday")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsOpenNow")

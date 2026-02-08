@@ -76,5 +76,16 @@ namespace GroupDelivery.Infrastructure.Repositories
         }
         #endregion
 
+        #region 取得指定使用者所建立的所有團單
+        public async Task<List<GroupOrder>> GetByCreatorAsync(int creatorUserId)
+        {
+            return await _db.GroupOrders
+                .Include(g => g.Store)
+                .Where(g => g.CreatorUserId == creatorUserId)
+                .OrderByDescending(g => g.CreatedAt)
+                .ToListAsync();
+        }
+        #endregion
+
     }
 }

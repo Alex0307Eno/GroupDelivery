@@ -1,4 +1,4 @@
-﻿@model List<GroupDelivery.Domain.Group>
+﻿@model List<GroupDelivery.Domain.GroupOrder>
 
 @{
     ViewData["Title"] = "我開的團";
@@ -14,22 +14,87 @@
 }
 else
 {
-    <ul class="list-group">
+    <div class="row g-4">
         @foreach (var group in Model)
         {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-bold">@group.Title</div>
-                    <small class="text-muted">
-                        狀態：@group.Status
-                    </small>
-                </div>
+            var percent = group.TargetAmount > 0
+            ? (int)((group.CurrentAmount * 100) / group.TargetAmount)
+            : 0;
 
-                <a href="/group/@group.GroupId/manage"
-                   class="btn btn-outline-primary btn-sm">
-                    管理
-                </a>
-            </li>
+            string statusText;
+            string statusClass;
+
+            switch (group.Status)
+            {
+                case GroupOrderStatus.Open:
+                    statusText = "進行中";
+                    statusClass = "bg-success";
+                    break;
+                case GroupOrderStatus.Success:
+                    statusText = "已成團";
+                    statusClass = "bg-primary";
+                    break;
+                case GroupOrderStatus.Expired:
+                    statusText = "未成團";
+                    statusClass = "bg-danger";
+                    break;
+                default:
+                    statusText = "已結束";
+                    statusClass = "bg-secondary";
+                    break;
+            }
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+
+                    <!-- 標題列 -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                @(group.Store != null
+                                                            ? group.Store.StoreName + " 揪團"
+                                                            : "揪團")
+                        </h5>
+                        <div class="small text-muted">
+                            建立於 @group.CreatedAt.ToString("MM/dd HH:mm")
+                        </div>
+                    </div>
+
+                            <span class="badge @statusClass">
+                                @statusText
+                            </span>
+                        </div>
+
+                        <!-- 截止時間 -->
+                        <div class="small text-muted mb-2">
+                            截止時間：@group.Deadline.ToString("yyyy/MM/dd HH:mm")
+                        </div>
+
+                        <!-- 進度條 -->
+                        <div class="mb-2">
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width:@percent%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="small text-muted">
+                            已湊 @group.CurrentAmount /
+                            目標 @group.TargetAmount
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white d-flex justify-content-end">
+                        <a href="/group/@group.GroupOrderId/manage"
+                           class="btn btn-outline-primary btn-sm">
+                            管理團單
+                        </a>
+                    </div>
+                </div>
+            </div>
         }
-    </ul>
+    </div>
 }

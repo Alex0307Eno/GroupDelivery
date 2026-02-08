@@ -37,14 +37,25 @@ else
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="fw-bold mb-0">@store.StoreName</h5>
 
-                    @if (store.IsAcceptingOrders)
-                            {
-                                <span class="badge bg-success">營業中</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">暫停接單</span>
-                            }
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0">@store.StoreName</h5>
+
+                        @if (store.IsOpenNow)
+                                {
+                                    <span class="badge bg-success"
+                                          title="目前可接單">
+                                        營業中
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary"
+                                          title="非營業時間或暫停接單">
+                                        休息中
+                                    </span>
+                                }
+                            </div>
+
                         </div>
 
                         <div class="text-muted small mb-2">

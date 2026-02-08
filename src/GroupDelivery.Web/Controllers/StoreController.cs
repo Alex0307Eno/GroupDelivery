@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -19,16 +20,19 @@ namespace GroupDelivery.Web.Controllers
         private readonly IStoreService _storeService;
         private readonly IWebHostEnvironment _env;
         private readonly IGroupService _groupService;
+        private readonly IGroupOrderService _groupOrderService;
 
 
         public StoreController(
        IStoreService storeService,
        IWebHostEnvironment env,
-       IGroupService groupService)
+       IGroupService groupService,
+       IGroupOrderService groupOrderService)
         {
             _storeService = storeService;
             _env = env;
             _groupService = groupService;
+            _groupOrderService = groupOrderService;
         }
         // StoreController.cs
         [Authorize(Roles = "Merchant")]
@@ -126,7 +130,10 @@ namespace GroupDelivery.Web.Controllers
                 CloseTime = store.CloseTime,
                 IsAcceptingOrders = store.IsAcceptingOrders,
                 MinOrderAmount = store.MinOrderAmount,
-                Notice = store.Notice
+                Notice = store.Notice,
+                IsOnHoliday = store.IsOnHoliday,
+                HolidayStartDate = store.HolidayStartDate,
+                HolidayEndDate = store.HolidayEndDate
             };
 
             return View(vm);
@@ -228,16 +235,16 @@ namespace GroupDelivery.Web.Controllers
 
 
         [Authorize]
-        public IActionResult MyGroups()
+        public async Task<IActionResult> MyGroups()
         {
-            var userId = int.Parse(
-                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value
-            );
+            var userId = GetUserId();
 
-            var groups = _groupService.GetMyGroups(userId);
+            List<GroupOrder> groups =
+                await _groupOrderService.GetMyGroupOrdersAsync(userId);
 
             return View(groups);
         }
+
 
     }
 }
