@@ -1,10 +1,11 @@
+using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using GroupDelivery.Domain;
-using GroupDelivery.Infrastructure.Data;
-using GroupDelivery.Application.Abstractions;
 
 namespace GroupDelivery.Infrastructure.Repositories
 {
@@ -19,15 +20,16 @@ namespace GroupDelivery.Infrastructure.Repositories
             _db = db;
         }
 
-        // 依照主鍵取得單筆開團資料
+        #region 依照主鍵取得單筆開團資料
         public async Task<GroupOrder> GetByIdAsync(int id)
         {
             return await _db.GroupOrders
                 .Include(g => g.Store)
                 .FirstOrDefaultAsync(g => g.GroupOrderId == id);
         }
+        #endregion
 
-        // 取得所有進行中的開團資訊
+        #region 取得所有進行中的開團資訊
         public async Task<List<GroupOrder>> GetAllActiveAsync()
         {
             return await _db.GroupOrders
@@ -35,20 +37,25 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .Where(g => g.Status == GroupOrderStatus.Open)
                 .ToListAsync();
         }
+        #endregion
 
-        // 新增開團資料
+        #region 新增開團資料
         public async Task AddAsync(GroupOrder entity)
         {
             await _db.GroupOrders.AddAsync(entity);
             await _db.SaveChangesAsync();
         }
+        #endregion
 
-        // 更新開團資料
-        public async Task UpdateAsync(GroupOrder entity)
-        {
-            _db.GroupOrders.Update(entity);
-            await _db.SaveChangesAsync();
-        }
+        #region 更新開團資料
+                public async Task UpdateAsync(GroupOrder entity)
+                {
+                    _db.GroupOrders.Update(entity);
+                    await _db.SaveChangesAsync();
+                }
+        #endregion
+
+        #region 取得指定團單的詳細資料，供團單詳情頁顯示
         public async Task<GroupOrder> GetDetailAsync(int groupId)
         {
             return await _db.GroupOrders
@@ -56,6 +63,18 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .ThenInclude(s => s.MenuImageUrl)
                 .FirstOrDefaultAsync(g => g.GroupOrderId == groupId);
         }
+        #endregion
+
+        #region 取得已超過截止時間但仍為進行中狀態的團單
+        public async Task<List<GroupOrder>> GetActiveOverdueAsync(DateTime now)
+        {
+            return await _db.GroupOrders
+                .Where(g =>
+                    g.Status == GroupOrderStatus.Open &&
+                    g.Deadline < now)
+                .ToListAsync();
+        }
+        #endregion
 
     }
 }

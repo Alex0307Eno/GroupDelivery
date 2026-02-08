@@ -38,7 +38,7 @@ namespace GroupDelivery.Application.Services
             _userRepository = userRepository;
             _httpContextAccessor = httpContextAccessor;
         }
-
+        #region  寄送無密碼登入用的驗證連結到使用者 Email
         public async Task SendLoginLinkAsync(string email)
         {
             var token = _tokenService.GenerateToken(email);
@@ -53,8 +53,9 @@ namespace GroupDelivery.Application.Services
 
             await _emailService.SendLoginMail(email, link);
         }
+        #endregion
 
-
+        #region 使用驗證 Token 完成登入並建立登入 Cookie
         public async Task SignInByTokenAsync(string token, HttpContext httpContext)
         {
             if (!_tokenService.TryValidateToken(token, out var email))
@@ -77,6 +78,9 @@ namespace GroupDelivery.Application.Services
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
         }
+        #endregion
+
+        #region  判斷使用者是否已填寫完成必要的個人資料
         public bool IsProfileCompleted(ClaimsPrincipal user)
         {
             var userIdText = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -93,7 +97,9 @@ namespace GroupDelivery.Application.Services
             return !string.IsNullOrWhiteSpace(dbUser.DisplayName)
                 && !string.IsNullOrWhiteSpace(dbUser.Phone);
         }
+        #endregion
 
+        #region 重新建立登入狀態，用於使用者資料或角色更新後
         public async Task RefreshSignInAsync(int userId)
         {
             var user = _userRepo.GetById(userId);
@@ -126,6 +132,7 @@ namespace GroupDelivery.Application.Services
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal);
         }
+        #endregion
     }
 
 }

@@ -22,32 +22,6 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("GroupDelivery.Domain.EmailLoginToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ExpireAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Token")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("tbEmailLoginToken");
-                });
-
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
                     b.Property<int>("GroupOrderId")
@@ -84,47 +58,9 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.HasKey("GroupOrderId");
 
-                    b.HasIndex("CreatorUserId");
-
                     b.HasIndex("StoreId");
 
                     b.ToTable("tbGroupOrder");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.GroupOrderItem", b =>
-                {
-                    b.Property<int>("GroupOrderItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupOrderItemId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GroupOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("SubtotalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GroupOrderItemId");
-
-                    b.HasIndex("GroupOrderId");
-
-                    b.ToTable("tbGroupOrderItem");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
@@ -227,39 +163,28 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("StoreClosedDates");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreProduct", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreWeeklyClosedDay", b =>
                 {
-                    b.Property<int>("ProductId")
+                    b.Property<int>("StoreWeeklyClosedDayId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreWeeklyClosedDayId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.HasKey("ProductId");
+                    b.HasKey("StoreWeeklyClosedDayId");
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("tbStoreProduct");
+                    b.ToTable("StoreWeeklyClosedDays");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.User", b =>
@@ -326,32 +251,13 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
-                    b.HasOne("GroupDelivery.Domain.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Creator");
-
                     b.Navigation("Store");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.GroupOrderItem", b =>
-                {
-                    b.HasOne("GroupDelivery.Domain.GroupOrder", "GroupOrder")
-                        .WithMany()
-                        .HasForeignKey("GroupOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GroupOrder");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreClosedDate", b =>
@@ -365,10 +271,10 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreProduct", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreWeeklyClosedDay", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany("Products")
+                        .WithMany("WeeklyClosedDays")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -380,7 +286,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                 {
                     b.Navigation("ClosedDates");
 
-                    b.Navigation("Products");
+                    b.Navigation("WeeklyClosedDays");
                 });
 #pragma warning restore 612, 618
         }

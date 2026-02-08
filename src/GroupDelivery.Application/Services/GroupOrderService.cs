@@ -10,27 +10,20 @@ namespace GroupDelivery.Application.Services
     // 此服務類別用於處理開團相關業務邏輯
     public class GroupOrderService: IGroupOrderService
     {
-        private readonly IGroupOrderRepository _groupOrderRepo;
+        private readonly IGroupOrderRepository _groupOrderRepository;
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepo, IUserRepository userRepository, IStoreRepository storeRepository)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository)
         {
-            _groupOrderRepo = groupOrderRepo;
+            _groupOrderRepository = groupOrderRepository; ;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
         }
-
-        // 取得所有進行中的團購
-        public async Task<List<GroupOrder>> GetActiveGroupsAsync()
-        {
-            return await _groupOrderRepo.GetAllActiveAsync();
-        }
-
-        // 取得團購詳情
+        #region 取得指定團單的詳細資料，供團單詳情頁顯示
         public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
         {
-            var group = await _groupOrderRepo.GetDetailAsync(groupId);
+            var group = await _groupOrderRepository.GetDetailAsync(groupId);
             if (group == null)
                 return null;
 
@@ -41,14 +34,12 @@ namespace GroupDelivery.Application.Services
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,
-                MenuImages = group.Store.MenuImageUrl
-    ?.Split(',')
-    .ToList()
-
+                MenuImages = group.Store.MenuImageUrl ?.Split(',').ToList()
             };
         }
+        #endregion
 
-        // 建立新團購
+        #region 建立一筆新的揪團，僅允許商家開團
         public async Task CreateGroupAsync(int userId, CreateGroupRequest request)
         {
             if (request == null)
@@ -85,22 +76,26 @@ namespace GroupDelivery.Application.Services
             if (group.Deadline <= now.AddMinutes(30))
                 throw new Exception("截止時間需至少 30 分鐘後");
 
-            await _groupOrderRepo.AddAsync(group);
+            await _groupOrderRepository.AddAsync(group);
         }
-        // 更新團購進度與狀態
-        //public async Task RefreshGroupStatusAsync(int groupId)
-        //{
-        //    var group = await _groupOrderRepo.GetByIdAsync(groupId);
-        //    if (group == null)
-        //    {
-        //        return;
-        //    }
+        #endregion
 
-        //    if (group.CurrentAmount >= group.TargetAmount && group.Status == "Active")
-        //    {
-        //        group.Status = "Success";
-        //        await _groupOrderRepo.UpdateAsync(group);
-        //    }
-        //}
+        #region 將已超過截止時間的揪團標記為過期狀態
+        public async Task ExpireOverdueGroupsAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            var overdueGroups = await _groupOrderRepository
+                .GetActiveOverdueAsync(now);
+
+            foreach (var group in overdueGroups)
+            {
+                group.Status = GroupOrderStatus.Expired;
+            }
+
+        }
+        #endregion
+
+
     }
 }

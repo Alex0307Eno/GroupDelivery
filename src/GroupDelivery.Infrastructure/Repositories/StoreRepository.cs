@@ -16,7 +16,7 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             _db = db;
         }
-
+        #region 取得指定店家資料
         public async Task<Store> GetByIdAndOwnerAsync(int storeId, int ownerUserId)
         {
             return await _db.Stores
@@ -24,13 +24,18 @@ namespace GroupDelivery.Infrastructure.Repositories
                     x.StoreId == storeId &&
                     x.OwnerUserId == ownerUserId);
         }
+        #endregion
 
+        #region 取得指定使用者的所有店家資料
         public async Task<List<Store>> GetByOwnerAsync(int ownerUserId)
         {
             return await _db.Stores
                 .Where(x => x.OwnerUserId == ownerUserId)
                 .ToListAsync();
         }
+        #endregion
+
+        #region 取得指定使用者的第一間店家資料
         public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
         {
             return await _db.Stores
@@ -38,8 +43,9 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .OrderBy(x => x.StoreId)
                 .FirstOrDefaultAsync();
         }
+        #endregion
 
-
+        #region 商家CRUD
         public async Task<int> CreateAsync(Store store)
         {
             await _db.Stores.AddAsync(store);
@@ -58,5 +64,6 @@ namespace GroupDelivery.Infrastructure.Repositories
             _db.Stores.Remove(store);
             await _db.SaveChangesAsync();
         }
+        #endregion
     }
 }

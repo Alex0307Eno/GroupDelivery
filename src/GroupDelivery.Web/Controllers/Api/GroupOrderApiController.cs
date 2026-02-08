@@ -18,22 +18,7 @@ namespace GroupDelivery.Web.Controllers.Api
             _groupOrderService = groupOrderService;
         }
 
-        // GET: api/groups
-        [HttpGet]
-        public async Task<IActionResult> GetActiveGroups()
-        {
-            try
-            {
-                List<GroupOrder> groups =
-                    await _groupOrderService.GetActiveGroupsAsync();   
-
-                return Ok(groups);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
+       
 
         // GET: api/groups/5
         [HttpGet("{id}")]

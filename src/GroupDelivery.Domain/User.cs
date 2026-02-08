@@ -36,7 +36,7 @@ namespace GroupDelivery.Domain
 
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
-        // tbUser 新增
+        // ===== 其他個人資訊 =====
         public string Nickname { get; set; }
         public string Bio { get; set; }
         public string City { get; set; }

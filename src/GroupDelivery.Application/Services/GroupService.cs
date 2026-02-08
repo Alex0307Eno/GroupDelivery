@@ -18,7 +18,7 @@ namespace GroupDelivery.Application.Services
                 GroupId = groupId,
                 OwnerUserId = 1, // 先假設是 1
                 Title = "測試便當團",
-                Status = GroupStatus.Active,
+                Status = GroupOrderStatus.Open,
                 CreatedAt = DateTime.Now
             };
         }
@@ -39,7 +39,7 @@ namespace GroupDelivery.Application.Services
                 GroupId = 1,
                 OwnerUserId = ownerUserId,
                 Title = "午餐便當團",
-                Status = GroupStatus.Active,
+                Status = GroupOrderStatus.Cancelled,
                 CreatedAt = DateTime.Now.AddHours(-1)
             },
             new Group
@@ -47,7 +47,7 @@ namespace GroupDelivery.Application.Services
                 GroupId = 2,
                 OwnerUserId = ownerUserId,
                 Title = "下午茶揪團",
-                Status = GroupStatus.Closed,
+                Status = GroupOrderStatus.Expired,
                 CreatedAt = DateTime.Now.AddDays(-1)
             }
         };

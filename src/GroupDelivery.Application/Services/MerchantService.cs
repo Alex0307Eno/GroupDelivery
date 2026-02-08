@@ -20,6 +20,7 @@ namespace GroupDelivery.Application.Services
             _userRepo = userRepo;
             _storeRepo = storeRepo;
         }
+        #region  建立商家所屬的第一間商店，並回傳新商店 Id
         public async Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.StoreName))
@@ -40,6 +41,9 @@ namespace GroupDelivery.Application.Services
 
             return await _storeRepo.CreateAsync(store);
         }
+        #endregion
+
+        #region 將一般使用者升級為商家
         public async Task UpgradeToMerchant(
             int userId,
             UpgradeMerchantRequest request)
@@ -72,6 +76,7 @@ namespace GroupDelivery.Application.Services
             user.Role = UserRole.Merchant;
             _userRepo.Update(user); 
         }
+        #endregion
     }
 
 }

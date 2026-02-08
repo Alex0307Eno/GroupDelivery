@@ -17,7 +17,7 @@ namespace GroupDelivery.Application.Services
         {
             _config = config;
         }
-
+        #region 產生一個有時效性的登入 Token（綁定 Email，10 分鐘內有效）
         public string GenerateToken(string email)
         {
             var expire = DateTime.UtcNow.AddMinutes(10);
@@ -28,7 +28,9 @@ namespace GroupDelivery.Application.Services
                 Encoding.UTF8.GetBytes($"{payload}|{sign}")
             );
         }
+        #endregion
 
+        #region 驗證登入 Token 是否有效，成功時取回對應的 Email
         public bool TryValidateToken(string token, out string email)
         {
             email = null;
@@ -66,7 +68,9 @@ namespace GroupDelivery.Application.Services
 
             return sign == expected;
         }
+        #endregion
 
+        #region 使用系統密鑰對內容進行簽章，用於防止 Token 被竄改
         private string Sign(string text)
         {
             var secret = _config["App:LoginSecret"];
@@ -84,5 +88,6 @@ namespace GroupDelivery.Application.Services
                 );
             }
         }
+        #endregion
     }
 }

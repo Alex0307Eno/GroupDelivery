@@ -17,17 +17,11 @@ namespace GroupDelivery.Domain
         public string Title { get; set; }
 
         // 狀態
-        public GroupStatus Status { get; set; }
+        public GroupOrderStatus Status { get; set; }
 
         // 時間
         public DateTime CreatedAt { get; set; }
     }
-    public enum GroupStatus
-    {
-        Draft = 0,
-        Active = 1,
-        Closed = 2,
-        Cancelled = 3
-    }
+    
 
 }

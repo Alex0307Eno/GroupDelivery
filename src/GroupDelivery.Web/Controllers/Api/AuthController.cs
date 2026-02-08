@@ -72,9 +72,7 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         [HttpGet("/signin-line")]
-        public async Task<IActionResult> LineCallback(
-    string code,
-    [FromServices] GroupDeliveryDbContext db)
+        public async Task<IActionResult> LineCallback(string code,[FromServices] GroupDeliveryDbContext db)
         {
             if (string.IsNullOrEmpty(code))
             {

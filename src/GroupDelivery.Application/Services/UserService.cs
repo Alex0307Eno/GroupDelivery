@@ -13,7 +13,7 @@ namespace GroupDelivery.Application.Services
         {
             _userRepo = userRepo;
         }
-
+        #region 取得使用者個人資料，供個人資料頁面顯示
         public async Task<UserProfileDto> GetProfileAsync(int userId)
         {
             var user = await _userRepo.GetByIdAsync(userId);
@@ -33,8 +33,9 @@ namespace GroupDelivery.Application.Services
                 NotifyOptIn = user.NotifyOptIn
             };
         }
+        #endregion
 
-
+        #region 更新使用者可自行編輯的個人資料
         public async Task UpdateProfileAsync(int userId, UpdateProfileRequest req)
         {
             var user = await _userRepo.GetByIdAsync(userId);
@@ -50,5 +51,6 @@ namespace GroupDelivery.Application.Services
 
             await _userRepo.UpdateAsync(user);
         }
+        #endregion
     }
 }

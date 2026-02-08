@@ -12,24 +12,31 @@ namespace GroupDelivery.Infrastructure.Services
     {
         private readonly IStoreRepository _storeRepo;
         private readonly IStoreClosedDateRepository _closedDateRepository;
+        private readonly IStoreWeeklyClosedDayRepository _weeklyClosedDayRepo;
 
 
-        public StoreService(IStoreRepository repo, IStoreClosedDateRepository closedDateRepository)
+        public StoreService(IStoreRepository repo, IStoreClosedDateRepository closedDateRepository, IStoreWeeklyClosedDayRepository
+         weeklyClosedDayRepo)
         {
             _storeRepo = repo;
             _closedDateRepository = closedDateRepository;
+            _weeklyClosedDayRepo = weeklyClosedDayRepo;
         }
-
+        #region 取得目前使用者擁有的所有商店
         public async Task<List<Store>> GetMyStoresAsync(int userId)
         {
             return await _storeRepo.GetByOwnerAsync(userId);
         }
+        #endregion
 
+        #region 取得指定使用者名下的單一商店
         public async Task<Store> GetMyStoreAsync(int storeId, int userId)
         {
             return await _storeRepo.GetByIdAndOwnerAsync(storeId, userId);
         }
+        #endregion
 
+        #region 商店建立 / 更新 / 刪除
         public async Task<int> CreateAsync(int userId, StoreInitRequest request)
         {
             var store = new Store
@@ -39,6 +46,7 @@ namespace GroupDelivery.Infrastructure.Services
                 Phone = request.Phone,
                 Address = request.Address,
                 Description = request.Description,
+                MinOrderAmount = request.MinOrderAmount,
                 OpenTime = request.OpenTime,
                 CloseTime = request.CloseTime,
                 IsAcceptingOrders = request.IsAcceptingOrders,
@@ -79,6 +87,10 @@ namespace GroupDelivery.Infrastructure.Services
 
             await _storeRepo.DeleteAsync(store);
         }
+
+        #endregion
+
+        #region 商店圖片更新
         public async Task UpdateCoverImageAsync(int storeId, int ownerUserId,string url)
         {
             var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
@@ -94,7 +106,9 @@ namespace GroupDelivery.Infrastructure.Services
             store.ModifiedAt = DateTime.UtcNow;
             await _storeRepo.UpdateAsync(store);
         }
+        #endregion
 
+        #region 計算商店在指定時間點的營業狀態
         public StoreOpenStatus GetStoreStatus(Store store, DateTime now)
         {
             if (!store.IsAcceptingOrders)
@@ -110,9 +124,9 @@ namespace GroupDelivery.Infrastructure.Services
 
             return StoreOpenStatus.Open;
         }
+        #endregion
 
-
-
+        #region 新增/刪除/更新指定日期的商店休息日
         public async Task AddClosedDateAsync(int storeId, int ownerUserId, DateTime closedDate)
         {
             var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
@@ -152,6 +166,17 @@ namespace GroupDelivery.Infrastructure.Services
 
             return store;
         }
+
+        public async Task UpdateWeeklyClosedDaysAsync(int storeId,int ownerUserId,List<int> days)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            // 👇 真正幹活的是 Repository
+            await _weeklyClosedDayRepo.ReplaceAsync(storeId, days);
+        }
+        #endregion
 
     }
 }

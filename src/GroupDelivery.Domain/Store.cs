@@ -11,9 +11,7 @@ namespace GroupDelivery.Domain
         [Key]
         public int StoreId { get; set; }
 
-        // ======================
-        // 關聯
-        // ======================
+        
 
         // 店家擁有者（系統指定，不由使用者輸入）
         public int OwnerUserId { get; set; }
@@ -96,9 +94,10 @@ namespace GroupDelivery.Domain
         // 關聯集合
         // ======================
 
-        public virtual ICollection<StoreProduct> Products { get; set; }
 
         public ICollection<StoreClosedDate> ClosedDates { get; set; }
+
+        public ICollection<StoreWeeklyClosedDay> WeeklyClosedDays { get; set; }
 
     }
 
