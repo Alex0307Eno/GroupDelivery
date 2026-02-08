@@ -75,27 +75,44 @@
                         @if (role == "Merchant")
                         {
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle"
+                                <a class="nav-link dropdown-toggle fw-bold text-success"
                                    href="#"
                                    role="button"
                                    data-bs-toggle="dropdown">
-                                    店家中心
+                                    團主管理
                                 </a>
                                 <ul class="dropdown-menu">
+
                                     <li>
-                                        <a class="dropdown-item" href="/Store/MyStores">
-                                            我的商店
+                                        <a class="dropdown-item fw-bold"
+                                           href="/Store/CreateGroup">
+                                            ➕ 開新團
                                         </a>
                                     </li>
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="/Store/MyGroups">
+                                            📋 我開的團
+                                        </a>
+                                    </li>
+
                                     <li><hr class="dropdown-divider" /></li>
+
+                                    @* 這個是重點入口 *@
                                     <li>
-                                        <a class="dropdown-item" href="/Store/CreateGroup">
-                                            開新團
+                                        <a class="dropdown-item text-primary fw-bold"
+                                           href="/Store/MyGroups">
+                                            ⚙ 管理我的團
                                         </a>
                                     </li>
+
+                                    <li><hr class="dropdown-divider" /></li>
+
                                     <li>
-                                        <a class="dropdown-item" href="/Store/MyGroups">
-                                            我的團單
+                                        <a class="dropdown-item"
+                                           href="/Store/MyStores">
+                                            🏪 我的商店
                                         </a>
                                     </li>
                                 </ul>

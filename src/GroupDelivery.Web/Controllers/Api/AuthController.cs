@@ -54,9 +54,11 @@ namespace GroupDelivery.Web.Controllers.Api
         [HttpGet("LineLogin")]
         public IActionResult LineLogin()
         {
+
+
             var redirectUri = Uri.EscapeDataString(
-                "https://58a8-106-107-190-121.ngrok-free.app/signin-line"
-            );
+                _config["Line:BaseUrl"] + "/signin-line"
+             );
 
             var url =
                 "https://access.line.me/oauth2/v2.1/authorize" +
@@ -86,7 +88,7 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", "https://58a8-106-107-190-121.ngrok-free.app/signin-line" },
+                { "redirect_uri",  _config["Line:BaseUrl"] + "/signin-line" },
                 { "client_id", _config["Line:ChannelId"] },
                 { "client_secret", _config["Line:ChannelSecret"] }
             });

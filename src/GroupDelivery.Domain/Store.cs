@@ -59,6 +59,7 @@ namespace GroupDelivery.Domain
 
         // 最低成團金額
         public decimal? MinOrderAmount { get; set; }
+        public StoreOpenStatus CurrentStatus { get; set; }
 
         // ======================
         // 圖片（URL 即可，先別做太複雜）
@@ -96,5 +97,17 @@ namespace GroupDelivery.Domain
         // ======================
 
         public virtual ICollection<StoreProduct> Products { get; set; }
+
+        public ICollection<StoreClosedDate> ClosedDates { get; set; }
+
     }
+
+    public enum StoreOpenStatus
+        {
+            Open = 0,    // 營業中
+            Closed = 1,  // 休息中
+            Paused = 2   // 暫停接單
+        }
+    
+
 }

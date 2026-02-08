@@ -2,17 +2,22 @@
 using GroupDelivery.Domain;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+
 
 namespace GroupDelivery.Infrastructure.Services
 {
     public class StoreService : IStoreService
     {
         private readonly IStoreRepository _storeRepo;
+        private readonly IStoreClosedDateRepository _closedDateRepository;
 
-        public StoreService(IStoreRepository repo)
+
+        public StoreService(IStoreRepository repo, IStoreClosedDateRepository closedDateRepository)
         {
             _storeRepo = repo;
+            _closedDateRepository = closedDateRepository;
         }
 
         public async Task<List<Store>> GetMyStoresAsync(int userId)
@@ -89,7 +94,64 @@ namespace GroupDelivery.Infrastructure.Services
             store.ModifiedAt = DateTime.UtcNow;
             await _storeRepo.UpdateAsync(store);
         }
-        
+
+        public StoreOpenStatus GetStoreStatus(Store store, DateTime now)
+        {
+            if (!store.IsAcceptingOrders)
+                return StoreOpenStatus.Paused;
+
+            if (store.ClosedDates != null &&
+                store.ClosedDates.Any(d => d.ClosedDate == now.Date))
+                return StoreOpenStatus.Closed;
+
+            var nowTime = now.TimeOfDay;
+            if (nowTime < store.OpenTime || nowTime > store.CloseTime)
+                return StoreOpenStatus.Closed;
+
+            return StoreOpenStatus.Open;
+        }
+
+
+
+        public async Task AddClosedDateAsync(int storeId, int ownerUserId, DateTime closedDate)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            if (await _closedDateRepository.ExistsAsync(storeId, closedDate))
+                return;
+
+            await _closedDateRepository.AddAsync(new StoreClosedDate
+            {
+                StoreId = storeId,
+                ClosedDate = closedDate.Date,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        public async Task DeleteClosedDateAsync(int storeClosedDateId, int storeId, int ownerUserId)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            await _closedDateRepository.DeleteAsync(storeClosedDateId);
+        }
+
+        public async Task<Store> GetMyStoreWithClosedDatesAsync(int storeId, int ownerUserId)
+        {
+            // 1. 先確保這是我的店
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            if (store == null)
+                return null;
+
+            // 2. 再補上休息日
+            store.ClosedDates =
+                await _closedDateRepository.GetByStoreIdAsync(storeId);
+
+            return store;
+        }
 
     }
 }

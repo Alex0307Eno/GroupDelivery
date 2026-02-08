@@ -149,6 +149,9 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CurrentStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -198,6 +201,30 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasKey("StoreId");
 
                     b.ToTable("tbStore");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.StoreClosedDate", b =>
+                {
+                    b.Property<int>("StoreClosedDateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreClosedDateId"));
+
+                    b.Property<DateTime>("ClosedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("StoreClosedDateId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("StoreClosedDates");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreProduct", b =>
@@ -327,6 +354,17 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("GroupOrder");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.StoreClosedDate", b =>
+                {
+                    b.HasOne("GroupDelivery.Domain.Store", "Store")
+                        .WithMany("ClosedDates")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.StoreProduct", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
@@ -340,6 +378,8 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
                 {
+                    b.Navigation("ClosedDates");
+
                     b.Navigation("Products");
                 });
 #pragma warning restore 612, 618

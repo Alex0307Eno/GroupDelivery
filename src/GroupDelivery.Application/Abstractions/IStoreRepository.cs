@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Domain;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,5 +20,7 @@ namespace GroupDelivery.Application.Abstractions
         Task<int> CreateAsync(Store store);
         Task UpdateAsync(Store store);
         Task DeleteAsync(Store store);
+
+        
     }
 }

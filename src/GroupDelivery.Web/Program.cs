@@ -85,6 +85,9 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IStoreService, StoreService>();
             builder.Services.AddScoped<IStoreRepository, StoreRepository>();
             builder.Services.AddScoped<IMerchantService, MerchantService>();
+            builder.Services.AddScoped<IGroupService, GroupService>();
+            builder.Services.AddScoped<IStoreClosedDateRepository, StoreClosedDateRepository>();
+
 
 
             var app = builder.Build();

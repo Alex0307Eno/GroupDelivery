@@ -17,6 +17,8 @@ namespace GroupDelivery.Infrastructure.Data
         public DbSet<GroupOrder> GroupOrders { get; set; }
         public DbSet<GroupOrderItem> GroupOrderItems { get; set; }
 
+        public DbSet<StoreClosedDate> StoreClosedDates { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

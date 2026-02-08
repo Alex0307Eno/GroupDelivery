@@ -36,5 +36,7 @@ namespace GroupDelivery.Domain
 
         public IFormFile NewCoverImage { get; set; }
         public IFormFile[] NewMenuImages { get; set; }
+        public List<StoreClosedDate> ClosedDates { get; set; }
+
     }
 }

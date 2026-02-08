@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -17,13 +18,17 @@ namespace GroupDelivery.Web.Controllers
     {
         private readonly IStoreService _storeService;
         private readonly IWebHostEnvironment _env;
+        private readonly IGroupService _groupService;
+
 
         public StoreController(
        IStoreService storeService,
-       IWebHostEnvironment env)
+       IWebHostEnvironment env,
+       IGroupService groupService)
         {
             _storeService = storeService;
             _env = env;
+            _groupService = groupService;
         }
         // StoreController.cs
         [Authorize(Roles = "Merchant")]
@@ -212,6 +217,19 @@ namespace GroupDelivery.Web.Controllers
             }
 
             return $"/uploads/stores/{storeId}/{fileName}";
+        }
+
+
+        [Authorize]
+        public IActionResult MyGroups()
+        {
+            var userId = int.Parse(
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value
+            );
+
+            var groups = _groupService.GetMyGroups(userId);
+
+            return View(groups);
         }
 
     }

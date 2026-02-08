@@ -1,0 +1,35 @@
+﻿@model List<GroupDelivery.Domain.Group>
+
+@{
+    ViewData["Title"] = "我開的團";
+}
+
+<h2 class="fw-bold mb-4">我開的團</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary">
+        你目前還沒有開任何團
+    </div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var group in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">@group.Title</div>
+                    <small class="text-muted">
+                        狀態：@group.Status
+                    </small>
+                </div>
+
+                <a href="/group/@group.GroupId/manage"
+                   class="btn btn-outline-primary btn-sm">
+                    管理
+                </a>
+            </li>
+        }
+    </ul>
+}
