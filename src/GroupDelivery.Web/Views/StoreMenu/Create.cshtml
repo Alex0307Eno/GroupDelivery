@@ -1,0 +1,100 @@
+﻿@{
+    var storeId = ViewBag.StoreId;
+}
+
+<div id="app" class="container py-5">
+
+    <div class="card shadow-sm p-4">
+        <h4 class="fw-bold mb-4">新增菜單品項</h4>
+
+        <div v-for="(item,index) in items"
+             :key="index"
+             class="border rounded p-3 mb-3">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label">品項名稱</label>
+                    <input v-model="item.name"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">價格</label>
+                    <input v-model.number="item.price"
+                           type="number"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">說明</label>
+                    <input v-model="item.description"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-1 d-flex align-items-end">
+                    <button class="btn btn-outline-danger w-100"
+                            @@click="remove(index)">
+                        ✕
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+
+            <button class="btn btn-outline-secondary"
+                    @@click="addRow">
+                ＋ 新增一列
+            </button>
+
+            <button class="btn btn-success"
+                    @@click="submit">
+                一次儲存全部
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                storeId: @storeId,
+                items: [
+                    { name: '', price: 0, description: '' }
+                ]
+            };
+        },
+        methods: {
+
+            addRow() {
+                this.items.push({ name: '', price: 0, description: '' });
+            },
+
+            remove(index) {
+                this.items.splice(index, 1);
+            },
+
+            submit() {
+
+                axios.post('/api/storemenu/batch', {
+                    storeId: this.storeId,
+                    items: this.items
+                })
+                .then(() => {
+                    alert('新增成功');
+                    window.location.href =
+                        `/StoreMenu/Manage?storeId=${this.storeId}`;
+                });
+            }
+        }
+    }).mount('#app');
+</script>

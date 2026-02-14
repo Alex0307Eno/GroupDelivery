@@ -36,6 +36,7 @@ namespace GroupDelivery.Application.Abstractions
 
         Task<GroupOrder> GetByIdAsync(int groupId);
 
+        Task JoinGroupAsync(int userId, int groupId);
 
 
     }

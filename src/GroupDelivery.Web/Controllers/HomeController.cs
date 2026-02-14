@@ -1,9 +1,17 @@
 namespace GroupDelivery.Web.Controllers
 {
+    using GroupDelivery.Application.Abstractions;
     using Microsoft.AspNetCore.Mvc;
+    using System.Threading.Tasks;
 
     public class HomeController : Controller
     {
+        private readonly IGroupOrderService _groupOrderService;
+        public HomeController(IGroupOrderService groupOrderService)
+        {
+            _groupOrderService = groupOrderService;
+        }
+
         // 首頁：顯示目前所有熱門團購
         public IActionResult Index()
         {
@@ -14,17 +22,11 @@ namespace GroupDelivery.Web.Controllers
         {
             return View();
         }
-        public IActionResult StoreGroups()
-        {
-            return View();
-        }
+        
+       
 
-        // 團購詳情頁面
-        public IActionResult GroupDetail(int id)
-        {
-            ViewData["GroupId"] = id;
-            return View();
-        }
+
+        
 
         
     }

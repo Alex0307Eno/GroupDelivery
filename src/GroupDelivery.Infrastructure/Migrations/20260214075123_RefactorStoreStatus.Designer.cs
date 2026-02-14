@@ -4,6 +4,7 @@ using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupDelivery.Infrastructure.Migrations
 {
     [DbContext(typeof(GroupDeliveryDbContext))]
-    partial class GroupDeliveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214075123_RefactorStoreStatus")]
+    partial class RefactorStoreStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,9 +70,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OwnerUserId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Remark")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -86,51 +86,9 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.HasKey("GroupOrderId");
 
-                    b.HasIndex("OwnerUserId");
-
                     b.HasIndex("StoreId");
 
                     b.ToTable("tbGroupOrder");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.GroupOrderItem", b =>
-                {
-                    b.Property<int>("GroupOrderItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupOrderItemId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GroupOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StoreMenuItemId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("SubTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GroupOrderItemId");
-
-                    b.HasIndex("GroupOrderId");
-
-                    b.HasIndex("StoreMenuItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GroupOrderItems");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
@@ -141,9 +99,15 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
 
+                    b.Property<int>("AccountStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("Address")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<TimeSpan?>("CloseTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("CoverImageUrl")
                         .HasMaxLength(255)
@@ -155,12 +119,31 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("MenuImageUrl")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<decimal?>("MinOrderAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Notice")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<TimeSpan?>("OpenTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("OperationStatus")
+                        .HasColumnType("int");
 
                     b.Property<int>("OwnerUserId")
                         .HasColumnType("int");
@@ -180,100 +163,52 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("tbStore");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenu", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreClosedDate", b =>
                 {
-                    b.Property<int>("StoreMenuId")
+                    b.Property<int>("StoreClosedDateId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreClosedDateId"));
+
+                    b.Property<DateTime>("ClosedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.HasKey("StoreMenuId");
+                    b.HasKey("StoreClosedDateId");
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("StoreMenus");
+                    b.ToTable("StoreClosedDates");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreWeeklyClosedDay", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StoreWeeklyClosedDayId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("StoreMenuCategories");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>
-                {
-                    b.Property<int>("StoreMenuItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuItemId"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreWeeklyClosedDayId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.HasKey("StoreMenuItemId");
+                    b.HasKey("StoreWeeklyClosedDayId");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("StoreId");
 
-                    b.ToTable("StoreMenuItems");
+                    b.ToTable("StoreWeeklyClosedDays");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.User", b =>
@@ -340,52 +275,6 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
-                    b.HasOne("GroupDelivery.Domain.User", "OwnerUser")
-                        .WithMany()
-                        .HasForeignKey("OwnerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OwnerUser");
-
-                    b.Navigation("Store");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.GroupOrderItem", b =>
-                {
-                    b.HasOne("GroupDelivery.Domain.GroupOrder", "GroupOrder")
-                        .WithMany("GroupOrderItems")
-                        .HasForeignKey("GroupOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
-                        .WithMany("GroupOrderItems")
-                        .HasForeignKey("StoreMenuItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GroupDelivery.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GroupOrder");
-
-                    b.Navigation("StoreMenuItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenu", b =>
-                {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
@@ -395,10 +284,10 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreClosedDate", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
+                        .WithMany("ClosedDates")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -406,25 +295,22 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.StoreWeeklyClosedDay", b =>
                 {
-                    b.HasOne("GroupDelivery.Domain.StoreMenuCategory", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
+                    b.HasOne("GroupDelivery.Domain.Store", "Store")
+                        .WithMany("WeeklyClosedDays")
+                        .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Category");
+                    b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
+            modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
                 {
-                    b.Navigation("GroupOrderItems");
-                });
+                    b.Navigation("ClosedDates");
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>
-                {
-                    b.Navigation("GroupOrderItems");
+                    b.Navigation("WeeklyClosedDays");
                 });
 #pragma warning restore 612, 618
         }

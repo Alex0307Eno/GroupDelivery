@@ -30,19 +30,24 @@ else
                     statusText = "進行中";
                     statusClass = "bg-success";
                     break;
+
                 case GroupOrderStatus.Success:
                     statusText = "已成團";
                     statusClass = "bg-primary";
                     break;
+
                 case GroupOrderStatus.Expired:
                     statusText = "未成團";
                     statusClass = "bg-danger";
                     break;
+
                 default:
                     statusText = "已結束";
                     statusClass = "bg-secondary";
                     break;
             }
+
+
 
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">

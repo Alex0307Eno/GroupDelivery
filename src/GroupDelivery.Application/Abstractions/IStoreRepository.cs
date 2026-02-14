@@ -20,7 +20,10 @@ namespace GroupDelivery.Application.Abstractions
         Task<int> CreateAsync(Store store);
         Task UpdateAsync(Store store);
         Task DeleteAsync(Store store);
-        
+
+        Task<Store> GetByIdAsync(int storeId);
+        Task<List<Store>> GetAllAsync();
+
 
 
     }

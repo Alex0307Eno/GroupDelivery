@@ -4,6 +4,7 @@ using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupDelivery.Infrastructure.Migrations
 {
     [DbContext(typeof(GroupDeliveryDbContext))]
-    partial class GroupDeliveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214130911_AddMenuAndGroupOrderItem")]
+    partial class AddMenuAndGroupOrderItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,9 +70,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OwnerUserId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Remark")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -85,8 +85,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GroupOrderId");
-
-                    b.HasIndex("OwnerUserId");
 
                     b.HasIndex("StoreId");
 
@@ -180,36 +178,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("tbStore");
                 });
 
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenu", b =>
-                {
-                    b.Property<int>("StoreMenuId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("StoreMenuId");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("StoreMenus");
-                });
-
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -239,17 +207,14 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>
                 {
-                    b.Property<int>("StoreMenuItemId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuItemId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -269,7 +234,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.HasKey("StoreMenuItemId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
@@ -340,19 +305,11 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
-                    b.HasOne("GroupDelivery.Domain.User", "OwnerUser")
-                        .WithMany()
-                        .HasForeignKey("OwnerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("OwnerUser");
 
                     b.Navigation("Store");
                 });
@@ -382,17 +339,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("StoreMenuItem");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("GroupDelivery.Domain.StoreMenu", b =>
-                {
-                    b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>

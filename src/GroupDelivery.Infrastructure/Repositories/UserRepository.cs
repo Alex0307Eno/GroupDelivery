@@ -67,5 +67,13 @@ namespace GroupDelivery.Infrastructure.Repositories
             await _db.SaveChangesAsync();
         }
         #endregion
+
+
+        public async Task<bool> IsMerchantAsync(int userId)
+        {
+            return await _db.Users
+                .AnyAsync(u => u.UserId == userId
+                            && u.Role == UserRole.Merchant);
+        }
     }
 }

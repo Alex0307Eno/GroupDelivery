@@ -8,6 +8,7 @@ namespace GroupDelivery.Domain
 {
     public class GroupDetailDto
     {
+        public int GroupOrderId { get; set; }
         public int GroupId { get; set; }
         /// 團單所屬店家名稱
         public string StoreName { get; set; }

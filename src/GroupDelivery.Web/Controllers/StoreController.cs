@@ -39,6 +39,46 @@ namespace GroupDelivery.Web.Controllers
         {
             return View();
         }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> CreateGroup(int? storeId)
+        {
+            var userId = GetUserId();
+
+            // === 使用者幫店家開團 ===
+            if (storeId.HasValue)
+            {
+                var store = await _storeService.GetByIdAsync(storeId.Value);
+                if (store == null)
+                    return NotFound();
+
+                var vm = new CreateGroupRequest
+                {
+                    StoreId = store.StoreId,
+                    StoreName = store.StoreName,
+                    IsLockedStore = true
+                };
+
+                return View(vm);
+            }
+
+            // === 商家自己開團 ===
+            if (User.IsInRole("Merchant"))
+            {
+                var myStores = await _storeService.GetMyStoresAsync(userId);
+
+                var vm = new CreateGroupRequest
+                {
+                    AvailableStores = myStores,
+                    IsLockedStore = false
+                };
+
+                return View(vm);
+            }
+
+            return BadRequest();
+        }
+
 
         // =========================
         // 列表：我的商店
@@ -230,6 +270,16 @@ namespace GroupDelivery.Web.Controllers
             return View(groups);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> StoreGroups(int storeId)
+        {
+            var groups = await _groupOrderService
+                .GetOpenGroupsByStoreAsync(storeId);
+
+            ViewData["StoreId"] = storeId;
+
+            return View(groups);
+        }
 
     }
 }

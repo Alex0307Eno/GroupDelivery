@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using GroupDelivery.Application.Abstractions;
 
 namespace GroupDelivery.Web.Controllers.Api
 {
@@ -12,47 +13,19 @@ namespace GroupDelivery.Web.Controllers.Api
     public class StoreBrowseApiController : ControllerBase
     {
         private readonly GroupDeliveryDbContext _db;
+        private readonly IStoreService _storeService;
 
-        public StoreBrowseApiController(GroupDeliveryDbContext db)
+        public StoreBrowseApiController(GroupDeliveryDbContext db, IStoreService storeService)
         {
             _db = db;
+            _storeService = storeService;
         }
 
         [HttpGet("/api/stores/nearby")]
         public async Task<IActionResult> NearbyStores()
         {
-            var activeGroups = await _db.GroupOrders
-                .Where(g => g.Status == GroupOrderStatus.Open)
-                .GroupBy(g => g.StoreId)
-                .Select(g => new
-                {
-                    StoreId = g.Key,
-                    Deadline = g.Min(x => x.Deadline),
-                    CreatedAt = g.Max(x => x.CreatedAt)
-                })
-                .ToListAsync();
-
-            var activeGroupMap = activeGroups.ToDictionary(x => x.StoreId, x => x);
-
-            var stores = await _db.Stores
-                .Select(s => new
-                {
-                    storeId = s.StoreId,
-                    storeName = s.StoreName,
-                    address = s.Address,
-                    distance = 0,
-                    hasActiveGroup = activeGroupMap.ContainsKey(s.StoreId),
-                    activeGroupDeadline = activeGroupMap.ContainsKey(s.StoreId)
-                        ? activeGroupMap[s.StoreId].Deadline
-                        : (DateTime?)null,
-                    activeGroupCreatedAt = activeGroupMap.ContainsKey(s.StoreId)
-                        ? activeGroupMap[s.StoreId].CreatedAt
-                        : (DateTime?)null,
-                    coverImageUrl = s.CoverImageUrl
-                })
-                .ToListAsync();
-
-            return Ok(stores);
+            var result = await _storeService.GetNearbyStoresAsync();
+            return Ok(result);
         }
 
         [HttpGet("/api/store/groups")]

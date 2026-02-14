@@ -199,10 +199,12 @@
                             剩 {{ s.minutesLeft }} 分鐘就截止
                         </div>
 
-                        <a :href="'/Store/' + s.storeId + '/Groups'"
+                        <a :href="'/Store/StoreGroups?storeId=' + s.storeId"
                            class="btn btn-success w-100 store-cta">
-                            立刻加入這一團
+                            查看正在開團
                         </a>
+
+
 
                         <div class="store-footer-text">
                             現在加入，最容易湊到「值得送」的單。
@@ -239,10 +241,11 @@
                             {{ s.address || "未提供地址" }} · 距離你 {{ s.distance }} 公尺
                         </div>
 
-                        <a :href="'/Store/' + s.storeId + '/CreateGroup'"
-                           class="btn btn-outline-secondary w-100 store-cta">
+                        <a :href="'/Store/CreateGroup?storeId=' + s.storeId"
+                           class="btn btn-outline-secondary w-100">
                             幫這間店開一團
                         </a>
+
 
 
                         <div class="store-footer-text">

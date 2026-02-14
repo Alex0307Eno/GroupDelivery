@@ -65,5 +65,14 @@ namespace GroupDelivery.Infrastructure.Repositories
             await _db.SaveChangesAsync();
         }
         #endregion
+        public async Task<Store> GetByIdAsync(int storeId)
+        {
+            return await _db.Stores
+                .FirstOrDefaultAsync(s => s.StoreId == storeId);
+        }
+        public async Task<List<Store>> GetAllAsync()
+        {
+            return await _db.Stores.ToListAsync();
+        }
     }
 }

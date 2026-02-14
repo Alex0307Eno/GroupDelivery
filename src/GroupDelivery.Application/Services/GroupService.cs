@@ -115,6 +115,24 @@ namespace GroupDelivery.Application.Services
         {
             return await _groupRepository.GetByIdAsync(groupId);
         }
+        public async Task JoinGroupAsync(int userId, int groupId)
+        {
+            var group = await _groupRepository.GetByIdAsync(groupId);
+
+            if (group == null)
+                throw new Exception("找不到團");
+
+            if (group.Status != GroupOrderStatus.Open)
+                throw new Exception("團已結束");
+
+            if (group.Deadline <= DateTime.Now)
+                throw new Exception("團已截止");
+
+            // 這裡先固定 +100，之後改成帶金額
+            group.CurrentAmount += 100;
+
+            await _groupRepository.UpdateAsync(group);
+        }
 
     }
 

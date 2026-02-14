@@ -137,6 +137,8 @@ namespace GroupDelivery.Web
             // 群組輔助服務（非團單本體，例如聚合顯示、判斷）
             builder.Services.AddScoped<IGroupRepository, GroupRepository>();
             builder.Services.AddScoped<IGroupService, GroupService>();
+            builder.Services.AddScoped<IStoreMenuRepository, StoreMenuRepository>();
+            builder.Services.AddScoped<IStoreMenuService, StoreMenuService>();
 
 
             var app = builder.Build();

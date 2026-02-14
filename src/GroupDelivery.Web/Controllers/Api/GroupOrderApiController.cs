@@ -1,48 +1,43 @@
 using GroupDelivery.Application.Abstractions;
-using GroupDelivery.Application.Services;
-using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace GroupDelivery.Web.Controllers.Api
+[ApiController]
+[Route("api/groups")]
+public class GroupOrderApiController : ControllerBase
 {
-    [ApiController]
-    [Route("api/groups")]
-    public class GroupOrderApiController : ControllerBase
+    private readonly IGroupOrderService _groupOrderService;
+
+    public GroupOrderApiController(IGroupOrderService groupOrderService)
     {
-        private readonly IGroupOrderService _groupOrderService;
-        public GroupOrderApiController(IGroupOrderService groupOrderService)
-        {
-            _groupOrderService = groupOrderService;
-        }
+        _groupOrderService = groupOrderService;
+    }
 
-       
+    // GET api/groups/5
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var result = await _groupOrderService.GetDetailAsync(id);
 
-        // GET: api/groups/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetGroup(int id)
-        {
-            var group =
-                await _groupOrderService.GetGroupDetailAsync(id);
+        if (result == null)
+            return NotFound();
 
-            if (group == null)
-            {
-                return NotFound();
-            }
+        return Ok(result);
+    }
 
-            return Ok(group);
-        }
-        [HttpGet("groups/{groupId}")]
-        public async Task<IActionResult> GetGroupDetail(int groupId)
-        {
-            var result = await _groupOrderService.GetGroupDetailAsync(groupId);
-            if (result == null)
-                return NotFound();
+    // POST api/groups/5/join
+    [HttpPost("{id}/join")]
+    public async Task<IActionResult> Join(int id)
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim == null)
+            return Unauthorized();
 
-            return Ok(result);
-        }
+        var userId = int.Parse(claim.Value);
 
+        await _groupOrderService.JoinGroupAsync(userId, id);
+
+        return Ok();
     }
 }

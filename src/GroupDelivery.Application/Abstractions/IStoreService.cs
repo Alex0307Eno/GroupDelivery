@@ -13,5 +13,10 @@ namespace GroupDelivery.Application.Abstractions
         Task DeleteAsync(int userId, int storeId);
         Task UpdateCoverImageAsync(int storeId, int ownerUserId, string coverImageUrl);
         Task UpdateMenuImageAsync(int storeId, int ownerUserId, string menuImageUrl);
+        Task<Store> GetFirstByOwnerAsync(int ownerUserId);
+        Task<Store> GetByIdAsync(int storeId);
+        Task<List<NearbyStoreDto>> GetNearbyStoresAsync();
+
+
     }
 }

@@ -19,6 +19,14 @@ namespace GroupDelivery.Application.Abstractions
         Task<GroupDetailDto> GetGroupDetailAsync(int groupId);
         //取得我的揪團列表
         Task<List<GroupOrder>> GetMyGroupOrdersAsync(int userId);
+        // 加入指定的團單
+        Task JoinGroupAsync(int userId, int groupOrderId, decimal amount);
+        
+        Task<List<GroupOrder>> GetOpenGroupsByStoreAsync(int storeId);
+
+        Task<GroupDetailDto> GetDetailAsync(int groupId);
+
+        Task JoinGroupAsync(int userId, int groupId);
 
     }
 

@@ -1,0 +1,68 @@
+﻿@model List<GroupOrder>
+
+@{
+    ViewData["Title"] = "揪IN｜這家正在揪的團";
+}
+
+<div class="container py-5">
+
+    <h3 class="fw-bold mb-4">
+        正在揪的團
+    </h3>
+
+    <div class="row g-4">
+
+        @foreach (var group in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card shadow-sm p-4 h-100">
+
+                    <div class="fw-bold mb-2">
+                        @(string.IsNullOrEmpty(group.Remark)
+                                            ? "揪團中"
+                                            : group.Remark)
+                </div>
+
+                    <div class="text-muted small mb-2">
+                        截止時間：@group.Deadline.ToString("yyyy/MM/dd HH:mm")
+                    </div>
+
+                    <div class="mb-2">
+                        已達 $@group.CurrentAmount
+                        / $@group.TargetAmount
+                    </div>
+
+                    <div class="progress mb-3" style="height:8px;">
+                    @{
+                            var percent = group.TargetAmount == 0
+                            ? 0
+                            : (int)((group.CurrentAmount * 100) / group.TargetAmount);
+                        }
+
+                        <div class="progress-bar bg-success"
+                             style="width:@percent%">
+                        </div>
+                    </div>
+
+                    <a href="/Group/GroupDetail/@group.GroupOrderId"
+                       class="btn btn-dark w-100">
+                        立刻加入
+                    </a>
+
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-muted mt-4">
+            目前沒有正在開團
+        </div>
+    }
+
+</div>

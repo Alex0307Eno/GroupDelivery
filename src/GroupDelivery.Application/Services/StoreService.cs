@@ -17,6 +17,15 @@ namespace GroupDelivery.Infrastructure.Services
             _storeRepo = storeRepo;
             _groupOrderRepository = groupOrderRepository;
         }
+        public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
+        {
+            return await _storeRepo.GetFirstByOwnerAsync(ownerUserId);
+        }
+        public async Task<Store> GetByIdAsync(int storeId)
+        {
+            return await _storeRepo.GetByIdAsync(storeId);
+        }
+
 
         public async Task<List<Store>> GetMyStoresAsync(int userId)
         {
@@ -100,6 +109,46 @@ namespace GroupDelivery.Infrastructure.Services
             store.MenuImageUrl = url;
             store.ModifiedAt = DateTime.UtcNow;
             await _storeRepo.UpdateAsync(store);
+        }
+        public async Task<List<NearbyStoreDto>> GetNearbyStoresAsync()
+        {
+            var now = DateTime.Now;
+
+            var stores = await _storeRepo.GetAllAsync();
+            var openGroups = await _groupOrderRepository.GetOpenGroupsAsync(now);
+
+            var grouped = openGroups
+                .GroupBy(g => g.StoreId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        Deadline = g.Min(x => x.Deadline),
+                        CreatedAt = g
+                            .OrderByDescending(x => x.CreatedAt)
+                            .Select(x => x.CreatedAt)
+                            .FirstOrDefault()
+                    });
+
+            var result = stores
+                .Select(s => new NearbyStoreDto
+                {
+                    StoreId = s.StoreId,
+                    StoreName = s.StoreName,
+                    Address = s.Address,
+                    Distance = 0,
+                    HasActiveGroup = grouped.ContainsKey(s.StoreId),
+                    ActiveGroupDeadline = grouped.ContainsKey(s.StoreId)
+                        ? grouped[s.StoreId].Deadline
+                        : (DateTime?)null,
+                    ActiveGroupCreatedAt = grouped.ContainsKey(s.StoreId)
+                        ? grouped[s.StoreId].CreatedAt
+                        : (DateTime?)null,
+                    CoverImageUrl = s.CoverImageUrl
+                })
+                .ToList();
+
+            return result;
         }
     }
 }

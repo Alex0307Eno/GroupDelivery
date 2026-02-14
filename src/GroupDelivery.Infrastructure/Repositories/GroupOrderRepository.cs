@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Infrastructure.Repositories
@@ -79,10 +80,60 @@ namespace GroupDelivery.Infrastructure.Repositories
         #region 取得指定使用者所建立的所有團單
         public async Task<List<GroupOrder>> GetByCreatorAsync(int creatorUserId)
         {
-            return await _db.GroupOrders
+
+            var groups = await _db.GroupOrders
                 .Include(g => g.Store)
                 .Where(g => g.CreatorUserId == creatorUserId)
                 .OrderByDescending(g => g.CreatedAt)
+                .ToListAsync();
+
+            var now = DateTime.Now;
+            bool changed = false;
+
+            foreach (var g in groups)
+            {
+                // 如果還是 Open 但時間已過 → 改成 Expired
+                if (g.Status == GroupOrderStatus.Open && g.Deadline < now)
+                {
+                    g.Status = GroupOrderStatus.Expired;
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                await _db.SaveChangesAsync();
+            }
+
+            return groups;
+        }
+
+        #endregion
+
+        #region 取得指定店家的所有團單
+        public async Task<List<GroupOrder>> GetOpenGroupsAsync(DateTime now)
+        {
+            return await _db.GroupOrders
+                .Where(g => g.Status == GroupOrderStatus.Open
+                         && g.Deadline > now)
+                .ToListAsync();
+        }
+        #endregion
+
+        #region 新增一筆團單內的訂單項目資料
+        public async Task AddItemAsync(GroupOrderItem item)
+        {
+            _db.GroupOrderItems.Add(item);
+            await _db.SaveChangesAsync();
+        }
+        #endregion
+        #region 取得指定店家目前所有仍在揪團中的團單
+        public async Task<List<GroupOrder>> GetOpenByStoreAsync(int storeId, DateTime now)
+        {
+            return await _db.GroupOrders
+                .Where(g => g.StoreId == storeId
+                         && g.Status == GroupOrderStatus.Open
+                         && g.Deadline > now)
+                .OrderBy(g => g.Deadline)
                 .ToListAsync();
         }
         #endregion

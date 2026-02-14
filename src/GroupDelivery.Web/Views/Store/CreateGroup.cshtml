@@ -69,37 +69,45 @@
         <div class="card-box fade-up fade-delay-1">
 
             <!-- 店家 -->
-                <div class="mb-4">
-                    <label class="form-label">店家</label>
+            <div class="mb-3">
+                <label class="form-label">店家</label>
 
-                <!-- 沒有可開團的店 -->
-                <div v-if="availableStores.length === 0"
-                     class="alert alert-warning">
-                    目前沒有營業中的商店，請先取消休息設定
+                <!-- 使用者模式：鎖定店家 -->
+                <div v-if="isLockedStore">
+
+                    <!-- 直接顯示純文字 -->
+                    <input class="form-control"
+                           :value="lockedStoreName"
+                           disabled />
+
+                    <!-- hidden 用 value，不用 v-model -->
+                    <input type="hidden"
+                           :value="form.storeId" />
+
                 </div>
 
-                <!-- 只有一家可開團 -->
-                <input v-else-if="availableStores.length === 1"
-                       class="form-control shadow-sm"
-                       :value="availableStores[0].storeName"
-                       disabled>
+                <!-- 商家模式：可以選 -->
+                <div v-else>
 
-                <!-- 多家可開團 -->
-                <select v-else
-                        class="form-select shadow-sm"
-                        v-model="selectedStoreId"
-                        @@change ="form.storeId = selectedStoreId">
-                    <option disabled value="">請選擇店家</option>
-                    <option v-for="s in availableStores"
-                            :key="s.storeId"
-                            :value="s.storeId">
-                        {{ s.storeName }}
-                    </option>
-                </select>
+                    <div v-if="stores.length === 0"
+                         class="alert alert-warning">
+                        目前沒有商店
+                    </div>
 
+                    <select v-else
+                            class="form-select"
+                            v-model="form.storeId">
+                        <option disabled value="">請選擇店家</option>
+                        <option v-for="s in stores"
+                                :key="s.storeId"
+                                :value="s.storeId">
+                            {{ s.storeName }}
+                        </option>
+                    </select>
 
-                    
                 </div>
+            </div>
+
 
                 
 
@@ -233,35 +241,49 @@
         const { createApp } = Vue;
 
         createApp({
-            data() {
-                return {
-                    stores: [],
-                    selectedStoreId: null,
-                     selectedPreset: null,
-                    showCustom: false,
-                    customMinutes: null,
-                    submitting: false,
+        data() {
+            return {
 
-                    form: {
-                        storeId: null,
-                        targetAmount: null,
-                        deadline: "",
-                        deliveryRange: 3,
-                        remark: ""
-                    }
-                };
-            },
+                // ===== 模式控制 =====
+                isLockedStore: @Model.IsLockedStore.ToString().ToLower(),
 
-        mounted() {
+                lockedStoreName: @Html.Raw(
+                                    System.Text.Json.JsonSerializer.Serialize(Model.StoreName ?? "")
+                            ),
+
+            // ===== 商家模式用 =====
+            stores: @Html.Raw(
+                                System.Text.Json.JsonSerializer.Serialize(
+                                        Model.AvailableStores ?? new List<GroupDelivery.Domain.Store>()
+                                )
+                        ),
+
+            // ===== UI 控制 =====
+            selectedPreset: null,
+            showCustom: false,
+            customMinutes: null,
+            submitting: false,
+
+                // ===== 表單資料 =====
+                form: {
+                    storeId: @(Model.StoreId > 0 ? Model.StoreId.ToString() : "null"),
+                    targetAmount: null,
+                    deadline: "",
+                    deliveryRange: 3,
+                    remark: ""
+                }
+            };
+        },
+
+                mounted() {
             axios.get('/api/merchant/stores')
                 .then(res => {
                     this.stores = res.data || [];
 
-                    const openStores = this.availableStores;
+                    const openStores = this.stores.filter(s => s.isOpenNow);
 
                     if (openStores.length === 1) {
-                        this.selectedStoreId = openStores[0].storeId;
-                        this.form.storeId = this.selectedStoreId;
+                        this.form.storeId = openStores[0].storeId;
                     }
                 })
                 .catch(() => {

@@ -31,5 +31,8 @@ namespace GroupDelivery.Application.Abstractions
         // 非同步更新使用者資料
         // 一般情況下建議優先使用此方法
         Task UpdateAsync(User user);
+
+
+        Task<bool> IsMerchantAsync(int userId);
     }
 }

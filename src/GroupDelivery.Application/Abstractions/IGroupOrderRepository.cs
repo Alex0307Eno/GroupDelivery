@@ -32,6 +32,13 @@ namespace GroupDelivery.Application.Abstractions
         Task<List<GroupOrder>> GetActiveOverdueAsync(DateTime now);
         // 取得指定使用者所建立的所有團單
         Task<List<GroupOrder>> GetByCreatorAsync(int creatorUserId);
+        // 取得目前仍應顯示在前台的有效團單，並包含店家資訊
+        Task<List<GroupOrder>> GetOpenGroupsAsync(DateTime now);
+        // 新增一筆團內訂單資料
+        Task AddItemAsync(GroupOrderItem item);
+        // 取得指定店家目前仍應顯示在前台的有效團單清單
+        Task<List<GroupOrder>> GetOpenByStoreAsync(int storeId, DateTime now);
+
 
     }
 }

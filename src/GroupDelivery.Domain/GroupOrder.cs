@@ -13,6 +13,8 @@ namespace GroupDelivery.Domain
         [Key]
         public int GroupOrderId { get; set; }
         // 關聯：此團單屬於哪個店家
+        public int OwnerUserId { get; set; }
+
         public int StoreId { get; set; }
         // 關聯：此團單由哪個使用者（商家）開立
         public int CreatorUserId { get; set; }
@@ -34,7 +36,11 @@ namespace GroupDelivery.Domain
         
         [ForeignKey("StoreId")]
         public virtual Store Store { get; set; }
-       
-        
+        public virtual ICollection<GroupOrderItem> GroupOrderItems { get; set; }
+        public virtual User OwnerUser { get; set; }
+
+
+
+
     }
 }
