@@ -29,15 +29,10 @@ namespace GroupDelivery.Application.Services
                 StoreName = dto.StoreName,
                 Phone = dto.StorePhone,
                 Address = dto.StoreAddress,
-                Latitude = dto.Lat,
-                Longitude = dto.Lng,
+
+
                 OwnerUserId = userId,
 
-                // 平台狀態
-                AccountStatus = StoreAccountStatus.Draft,
-
-                // 營運狀態
-                OperationStatus = StoreOperationStatus.Paused,
 
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
@@ -70,8 +65,6 @@ namespace GroupDelivery.Application.Services
                     Phone = request.StorePhone,
                     Address = request.StoreAddress,
 
-                    AccountStatus = StoreAccountStatus.Draft,
-                    OperationStatus = StoreOperationStatus.Paused,
 
                     CreatedAt = DateTime.UtcNow,
                     ModifiedAt = DateTime.UtcNow

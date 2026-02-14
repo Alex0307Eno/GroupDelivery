@@ -19,7 +19,6 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         [HttpGet("/api/stores/nearby")]
-
         public async Task<IActionResult> NearbyStores()
         {
             var activeGroups = await _db.GroupOrders
@@ -33,32 +32,23 @@ namespace GroupDelivery.Web.Controllers.Api
                 })
                 .ToListAsync();
 
-            var activeGroupMap = activeGroups
-                .ToDictionary(x => x.StoreId, x => x);
+            var activeGroupMap = activeGroups.ToDictionary(x => x.StoreId, x => x);
 
             var stores = await _db.Stores
-                .Where(s => s.AccountStatus == StoreAccountStatus.Active)   // 只顯示已上架
                 .Select(s => new
                 {
                     storeId = s.StoreId,
                     storeName = s.StoreName,
+                    address = s.Address,
                     distance = 0,
-
                     hasActiveGroup = activeGroupMap.ContainsKey(s.StoreId),
-
                     activeGroupDeadline = activeGroupMap.ContainsKey(s.StoreId)
                         ? activeGroupMap[s.StoreId].Deadline
                         : (DateTime?)null,
-
                     activeGroupCreatedAt = activeGroupMap.ContainsKey(s.StoreId)
                         ? activeGroupMap[s.StoreId].CreatedAt
                         : (DateTime?)null,
-
-                    coverImageUrl = s.CoverImageUrl,
-                    openTime = s.OpenTime,
-                    closeTime = s.CloseTime,
-
-                    operationStatus = s.OperationStatus
+                    coverImageUrl = s.CoverImageUrl
                 })
                 .ToListAsync();
 

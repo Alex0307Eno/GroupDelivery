@@ -1,15 +1,11 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
-using GroupDelivery.Infrastructure.Repositories;
-using GroupDelivery.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Security.Claims;
+using System.Linq;
 using System.Threading.Tasks;
-
-
 
 namespace GroupDelivery.Web.Controllers.Api
 {
@@ -28,8 +24,7 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         [HttpPost("groups")]
-        public async Task<IActionResult> CreateGroup(
-            [FromBody] CreateGroupRequest request)
+        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
             if (request == null)
                 return BadRequest("請求資料為空");
@@ -49,27 +44,20 @@ namespace GroupDelivery.Web.Controllers.Api
             {
                 return BadRequest(new { error = ex.Message });
             }
-
         }
+
         [HttpGet("stores")]
-        [HttpGet]
         public async Task<IActionResult> GetMyStores()
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var stores = await _storeService.GetMyStoresAsync(userId);
 
-            var result = stores
-                    .Where(s => s.IsOpenNow)
-                    .Select(s => new
-                    {
-                        storeId = s.StoreId,
-                        storeName = s.StoreName,
-                        isOpenNow = s.IsOpenNow
-
-                    });
-
+            var result = stores.Select(s => new
+            {
+                storeId = s.StoreId,
+                storeName = s.StoreName,
+                hasActiveGroupOrders = s.HasActiveGroupOrders
+            });
 
             return Ok(result);
         }

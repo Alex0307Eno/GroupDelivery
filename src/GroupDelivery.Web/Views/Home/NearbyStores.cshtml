@@ -191,7 +191,7 @@
 
                         <div class="store-name">{{ s.storeName }}</div>
                         <div class="store-meta">
-                            {{ s.openTime }} - {{ s.closeTime }} · 距離你 {{ s.distance }} 公尺
+                            {{ s.address || "未提供地址" }} · 距離你 {{ s.distance }} 公尺
                         </div>
 
                         <div v-if="s.isUrgent"
@@ -236,22 +236,13 @@
                     <div class="store-body">
                         <div class="store-name">{{ s.storeName }}</div>
                         <div class="store-meta">
-                            {{ s.openTime }} - {{ s.closeTime }} · 距離你 {{ s.distance }} 公尺
+                            {{ s.address || "未提供地址" }} · 距離你 {{ s.distance }} 公尺
                         </div>
 
-                        <!-- 可接單 -->
-                        <a v-if="s.isAcceptingOrders"
-                           :href="'/Store/' + s.storeId + '/CreateGroup'"
+                        <a :href="'/Store/' + s.storeId + '/CreateGroup'"
                            class="btn btn-outline-secondary w-100 store-cta">
                             幫這間店開一團
                         </a>
-
-                        <!-- 暫停接單 -->
-                        <button v-else
-                                class="btn btn-outline-secondary w-100 store-cta"
-                                disabled>
-                            暫停接單中
-                        </button>
 
 
                         <div class="store-footer-text">
@@ -357,9 +348,7 @@
                         self.stores = list.map(function (s) {
                             // 後端沒給的欄位先用預設值補上
                             s.coverImageUrl = s.coverImageUrl || null;
-                            s.openTime = s.openTime || '尚未設定';
-                            s.closeTime = s.closeTime || '';
-                            return self.enrichStore(s);
+                                                        return self.enrichStore(s);
                         });
                     });
             }

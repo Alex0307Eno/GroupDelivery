@@ -138,18 +138,6 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IGroupRepository, GroupRepository>();
             builder.Services.AddScoped<IGroupService, GroupService>();
 
-            // =========================
-            // 商店休息日
-            // =========================
-
-            // 商店「臨時休息日」（指定日期）資料存取
-            builder.Services.AddScoped<IStoreClosedDateRepository, StoreClosedDateRepository>();
-
-            // 商店「每週固定休息日」資料存取（星期一～日）
-            builder.Services.AddScoped<IStoreWeeklyClosedDayRepository, StoreWeeklyClosedDayRepository>();
-
-
-
 
             var app = builder.Build();
 
