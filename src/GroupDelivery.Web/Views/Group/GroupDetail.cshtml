@@ -1,183 +1,36 @@
-@{
-    ViewData["Title"] = "揪IN｜團購詳情";
-    var groupId = ViewData["GroupId"]?.ToString() ?? "0";
-}
-
-<style>
-    .group-container {
-        max-width: 720px;
-        margin: 0 auto;
-    }
-
-    .group-header {
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
-
-    .deadline-text {
-        font-size: 1rem;
-        color: #6b7280;
-    }
-
-    .countdown {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .progress-box {
-        background: #ffffff;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 8px 24px rgba(0,0,0,.06);
-    }
-
-    .progress-bar-bg {
-        height: 10px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        overflow: hidden;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background: #16a34a;
-        transition: width .3s ease;
-    }
-
-    .join-btn {
-        font-weight: 600;
-        border-radius: 999px;
-        padding: .8rem 1.5rem;
-    }
-
-    .muted-note {
-        font-size: .9rem;
-        color: #6b7280;
-    }
-</style>
-
-<div id="app" class="container py-5">
-
-    <div class="group-container">
-
-        <!-- 標題 -->
-        <div class="mb-3">
-            <div class="group-header">
-                正在揪團
-            </div>
-            <div class="deadline-text">
-                截止時間：{{ formatTime(deadline) }}
-            </div>
-        </div>
-
-        <!-- 倒數 -->
-        <div class="mb-4">
-            <div class="countdown">
-                剩餘 {{ remainText }}
-            </div>
-        </div>
-
-        <!-- 進度 -->
-        <div class="progress-box mb-4">
-
-            <div class="d-flex justify-content-between mb-2">
-                <div class="fw-semibold">
-                    已達成
+@{ ViewData["Title"] = "揪團詳情"; }
+<div id="app" data-group-id="@ViewData["GroupId"]">
+    <app-loading :show="loading || submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div v-if="detail" class="row g-3">
+        <div class="col-lg-8">
+            <div class="card mb-3"><div class="card-body">
+                <h4>{{ detail.storeName }}</h4>
+                <div>剩餘時間：{{ detail.remainingText }}</div>
+                <div>目前金額：<app-money :value="detail.currentAmount"></app-money></div>
+            </div></div>
+            <div class="card"><div class="card-body">
+                <h5>商品清單</h5>
+                <div class="row g-2" v-for="item in (detail.products || [])" :key="item.productId">
+                    <div class="col-5">{{ item.name }}</div>
+                    <div class="col-3"><app-money :value="item.price"></app-money></div>
+                    <div class="col-2"><input class="form-control" v-model="qtyMap[item.productId]" /></div>
+                    <div class="col-2"><button class="btn btn-outline-primary w-100" v-on:click="addToCart(item)">加入</button></div>
                 </div>
-                <div>
-                    ${{ currentAmount }} / ${{ targetAmount }}
-                </div>
-            </div>
-
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill"
-                     :style="{ width: percent + '%' }">
-                </div>
-            </div>
-
-            <div class="mt-2 muted-note">
-                {{ percent }}% 完成
-            </div>
-
+            </div></div>
         </div>
-
-        <!-- 按鈕 -->
-        <button class="btn btn-success w-100 join-btn"
-                @@click="joinNow"
-                :disabled="remainSeconds <= 0">
-            加入這一團
-        </button>
-
-        <div class="text-center mt-3 muted-note">
-            加入後可在團內查看訂單進度
+        <div class="col-lg-4">
+            <div class="card"><div class="card-body">
+                <h5>購物車</h5>
+                <div v-for="item in cart" :key="item.productId">{{ item.name }} x {{ item.qty }}</div>
+                <hr /><div>總額：<app-money :value="totalAmount"></app-money></div>
+                <button class="btn btn-success w-100 cta-mobile-fixed" :disabled="submitting" v-on:click="submitOrder">送出訂單</button>
+            </div></div>
         </div>
-
     </div>
-
 </div>
-
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-<script>
-    const { createApp } = Vue;
-
-    createApp({
-        data() {
-            return {
-                groupId: '@groupId',
-                deadline: null,
-                now: new Date(),
-                currentAmount: 0,
-                targetAmount: 0
-            };
-        },
-        computed: {
-            remainSeconds() {
-                if (!this.deadline) return 0;
-                const diff = new Date(this.deadline) - this.now;
-                return Math.max(Math.floor(diff / 1000), 0);
-            },
-            remainText() {
-                const m = Math.floor(this.remainSeconds / 60);
-                const s = this.remainSeconds % 60;
-                return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            },
-            percent() {
-                if (!this.targetAmount) return 0;
-                return Math.min(
-                    Math.round(this.currentAmount * 100 / this.targetAmount),
-                    100
-                );
-            }
-        },
-        methods: {
-            fetchGroup() {
-    axios.get(`/api/groups/${this.groupId}`)
-                        .then(res => {
-                        this.deadline = res.data.deadline;
-                        this.currentAmount = res.data.currentAmount;
-                        this.targetAmount = res.data.targetAmount;
-                    });
-            },
-            joinNow() {
-    axios.post(`/api/groups/${this.groupId}/join`)
-                        .then(() => {
-                        this.fetchGroup();
-                    });
-            },
-            formatTime(t) {
-                if (!t) return '';
-                return new Date(t).toLocaleString();
-            }
-        },
-        mounted() {
-            this.fetchGroup();
-
-            setInterval(() => {
-                this.now = new Date();
-            }, 1000);
-        }
-    }).mount('#app');
-</script>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/consumer-group-detail.js"></script>
+}

@@ -1,49 +1,19 @@
-﻿@model GroupDelivery.Domain.StoreUpdateRequest
-
-<h3 class="fw-bold mb-4">編輯商店</h3>
-
-<form asp-action="Edit" asp-controller="Store" asp-route-id="@Model.StoreId" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="StoreId" />
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">商店名稱</label>
-                <input class="form-control" asp-for="StoreName" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">電話</label>
-                <input class="form-control" asp-for="Phone" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">地址</label>
-                <input class="form-control" asp-for="Address" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">商店介紹</label>
-                <textarea class="form-control" asp-for="Description" rows="3"></textarea>
-            </div>
-
-            <h6 class="fw-bold mt-4">圖片</h6>
-
-            <div class="mb-3">
-                <label class="form-label">更新封面照片</label>
-                <input type="file" class="form-control" asp-for="NewCoverImage" accept="image/*" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">新增菜單照片</label>
-                <input type="file" class="form-control" asp-for="NewMenuImages" multiple accept="image/*" />
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <button class="btn btn-success">儲存變更</button>
-        <a href="/Store/MyStores" class="btn btn-outline-secondary">返回</a>
-    </div>
-</form>
+@model GroupDelivery.Domain.StoreUpdateRequest
+@{ ViewData["Title"] = "編輯店家"; }
+<div id="app" data-mode="edit" data-store-id="@Model.StoreId" data-store-name="@Model.StoreName" data-phone="@Model.Phone" data-address="@Model.Address">
+    <app-loading :show="submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="card"><div class="card-body">
+        <h4>編輯店家</h4>
+        <div class="mb-2"><label class="form-label">店名</label><input class="form-control" v-model="form.storeName" /><app-form-error :errors="errors" field="storeName"></app-form-error></div>
+        <div class="mb-2"><label class="form-label">電話</label><input class="form-control" v-model="form.phone" /><app-form-error :errors="errors" field="phone"></app-form-error></div>
+        <div class="mb-2"><label class="form-label">地址</label><input class="form-control" v-model="form.address" /><app-form-error :errors="errors" field="address"></app-form-error></div>
+        <button class="btn btn-primary" :disabled="submitting" v-on:click="submit">儲存</button>
+        <div class="text-muted mt-2" v-if="placeResult">{{ placeResult }}</div>
+    </div></div>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/merchant-store-form.js"></script>
+}

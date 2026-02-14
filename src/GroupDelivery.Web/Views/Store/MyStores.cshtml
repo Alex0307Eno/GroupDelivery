@@ -1,60 +1,26 @@
-﻿@model IEnumerable<Store>
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold mb-0">我的商店</h3>
-    <a class="btn btn-success" href="/Store/Create">＋ 新增商店</a>
+@{ ViewData["Title"] = "我的店家"; }
+<div id="app">
+    <app-loading :show="loading"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">我的店家列表</h4>
+        <a href="/Store/Create" class="btn btn-primary">新增店家</a>
+    </div>
+    <div v-if="!stores.length"><app-empty-state text="尚未建立店家"></app-empty-state></div>
+    <table class="table" v-if="stores.length">
+        <thead><tr><th>店名</th><th>狀態</th><th>地址</th><th>電話</th><th>操作</th></tr></thead>
+        <tbody><tr v-for="store in stores" :key="store.storeId">
+            <td>{{ store.storeName }}</td><td>{{ store.isActive ? '啟用' : '停用' }}</td><td>{{ store.address }}</td><td>{{ store.phone }}</td>
+            <td>
+                <a class="btn btn-sm btn-outline-secondary me-1" :href="`/Store/Edit/${store.storeId}`">編輯</a>
+                <a class="btn btn-sm btn-outline-primary me-1" :href="`/StoreMenu/Manage?storeId=${store.storeId}`">菜單</a>
+                <button class="btn btn-sm btn-outline-danger" v-on:click="toggle(store)">{{ store.isActive ? '停用' : '啟用' }}</button>
+            </td>
+        </tr></tbody>
+    </table>
 </div>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-light text-center py-5">
-        <div class="fw-bold mb-2">你還沒有建立任何商店</div>
-        <div class="text-muted mb-3">建立商店後，才能開始被消費者看到</div>
-        <a class="btn btn-success" href="/Store/Create">建立第一家商店</a>
-    </div>
-}
-else
-{
-    <div class="row g-4">
-        @foreach (var store in Model)
-        {
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="ratio ratio-16x9 bg-light">
-                        <img src="@(string.IsNullOrEmpty(store.CoverImageUrl) ? "/img/store-placeholder.jpg" : store.CoverImageUrl)" class="w-100 h-100 object-fit-cover" />
-                    </div>
-
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold mb-0">@store.StoreName</h5>
-                            @if (store.HasActiveGroupOrders)
-                            {
-                                <span class="badge bg-success">有進行中團單</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">目前無進行中團單</span>
-                            }
-                        </div>
-
-                        <div class="text-muted small mb-2">@store.Address</div>
-                        <div class="text-muted small">@store.Phone</div>
-                    </div>
-
-                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                        <a class="btn btn-outline-primary btn-sm" href="/Store/Edit/@store.StoreId">編輯商店</a>
-                        <a class="btn btn-outline-success btn-sm"
-                           href="/StoreMenu/Manage?storeId=@store.StoreId">
-                            菜單管理
-                        </a>
-
-                        <form method="post" action="/Store/Delete/@store.StoreId" onsubmit="return confirm('確定刪除這家商店？');">
-                            @Html.AntiForgeryToken()
-                            <button class="btn btn-outline-danger btn-sm">刪除</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/merchant-stores.js"></script>
 }

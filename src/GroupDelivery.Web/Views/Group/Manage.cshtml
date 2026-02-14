@@ -1,185 +1,24 @@
-﻿@model GroupDelivery.Domain.GroupOrder
-
-@{
-    ViewData["Title"] = "團主控制台";
-    var percent = Model.TargetAmount > 0
-        ? (int)((Model.CurrentAmount * 100) / Model.TargetAmount)
-        : 0;
+@model GroupDelivery.Domain.GroupOrder
+@{ ViewData["Title"] = "揪團管理"; }
+<div id="app" data-group-id="@Model.GroupOrderId">
+    <app-loading :show="loading || submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div v-if="detail" class="card"><div class="card-body">
+        <h4>揪團管理</h4>
+        <div>目前金額：<app-money :value="detail.currentAmount"></app-money></div>
+        <div>距離成團差額：<app-money :value="detail.diffAmount"></app-money></div>
+        <div>剩餘時間：{{ detail.remainingText }}</div>
+        <button class="btn btn-outline-danger me-2" :disabled="submitting" v-on:click="closeGroup">手動關團</button>
+        <button class="btn btn-outline-primary" v-on:click="exportOrders">匯出訂單</button>
+        <hr />
+        <table class="table" v-if="detail.orders && detail.orders.length"><thead><tr><th>訂單人</th><th>金額</th><th>時間</th><th>狀態</th></tr></thead>
+            <tbody><tr v-for="order in detail.orders" :key="order.orderId"><td>{{ order.userName }}</td><td><app-money :value="order.amount"></app-money></td><td>{{ order.createdAt }}</td><td>{{ order.status }}</td></tr></tbody>
+        </table>
+        <app-empty-state v-else text="目前沒有訂單"></app-empty-state>
+    </div></div>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/merchant-group-manage.js"></script>
 }
-
-<div class="page-wrap">
-
-    <!-- 團狀態總覽 -->
-    <div class="status-card fade-up">
-        <div class="d-flex justify-content-between align-items-center">
-
-            <div>
-                <div class="status-label">目前狀態</div>
-
-                @if (Model.Status == GroupOrderStatus.Open)
-                {
-                    <div class="status-value status-open">揪團進行中</div>
-                }
-                else if (Model.Status == GroupOrderStatus.Success)
-                {
-                    <div class="status-value status-success">🎉 成團成功</div>
-                }
-                else if (Model.Status == GroupOrderStatus.Expired)
-                {
-                    <div class="status-value status-expired">未成團</div>
-                }
-                else if (Model.Status == GroupOrderStatus.Cancelled)
-                {
-                    <div class="status-value status-cancelled">已取消</div>
-                }
-
-                <div class="status-sub">
-                    截止時間：@Model.Deadline.ToString("yyyy/MM/dd HH:mm")
-                </div>
-            </div>
-
-            <div class="status-progress">
-                <div class="progress-circle">
-                    @percent%
-                </div>
-                <div class="small text-muted mt-1">
-                    達成率
-                </div>
-            </div>
-
-        </div>
-
-        <div class="progress mt-3" style="height:8px;">
-            <div class="progress-bar"
-                 role="progressbar"
-                 style="width:@percent%">
-            </div>
-        </div>
-
-        <div class="small text-muted mt-2">
-            已湊 @Model.CurrentAmount / 目標 @Model.TargetAmount
-        </div>
-    </div>
-
-    <!-- 團主操作 -->
-    @if (Model.Status == GroupOrderStatus.Open)
-    {
-        <div class="card shadow-sm fade-up fade-delay-1 mb-5">
-            <div class="card-body">
-
-                <h5 class="fw-bold mb-3">團主操作</h5>
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <form method="post" action="/group/@Model.GroupOrderId/close">
-                            <button class="btn btn-primary w-100 main-action">
-                                提前結束揪團
-                            </button>
-                        </form>
-                        <div class="small text-muted mt-1">
-                            依目前金額判定是否成團
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <button class="btn btn-outline-danger w-100"
-                                data-bs-toggle="modal"
-                                data-bs-target="#cancelGroupModal">
-                            取消整團
-                        </button>
-                        <div class="small text-muted mt-1">
-                            立即取消，無法復原
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- 成員列表 -->
-    <div class="card shadow-sm fade-up fade-delay-2">
-        <div class="card-body">
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold mb-0">目前成員</h5>
-                <span class="badge bg-primary">
-                    @ViewBag.MemberCount ?? 0 人
-                </span>
-            </div>
-
-            @if ((ViewBag.MemberCount ?? 0) == 0)
-            {
-                <div class="empty-state">
-                    <div class="emoji">👥</div>
-                    <div class="fw-bold mb-1">
-                        尚未有人加入
-                    </div>
-                    <div class="small text-muted">
-                        分享團連結，邀請朋友一起湊團
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>成員</th>
-                                <th class="text-center">數量</th>
-                                <th class="text-center">狀態</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @* foreach 成員 *@
-                        </tbody>
-                    </table>
-                </div>
-            }
-
-        </div>
-    </div>
-
-</div>
-
-<!-- 取消 Modal -->
-<div class="modal fade" id="cancelGroupModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content fade-up">
-
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold text-danger">
-                    確認取消整團
-                </h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <p class="mb-1">
-                    此操作會立即取消整個團單。
-                </p>
-                <p class="text-muted small mb-0">
-                    所有訂單將失效，且無法復原。
-                </p>
-            </div>
-
-            <div class="modal-footer border-0">
-                <button class="btn btn-light"
-                        data-bs-dismiss="modal">
-                    返回
-                </button>
-
-                <form method="post" action="/group/@Model.GroupOrderId/cancel">
-                    <button class="btn btn-danger">
-                        確認取消
-                    </button>
-                </form>
-            </div>
-
-        </div>
-    </div>
-</div>

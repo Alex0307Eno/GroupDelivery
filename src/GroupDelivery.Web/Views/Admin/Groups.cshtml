@@ -1,0 +1,14 @@
+@{ ViewData["Title"] = "揪團監控"; }
+<div id="app">
+    <app-loading :show="loading || submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <table class="table" v-if="groups.length"><thead><tr><th>狀態</th><th>店家</th><th>目標/目前</th><th>截止時間</th><th>操作</th></tr></thead>
+        <tbody><tr v-for="group in groups" :key="group.groupId"><td>{{ group.status }}</td><td>{{ group.storeName }}</td><td>{{ group.targetAmount }} / {{ group.currentAmount }}</td><td>{{ group.deadline }}</td><td><button class="btn btn-sm btn-outline-danger" v-on:click="closeGroup(group)">手動關團</button></td></tr></tbody>
+    </table>
+    <app-empty-state v-else text="目前沒有監控中的揪團"></app-empty-state>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/admin-groups.js"></script>
+}

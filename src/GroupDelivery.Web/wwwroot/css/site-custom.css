@@ -1,0 +1,16 @@
+/* 檔案用途說明：集中管理全站自訂樣式與 RWD 微調 */
+.app-shell-header { box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08); }
+.app-loading-mask { position: fixed; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.card-hover { transition: transform .2s ease, box-shadow .2s ease; }
+.card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+.cta-mobile-fixed { position: sticky; bottom: 0; z-index: 100; background: #fff; padding: .75rem; border-top: 1px solid #e5e7eb; }
+
+@media (max-width: 768px) {
+    .mobile-card-list .table { display: none; }
+    .mobile-card-list .mobile-card { display: block; margin-bottom: .75rem; }
+    .btn { min-height: 44px; }
+}
+
+@media (min-width: 769px) {
+    .mobile-card-list .mobile-card { display: none; }
+}

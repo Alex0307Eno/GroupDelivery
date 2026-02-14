@@ -1,0 +1,18 @@
+@{ ViewData["Title"] = "我的訂單"; }
+<div id="app" class="mobile-card-list">
+    <app-loading :show="loading || submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <table class="table" v-if="orders.length">
+        <thead><tr><th>店家</th><th>金額</th><th>狀態</th><th>建立時間</th><th></th></tr></thead>
+        <tbody><tr v-for="order in orders" :key="order.orderId">
+            <td>{{ order.storeName }}</td><td><app-money :value="order.amount"></app-money></td><td>{{ order.status }}</td><td>{{ order.createdAt }}</td>
+            <td><button class="btn btn-outline-danger btn-sm" v-if="canCancel(order)" v-on:click="cancel(order)">取消</button></td>
+        </tr></tbody>
+    </table>
+    <div v-if="!orders.length"><app-empty-state text="目前沒有訂單"></app-empty-state></div>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/consumer-orders.js"></script>
+}

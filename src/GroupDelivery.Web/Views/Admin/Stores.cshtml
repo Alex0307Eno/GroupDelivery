@@ -1,0 +1,20 @@
+@{ ViewData["Title"] = "商家管理"; }
+<div id="app">
+    <app-loading :show="loading || submitting"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="card card-body mb-3"><div class="row g-2">
+        <div class="col-md-4"><input class="form-control" v-model="filters.keyword" placeholder="關鍵字" /></div>
+        <div class="col-md-3"><input class="form-control" v-model="filters.status" placeholder="狀態" /></div>
+        <div class="col-md-3"><input class="form-control" v-model="filters.plan" placeholder="方案" /></div>
+        <div class="col-md-2 d-grid"><button class="btn btn-primary" v-on:click="load">查詢</button></div>
+    </div></div>
+    <table class="table" v-if="stores.length"><thead><tr><th>商家</th><th>方案</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody><tr v-for="store in stores" :key="store.storeId"><td>{{ store.storeName }}</td><td>{{ store.plan }}</td><td>{{ store.suspended ? '停權' : '正常' }}</td><td><button class="btn btn-sm btn-outline-danger" v-on:click="suspend(store)">{{ store.suspended ? '啟用' : '停權' }}</button></td></tr></tbody>
+    </table>
+    <app-empty-state v-else text="查無商家資料"></app-empty-state>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/admin-stores.js"></script>
+}

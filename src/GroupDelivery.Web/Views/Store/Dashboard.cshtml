@@ -1,0 +1,21 @@
+@{ ViewData["Title"] = "商家儀表板"; }
+<div id="app">
+    <app-loading :show="loading"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="row g-3 mb-3">
+        <div class="col-md-3"><div class="card card-body">今日開團：{{ dashboard.todayGroups || 0 }}</div></div>
+        <div class="col-md-3"><div class="card card-body">本月成團：{{ dashboard.monthSuccess || 0 }}</div></div>
+        <div class="col-md-3"><div class="card card-body">成團率：{{ dashboard.successRate || 0 }}%</div></div>
+        <div class="col-md-3"><div class="card card-body">營收估算：<app-money :value="dashboard.revenue || 0"></app-money></div></div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-primary" href="/Store/Create">新增店家</a>
+        <a class="btn btn-outline-primary" href="/StoreMenu/Manage">菜單管理</a>
+        <a class="btn btn-primary" href="/Store/CreateGroup">開團</a>
+    </div>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/merchant-dashboard.js"></script>
+}
