@@ -1,9 +1,12 @@
 using AspNet.Security.OAuth.Line;
 using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Abstractions.Platform;
 using GroupDelivery.Application.Services;
+using GroupDelivery.Application.Services.Platform;
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
+using GroupDelivery.Infrastructure.Repositories.Platform;
 using GroupDelivery.Infrastructure.Services;
 using GroupDelivery.Handlers;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -139,6 +142,27 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddScoped<IStoreMenuRepository, StoreMenuRepository>();
             builder.Services.AddScoped<IStoreMenuService, StoreMenuService>();
+
+
+            builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+            builder.Services.AddScoped<IStoreSubscriptionRepository, StoreSubscriptionRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+            builder.Services.AddScoped<IPlatformOrderRepository, PlatformOrderRepository>();
+            builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+            builder.Services.AddScoped<IBillingRepository, BillingRepository>();
+            builder.Services.AddScoped<IAdminAuditRepository, AdminAuditRepository>();
+
+            builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
+            builder.Services.AddScoped<IStoreSubscriptionService, StoreSubscriptionService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IGroupOrderCoreService, GroupOrderCoreService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+            builder.Services.AddScoped<IPromotionWeightService, PromotionWeightService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+            builder.Services.AddScoped<IBillingService, BillingService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
 
 
             var app = builder.Build();
