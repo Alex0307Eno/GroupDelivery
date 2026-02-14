@@ -5,6 +5,7 @@ using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
 using GroupDelivery.Infrastructure.Services;
+using GroupDelivery.Handlers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -35,6 +36,14 @@ namespace GroupDelivery.Web
                     // 避免 EF 循環參考爆炸
                     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 });
+            // LineBot SDK 注入
+            builder.Services.AddSingleton<isRock.LineBot.Bot>(provider =>
+            {
+                var cfg = provider.GetRequiredService<IConfiguration>();
+                return new isRock.LineBot.Bot(
+                    cfg["LineBot:ChannelAccessToken"]
+                );
+            });
 
 
             // Authentication
@@ -51,9 +60,12 @@ namespace GroupDelivery.Web
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
     });
-   
 
 
+
+            //LineBot
+            builder.Services.AddScoped<MessageHandler>();
+            builder.Services.AddScoped<PostbackHandler>();
 
 
             // Email 設定
@@ -154,6 +166,8 @@ namespace GroupDelivery.Web
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapControllers();
+
 
             app.MapControllerRoute(
                 name: "default",

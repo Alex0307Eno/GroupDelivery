@@ -28,56 +28,52 @@ namespace GroupDelivery.Infrastructure.Services
         #region 取得目前使用者擁有的所有商店
         public async Task<List<Store>> GetMyStoresAsync(int userId)
         {
-            // 1. 從資料庫拿商店
             var stores = await _storeRepo.GetByOwnerAsync(userId);
 
-            // 2. 現在時間（只取時分秒）
             var now = DateTime.Now.TimeOfDay;
-            var today = DateTime.Today;
 
-            // 3. 對每一家店計算是否營業
             foreach (var store in stores)
             {
-                // === 休假判斷（最高優先權） ===
-                if (store.IsOnHoliday)
+                // 1️⃣ 帳號未上架 → 一律關閉
+                if (store.AccountStatus != StoreAccountStatus.Active)
                 {
-                    store.IsOpenNow = false;
                     continue;
                 }
 
-                if (store.HolidayStartDate.HasValue && store.HolidayEndDate.HasValue)
+                // 2️⃣ 營運狀態不是 Open → 關閉
+                if (store.OperationStatus != StoreOperationStatus.Open)
                 {
-                    if (today >= store.HolidayStartDate.Value.Date &&
-                        today <= store.HolidayEndDate.Value.Date)
-                    {
-                        store.IsOpenNow = false;
-                        continue;
-                    }
+                    continue;
                 }
 
-                // === 營業時間判斷 ===
+                // 3️⃣ 沒設定營業時間 → 視為關閉
+                if (!store.OpenTime.HasValue || !store.CloseTime.HasValue)
+                {
+                    continue;
+                }
+
                 bool isWithinBusinessHours;
 
-                // 一般營業（例如 09:00 ~ 18:00）
-                if (store.OpenTime < store.CloseTime)
+                // 正常時間
+                if (store.OpenTime.Value < store.CloseTime.Value)
                 {
                     isWithinBusinessHours =
-                        now >= store.OpenTime &&
-                        now <= store.CloseTime;
+                        now >= store.OpenTime.Value &&
+                        now <= store.CloseTime.Value;
                 }
                 else
                 {
-                    // 跨日營業（例如 17:00 ~ 00:00）
+                    // 跨日
                     isWithinBusinessHours =
-                        now >= store.OpenTime ||
-                        now <= store.CloseTime;
+                        now >= store.OpenTime.Value ||
+                        now <= store.CloseTime.Value;
                 }
 
-                // === 最終結果 ===
-                // 老闆手動接單 > 營業時間
-                store.IsOpenNow =
-                    store.IsAcceptingOrders ||
-                    isWithinBusinessHours;
+                // 計算結果
+                store.OperationStatus =
+                    isWithinBusinessHours
+                        ? StoreOperationStatus.Open
+                        : StoreOperationStatus.Paused;
             }
 
             return stores;
@@ -98,19 +94,26 @@ namespace GroupDelivery.Infrastructure.Services
             var store = new Store
             {
                 OwnerUserId = userId,
+
                 StoreName = request.StoreName,
                 Phone = request.Phone,
                 Address = request.Address,
                 Description = request.Description,
+
                 MinOrderAmount = request.MinOrderAmount,
                 OpenTime = request.OpenTime,
                 CloseTime = request.CloseTime,
-                IsAcceptingOrders = request.IsAcceptingOrders,
+
                 Notice = request.Notice,
-                Status = "Draft",
+
+                // 新模型
+                AccountStatus = StoreAccountStatus.Draft,
+                OperationStatus = StoreOperationStatus.Paused,
+
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
+
             ApplyBusinessTimePreset(store, request);
 
             return await _storeRepo.CreateAsync(store);
@@ -119,7 +122,10 @@ namespace GroupDelivery.Infrastructure.Services
 
         public async Task UpdateAsync(int userId, StoreUpdateRequest request)
         {
-            var store = await _storeRepo.GetByIdAndOwnerAsync(request.StoreId, userId);
+            var store = await _storeRepo.GetByIdAndOwnerAsync(
+                request.StoreId,
+                userId);
+
             if (store == null)
                 throw new Exception("Store not found");
 
@@ -127,14 +133,18 @@ namespace GroupDelivery.Infrastructure.Services
             store.Phone = request.Phone;
             store.Address = request.Address;
             store.Description = request.Description;
+
             store.OpenTime = request.OpenTime;
             store.CloseTime = request.CloseTime;
-            store.IsAcceptingOrders = request.IsAcceptingOrders;
+
+            store.MinOrderAmount = request.MinOrderAmount;
+
             store.Notice = request.Notice;
+
+            // 新模型
+            store.OperationStatus = request.OperationStatus;
+
             store.ModifiedAt = DateTime.UtcNow;
-            store.IsOnHoliday = request.IsOnHoliday;
-            store.HolidayStartDate = request.HolidayStartDate;
-            store.HolidayEndDate = request.HolidayEndDate;
 
             ApplyBusinessTimePreset(store, request);
 
@@ -171,20 +181,46 @@ namespace GroupDelivery.Infrastructure.Services
         #endregion
 
         #region 計算商店在指定時間點的營業狀態
-        public StoreOpenStatus GetStoreStatus(Store store, DateTime now)
+        public StoreOperationStatus GetStoreStatus(Store store, DateTime now)
         {
-            if (!store.IsAcceptingOrders)
-                return StoreOpenStatus.Paused;
+            // 1️⃣ 平台帳號未上架
+            if (store.AccountStatus != StoreAccountStatus.Active)
+                return StoreOperationStatus.Paused;
 
+            // 2️⃣ 商家手動狀態
+            if (store.OperationStatus != StoreOperationStatus.Open)
+                return store.OperationStatus;
+
+            // 3️⃣ 固定休息日
             if (store.ClosedDates != null &&
-                store.ClosedDates.Any(d => d.ClosedDate == now.Date))
-                return StoreOpenStatus.Closed;
+                store.ClosedDates.Any(d => d.ClosedDate.Date == now.Date))
+                return StoreOperationStatus.Holiday;
+
+            // 4️⃣ 未設定營業時間
+            if (!store.OpenTime.HasValue || !store.CloseTime.HasValue)
+                return StoreOperationStatus.Paused;
 
             var nowTime = now.TimeOfDay;
-            if (nowTime < store.OpenTime || nowTime > store.CloseTime)
-                return StoreOpenStatus.Closed;
 
-            return StoreOpenStatus.Open;
+            bool isOpen;
+
+            if (store.OpenTime.Value < store.CloseTime.Value)
+            {
+                isOpen =
+                    nowTime >= store.OpenTime.Value &&
+                    nowTime <= store.CloseTime.Value;
+            }
+            else
+            {
+                // 跨日營業
+                isOpen =
+                    nowTime >= store.OpenTime.Value ||
+                    nowTime <= store.CloseTime.Value;
+            }
+
+            return isOpen
+                ? StoreOperationStatus.Open
+                : StoreOperationStatus.Paused;
         }
         #endregion
 

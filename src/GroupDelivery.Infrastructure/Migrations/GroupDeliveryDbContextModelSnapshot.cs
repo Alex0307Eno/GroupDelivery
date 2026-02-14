@@ -96,6 +96,9 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
 
+                    b.Property<int>("AccountStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("Address")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -110,26 +113,8 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CurrentStatus")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("HolidayEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("HolidayStartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsAcceptingOrders")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsOnHoliday")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsOpenNow")
-                        .HasColumnType("bit");
 
                     b.Property<decimal?>("Latitude")
                         .HasColumnType("decimal(18,2)");
@@ -154,15 +139,14 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<TimeSpan?>("OpenTime")
                         .HasColumnType("time");
 
+                    b.Property<int>("OperationStatus")
+                        .HasColumnType("int");
+
                     b.Property<int>("OwnerUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Status")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 

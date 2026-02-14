@@ -19,7 +19,7 @@ namespace GroupDelivery.Web.Controllers.Api
         }
 
         [HttpGet("/api/stores/nearby")]
-        
+
         public async Task<IActionResult> NearbyStores()
         {
             var activeGroups = await _db.GroupOrders
@@ -37,6 +37,7 @@ namespace GroupDelivery.Web.Controllers.Api
                 .ToDictionary(x => x.StoreId, x => x);
 
             var stores = await _db.Stores
+                .Where(s => s.AccountStatus == StoreAccountStatus.Active)   // 只顯示已上架
                 .Select(s => new
                 {
                     storeId = s.StoreId,
@@ -57,7 +58,7 @@ namespace GroupDelivery.Web.Controllers.Api
                     openTime = s.OpenTime,
                     closeTime = s.CloseTime,
 
-                    isAcceptingOrders = s.IsAcceptingOrders
+                    operationStatus = s.OperationStatus
                 })
                 .ToListAsync();
 

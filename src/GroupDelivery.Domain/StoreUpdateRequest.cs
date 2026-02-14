@@ -43,6 +43,7 @@ namespace GroupDelivery.Domain
         public IFormFile[] NewMenuImages { get; set; }
         // 每週固定公休（0=週日、1=週一...6=週六）
         public List<StoreClosedDate> ClosedDates { get; set; }
+        public StoreOperationStatus OperationStatus { get; set; }
 
         public bool IsOnHoliday { get; set; }
 

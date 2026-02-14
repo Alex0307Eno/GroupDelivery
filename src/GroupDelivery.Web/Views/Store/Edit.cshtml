@@ -1,6 +1,6 @@
 ﻿@model GroupDelivery.Domain.StoreUpdateRequest
 
-<h3 class="fw-bold mb-4">編輯商店</h3>
+<h3 class="fw-bold mb-4">商店管理</h3>
 
 <form asp-action="Edit"
       asp-controller="Store"
@@ -11,113 +11,168 @@
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="StoreId" />
 
-    <!-- ========= 核心設定 ========= -->
-    <h5 class="fw-bold mb-3">基本設定</h5>
+    <!-- 分頁 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link active"
+                    type="button"
+                    data-bs-toggle="tab"
+                    data-bs-target="#operation">
+                營運控制
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link"
+                    type="button"
+                    data-bs-toggle="tab"
+                    data-bs-target="#basic">
+                基本資料
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link"
+                    type="button"
+                    data-bs-toggle="tab"
+                    data-bs-target="#advanced">
+                進階設定
+            </button>
+        </li>
+    </ul>
 
-    <div class="mb-3">
-        <label class="form-label">商店名稱</label>
-        <input class="form-control" asp-for="StoreName" />
-    </div>
+    <div class="tab-content">
 
-    <div class="mb-3">
-        <label class="form-label">電話</label>
-        <input class="form-control" asp-for="Phone" />
-    </div>
+        <!-- 營運控制 -->
+        <div class="tab-pane fade show active" id="operation">
 
-    <div class="mb-3">
-        <label class="form-label">地址</label>
-        <input class="form-control" asp-for="Address" />
-    </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
 
-    <div class="form-check mb-3">
-        <input class="form-check-input" asp-for="IsOnHoliday" />
-        <label class="form-check-label">
-            今日休息（不接受任何訂單）
-        </label>
-    </div>
+                    <h5 class="fw-bold mb-3">營運狀態</h5>
 
-    <div class="form-check mb-4">
-        <input class="form-check-input" asp-for="IsAcceptingOrders" />
-        <label class="form-check-label">
-            目前接受訂單
-        </label>
-    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="OperationStatus"
+                               value="Open" />
+                        <label class="form-check-label">
+                            正常營業
+                        </label>
+                    </div>
 
-    <!-- ========= 進階設定 ========= -->
-    <details class="mb-4">
-        <summary class="fw-bold text-muted mb-3">
-            進階設定（選填）
-        </summary>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="OperationStatus"
+                               value="Paused" />
+                        <label class="form-check-label">
+                            暫停接單
+                        </label>
+                    </div>
 
-        <div class="mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               asp-for="OperationStatus"
+                               value="Holiday" />
+                        <label class="form-check-label">
+                            今日休息
+                        </label>
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label">商店介紹</label>
-                <textarea class="form-control"
-                          asp-for="Description"
-                          rows="3"></textarea>
-            </div>
-
-            <h6 class="fw-bold mt-4">營業時間</h6>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">開始時間</label>
-                    <input type="time"
-                           class="form-control"
-                           asp-for="OpenTime" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">結束時間</label>
-                    <input type="time"
-                           class="form-control"
-                           asp-for="CloseTime" />
-                </div>
-            </div>
-
-            <h6 class="fw-bold mt-4">休假期間</h6>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">休假開始日</label>
-                    <input type="date"
-                           class="form-control"
-                           asp-for="HolidayStartDate" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">休假結束日</label>
-                    <input type="date"
-                           class="form-control"
-                           asp-for="HolidayEndDate" />
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">公告</label>
-                <textarea class="form-control"
-                          asp-for="Notice"></textarea>
-            </div>
-
-            <h6 class="fw-bold mt-4">圖片</h6>
-            <div class="mb-3">
-                <label class="form-label">更新封面照片</label>
-                <input type="file"
-                       class="form-control"
-                       asp-for="NewCoverImage"
-                       accept="image/*" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">新增菜單照片</label>
-                <input type="file"
-                       class="form-control"
-                       asp-for="NewMenuImages"
-                       multiple
-                       accept="image/*" />
-            </div>
-
         </div>
-    </details>
 
-    <!-- ========= 操作 ========= -->
-    <button class="btn btn-success">儲存變更</button>
-    <a href="/Store/MyStores" class="btn btn-secondary">返回</a>
+        <!-- 基本資料 -->
+        <div class="tab-pane fade" id="basic">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">商店名稱</label>
+                        <input class="form-control" asp-for="StoreName" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">電話</label>
+                        <input class="form-control" asp-for="Phone" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">地址</label>
+                        <input class="form-control" asp-for="Address" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 進階設定 -->
+        <div class="tab-pane fade" id="advanced">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">商店介紹</label>
+                        <textarea class="form-control"
+                                  asp-for="Description"
+                                  rows="3"></textarea>
+                    </div>
+
+                    <h6 class="fw-bold mt-4">營業時間</h6>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">開始時間</label>
+                            <input type="time"
+                                   class="form-control"
+                                   asp-for="OpenTime" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">結束時間</label>
+                            <input type="time"
+                                   class="form-control"
+                                   asp-for="CloseTime" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">公告</label>
+                        <textarea class="form-control"
+                                  asp-for="Notice"></textarea>
+                    </div>
+
+                    <h6 class="fw-bold mt-4">圖片</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">更新封面照片</label>
+                        <input type="file"
+                               class="form-control"
+                               asp-for="NewCoverImage"
+                               accept="image/*" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">新增菜單照片</label>
+                        <input type="file"
+                               class="form-control"
+                               asp-for="NewMenuImages"
+                               multiple
+                               accept="image/*" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success">儲存變更</button>
+        <a href="/Store/MyStores"
+           class="btn btn-outline-secondary">返回</a>
+    </div>
+
 </form>

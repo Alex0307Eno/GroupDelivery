@@ -128,13 +128,11 @@ namespace GroupDelivery.Web.Controllers
                 Address = store.Address,
                 OpenTime = store.OpenTime,
                 CloseTime = store.CloseTime,
-                IsAcceptingOrders = store.IsAcceptingOrders,
                 MinOrderAmount = store.MinOrderAmount,
                 Notice = store.Notice,
-                IsOnHoliday = store.IsOnHoliday,
-                HolidayStartDate = store.HolidayStartDate,
-                HolidayEndDate = store.HolidayEndDate
+                OperationStatus = store.OperationStatus
             };
+
 
             return View(vm);
         }

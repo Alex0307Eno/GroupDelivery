@@ -1,9 +1,6 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Application.Services
@@ -20,7 +17,8 @@ namespace GroupDelivery.Application.Services
             _userRepo = userRepo;
             _storeRepo = storeRepo;
         }
-        #region  建立商家所屬的第一間商店，並回傳新商店 Id
+
+        #region 建立商家第一間商店
         public async Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.StoreName))
@@ -34,7 +32,13 @@ namespace GroupDelivery.Application.Services
                 Latitude = dto.Lat,
                 Longitude = dto.Lng,
                 OwnerUserId = userId,
-                Status = "Draft",
+
+                // 平台狀態
+                AccountStatus = StoreAccountStatus.Draft,
+
+                // 營運狀態
+                OperationStatus = StoreOperationStatus.Paused,
+
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
@@ -43,7 +47,7 @@ namespace GroupDelivery.Application.Services
         }
         #endregion
 
-        #region 將一般使用者升級為商家
+        #region 升級為商家
         public async Task UpgradeToMerchant(
             int userId,
             UpgradeMerchantRequest request)
@@ -65,18 +69,20 @@ namespace GroupDelivery.Application.Services
                     StoreName = request.StoreName,
                     Phone = request.StorePhone,
                     Address = request.StoreAddress,
-                    Status = "Draft",
-                    CreatedAt = DateTime.Now,
-                    ModifiedAt = DateTime.Now
+
+                    AccountStatus = StoreAccountStatus.Draft,
+                    OperationStatus = StoreOperationStatus.Paused,
+
+                    CreatedAt = DateTime.UtcNow,
+                    ModifiedAt = DateTime.UtcNow
                 };
 
                 await _storeRepo.CreateAsync(store);
             }
 
             user.Role = UserRole.Merchant;
-            _userRepo.Update(user); 
+            _userRepo.Update(user);
         }
         #endregion
     }
-
 }
