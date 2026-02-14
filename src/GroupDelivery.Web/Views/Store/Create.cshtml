@@ -2,20 +2,11 @@
 
 <h3 class="fw-bold mb-4">新增商店</h3>
 
-<form asp-action="Create"
-      asp-controller="Store"
-      method="post"
-      enctype="multipart/form-data">
-
+<form asp-action="Create" asp-controller="Store" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
-
-    <!-- ============================= -->
-    <!-- 基本資料 -->
-    <!-- ============================= -->
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-
             <h5 class="fw-bold mb-3">基本資料</h5>
 
             <div class="mb-3">
@@ -33,143 +24,25 @@
                 <input class="form-control" asp-for="Address" />
             </div>
 
-        </div>
-    </div>
-
-
-
-    <!-- ============================= -->
-    <!-- 進階設定 -->
-    <!-- ============================= -->
-
-    <details class="mb-4">
-        <summary class="fw-bold text-muted">
-            進階設定（可稍後再填）
-        </summary>
-
-        <div class="mt-3">
-
             <div class="mb-3">
                 <label class="form-label">商店介紹</label>
-                <textarea class="form-control"
-                          asp-for="Description"
-                          rows="3"></textarea>
-            </div>
-
-            <h6 class="fw-bold">營業時段</h6>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="Morning" />
-                <label class="form-check-label">早上（08:00–12:00）</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="Noon" />
-                <label class="form-check-label">中午（11:00–14:00）</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="Afternoon" />
-                <label class="form-check-label">下午（14:00–18:00）</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="Evening" />
-                <label class="form-check-label">晚上（17:00–22:00）</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="AllDay" />
-                <label class="form-check-label">全天</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       asp-for="BusinessTimePreset"
-                       value="Custom" />
-                <label class="form-check-label">自訂</label>
-            </div>
-
-            <div class="mt-3">
-                <label class="form-label">自訂營業時間</label>
-                <div class="row">
-                    <div class="col-md-6">
-                        <input type="time"
-                               class="form-control"
-                               asp-for="OpenTime" />
-                    </div>
-                    <div class="col-md-6">
-                        <input type="time"
-                               class="form-control"
-                               asp-for="CloseTime" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-3 mt-4">
-                <label class="form-label">公告</label>
-                <textarea class="form-control"
-                          asp-for="Notice"></textarea>
-            </div>
-
-            <h6 class="fw-bold mt-4">固定休息日（每週）</h6>
-
-            <div class="row">
-                @for (int i = 1; i <= 7; i++)
-                {
-                    <div class="col-6 col-md-3 mb-2">
-                        <div class="form-check">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   name="WeeklyClosedDays"
-                                   value="@i" />
-                            <label class="form-check-label">
-                                星期@(i == 7 ? "日" : i.ToString())
-                            </label>
-                        </div>
-                    </div>
-                }
+                <textarea class="form-control" asp-for="Description" rows="3"></textarea>
             </div>
 
             <h6 class="fw-bold mt-4">商店圖片</h6>
 
             <div class="mb-3">
                 <label class="form-label">店家封面照片</label>
-                <input type="file"
-                       class="form-control"
-                       asp-for="CoverImage"
-                       accept="image/*" />
+                <input type="file" class="form-control" asp-for="CoverImage" accept="image/*" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label">菜單照片（可多張）</label>
-                <input type="file"
-                       class="form-control"
-                       asp-for="MenuImages"
-                       accept="image/*"
-                       multiple />
+                <input type="file" class="form-control" asp-for="MenuImages" accept="image/*" multiple />
             </div>
-
         </div>
-    </details>
+    </div>
 
     <button class="btn btn-success">建立商店</button>
-    <a href="/Store/MyStores" class="btn btn-outline-secondary">返回</a>
-
+    <a href="/Store/MyStores" class="btn btn-outline-secondary">取消</a>
 </form>

@@ -1,5 +1,4 @@
 ﻿using GroupDelivery.Application.Abstractions;
-using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -75,14 +74,6 @@ namespace GroupDelivery.Web.Controllers
 
             // 1️⃣ 建立商店（純商業邏輯）
             var storeId = await _storeService.CreateAsync(userId, request);
-            // ② 固定每週休息日（就是你現在問的）
-            if (request.WeeklyClosedDays != null && request.WeeklyClosedDays.Any())
-            {
-                await _storeService.UpdateWeeklyClosedDaysAsync(
-                    storeId,
-                    userId,
-                    request.WeeklyClosedDays);
-            }
             // 2️⃣ 處理封面圖片（Web 邊界責任）
             if (request.CoverImage != null && request.CoverImage.Length > 0)
             {
@@ -126,11 +117,7 @@ namespace GroupDelivery.Web.Controllers
                 StoreName = store.StoreName,
                 Phone = store.Phone,
                 Address = store.Address,
-                OpenTime = store.OpenTime,
-                CloseTime = store.CloseTime,
-                MinOrderAmount = store.MinOrderAmount,
-                Notice = store.Notice,
-                OperationStatus = store.OperationStatus
+                Description = store.Description
             };
 
 
