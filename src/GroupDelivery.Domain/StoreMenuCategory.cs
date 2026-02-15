@@ -18,6 +18,8 @@ namespace GroupDelivery.Domain
 
         public bool IsActive { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public Store Store { get; set; }
     }
 

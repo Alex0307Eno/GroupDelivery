@@ -15,20 +15,21 @@ namespace GroupDelivery.Infrastructure.Data
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupOrder> GroupOrders { get; set; }
         public DbSet<StoreMenuCategory> StoreMenuCategories { get; set; }
-
         public DbSet<StoreMenuItem> StoreMenuItems { get; set; }
         public DbSet<GroupOrderItem> GroupOrderItems { get; set; }
         public DbSet<StoreMenu> StoreMenus { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // MenuItem 價格精度
             modelBuilder.Entity<StoreMenuItem>()
                 .Property(x => x.Price)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<StoreMenuItem>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
 
             modelBuilder.Entity<GroupOrderItem>()
                 .Property(x => x.UnitPrice)
@@ -38,7 +39,14 @@ namespace GroupDelivery.Infrastructure.Data
                 .Property(x => x.SubTotal)
                 .HasColumnType("decimal(18,2)");
 
-            // 關聯設定
+            modelBuilder.Entity<GroupOrderItem>()
+                .Property(x => x.UnitPriceSnapshot)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<GroupOrderItem>()
+                .Property(x => x.LineTotalSnapshot)
+                .HasColumnType("decimal(18,2)");
+
             modelBuilder.Entity<GroupOrderItem>()
                 .HasOne(x => x.StoreMenuItem)
                 .WithMany(x => x.GroupOrderItems)
@@ -52,10 +60,16 @@ namespace GroupDelivery.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<GroupOrder>()
-       .HasOne(g => g.OwnerUser)
-       .WithMany()
-       .HasForeignKey(g => g.OwnerUserId)
-       .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(g => g.OwnerUser)
+                .WithMany()
+                .HasForeignKey(g => g.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StoreMenuItem>()
+                .HasOne(x => x.Category)
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

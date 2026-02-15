@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Exceptions;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace GroupDelivery.Web.Controllers.Api
             var form = Request.Form;
 
             if (!form.ContainsKey("storeId"))
-                return BadRequest("StoreId 缺失");
+                return BadRequest(ApiResponse.Fail("StoreId 缺失"));
 
             int storeId = int.Parse(form["storeId"]);
 
@@ -37,14 +38,14 @@ namespace GroupDelivery.Web.Controllers.Api
                 .Deserialize<List<MenuItemDto>>(itemsJson);
 
             if (storeId <= 0)
-                return BadRequest("StoreId 錯誤");
+                return BadRequest(ApiResponse.Fail("StoreId 錯誤"));
 
             if (items == null || !items.Any())
-                return BadRequest("沒有菜單項目");
+                return BadRequest(ApiResponse.Fail("沒有菜單項目"));
 
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
-                return Unauthorized();
+                return Unauthorized(ApiResponse.Fail("未登入"));
 
             int userId = int.Parse(claim.Value);
 
@@ -61,7 +62,7 @@ namespace GroupDelivery.Web.Controllers.Api
                 }
             }
 
-            return Ok();
+            return Ok(ApiResponse.Ok());
         }
 
     }

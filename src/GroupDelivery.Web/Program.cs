@@ -6,6 +6,7 @@ using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
 using GroupDelivery.Infrastructure.Services;
 using GroupDelivery.Handlers;
+using GroupDelivery.Web.Filters;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,10 @@ namespace GroupDelivery.Web
            
             // MVC + JSON 設定
             
-            builder.Services.AddControllersWithViews()
+            builder.Services.AddControllersWithViews(o =>
+                {
+                    o.Filters.Add<BusinessExceptionFilter>();
+                })
                 .AddJsonOptions(o =>
                 {
                     // Vue 友善 camelCase
@@ -81,6 +85,8 @@ namespace GroupDelivery.Web
                     builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddScoped<BusinessExceptionFilter>();
 
             // DI 注入
 
