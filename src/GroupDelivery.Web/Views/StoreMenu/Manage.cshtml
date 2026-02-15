@@ -3,104 +3,116 @@
 @{
     ViewData["Title"] = "菜單管理";
     var storeId = (int)ViewBag.StoreId;
+    var categories = Model
+        .Where(x => x.CategoryId.HasValue)
+        .GroupBy(x => x.CategoryId)
+        .Select((g, idx) => new { CategoryId = g.Key.Value, Name = $"分類 {g.Key.Value}", SortOrder = idx + 1, IsActive = true })
+        .ToList();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">菜單管理</h3>
-
-    <a href="/BatchCreate/@storeId"
-       class="btn btn-primary">
-        新增菜單
-    </a>
+    <a href="/BatchCreate/@storeId" class="btn btn-primary">新增菜單</a>
 </div>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-light text-center py-5">
-        <div class="fw-bold mb-2">目前還沒有任何品項</div>
-        <div class="text-muted mb-3">
-            新增菜單後，消費者才能點餐
-        </div>
-
-        <a class="btn btn-success"
-           href="/BatchCreate/@storeId">
-            新增第一個品項
-        </a>
-    </div>
-}
-else
-{
-    <div class="card shadow-sm">
-        <div class="list-group list-group-flush">
-
-            @foreach (var item in Model)
+<div class="card mb-4">
+    <div class="card-header">分類管理（拖拉排序 / 批次啟用停用 / 轉移）</div>
+    <div class="card-body">
+        <ul id="categoryList" class="list-group mb-3">
+            @foreach (var c in categories)
             {
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+                <li class="list-group-item d-flex justify-content-between" draggable="true" data-id="@c.CategoryId">
+                    <span>@c.Name (#@c.CategoryId)</span>
+                    <label><input type="checkbox" class="active-toggle" data-id="@c.CategoryId" @(c.IsActive ? "checked" : "") /> 啟用</label>
+                </li>
+            }
+        </ul>
+        <button id="saveReorder" class="btn btn-outline-primary btn-sm">儲存排序</button>
+        <button id="saveActive" class="btn btn-outline-secondary btn-sm">批次更新啟用</button>
 
-                    <div>
-                        <div class="fw-bold">@item.Name</div>
+        <div class="mt-3 d-flex gap-2">
+            <input id="sourceCategoryId" class="form-control" placeholder="來源分類Id" />
+            <input id="targetCategoryId" class="form-control" placeholder="目標分類Id" />
+            <button id="transferBtn" class="btn btn-outline-danger">轉移分類</button>
+        </div>
+    </div>
+</div>
 
-                        <div class="text-muted small">
-                            $@item.Price
-                        </div>
+<div class="card mb-4">
+    <div class="card-header">可用時間篩選（支援跨日）</div>
+    <div class="card-body">
+        <div class="d-flex gap-2">
+            <input id="filterTime" type="time" class="form-control" />
+            <button id="filterBtn" class="btn btn-success">篩選可用菜單</button>
+        </div>
+        <ul id="availableResult" class="mt-3"></ul>
+    </div>
+</div>
 
-                        @if (!string.IsNullOrEmpty(item.Description))
+<div class="card shadow-sm">
+    <div class="list-group list-group-flush">
+        @foreach (var item in Model)
+        {
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">@item.Name</div>
+                    <div class="text-muted small">$@item.Price</div>
+                    <div class="text-muted small">
+                        可用時段：@(item.AvailableStartTime?.ToString(@"hh\:mm") ?? "全天") ~ @(item.AvailableEndTime?.ToString(@"hh\:mm") ?? "全天")
+                        @if (item.AvailableStartTime.HasValue && item.AvailableEndTime.HasValue && item.AvailableStartTime > item.AvailableEndTime)
                         {
-                            <div class="text-muted small">
-                                @item.Description
-                            </div>
+                            <span class="badge bg-info">跨日</span>
                         }
-                    </div>
-
-                    <div class="text-end">
-
-                        @if (item.IsActive)
-                        {
-                            <span class="badge bg-success mb-2 d-block">
-                                上架中
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary mb-2 d-block">
-                                已下架
-                            </span>
-                        }
-
-                        <div class="btn-group btn-group-sm">
-
-                            <a class="btn btn-outline-primary"
-                               href="/StoreMenu/Edit/@item.StoreMenuItemId">
-                                編輯
-                            </a>
-
-                            <form method="post"
-                                  action="/StoreMenu/Toggle/@item.StoreMenuItemId"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
-
-                                @if (item.IsActive)
-                                {
-                                    <button type="submit"
-                                            class="btn btn-outline-warning">
-                                        下架
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit"
-                                            class="btn btn-outline-success">
-                                        上架
-                                    </button>
-                                }
-                            </form>
-
-                        </div>
-
                     </div>
                 </div>
-            }
-
-        </div>
+            </div>
+        }
     </div>
-}
+</div>
+
+<script>
+(() => {
+    const list = document.getElementById('categoryList');
+    let dragging;
+    list?.addEventListener('dragstart', e => dragging = e.target.closest('li'));
+    list?.addEventListener('dragover', e => {
+        e.preventDefault();
+        const target = e.target.closest('li');
+        if (target && target !== dragging) list.insertBefore(dragging, target);
+    });
+
+    document.getElementById('saveReorder')?.addEventListener('click', async () => {
+        const body = [...list.querySelectorAll('li')].map((li, i) => ({ categoryId: Number(li.dataset.id), sortOrder: i + 1 }));
+        await fetch('/api/store-menu/category/reorder', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        alert('排序已更新');
+    });
+
+    document.getElementById('saveActive')?.addEventListener('click', async () => {
+        const body = [...document.querySelectorAll('.active-toggle')].map(x => ({ categoryId: Number(x.dataset.id), isActive: x.checked }));
+        await fetch('/api/store-menu/category/active', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        alert('啟用狀態已更新');
+    });
+
+    document.getElementById('transferBtn')?.addEventListener('click', async () => {
+        const body = {
+            sourceCategoryId: Number(document.getElementById('sourceCategoryId').value),
+            targetCategoryId: Number(document.getElementById('targetCategoryId').value)
+        };
+        await fetch('/api/store-menu/category/transfer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        alert('分類轉移完成');
+    });
+
+    document.getElementById('filterBtn')?.addEventListener('click', async () => {
+        const t = document.getElementById('filterTime').value;
+        const res = await fetch(`/api/store-menu/items/available${t ? `?time=${t}` : ''}`);
+        const json = await res.json();
+        const ul = document.getElementById('availableResult');
+        ul.innerHTML = '';
+        (json.data || []).forEach(i => {
+            const li = document.createElement('li');
+            li.textContent = `${i.name} - $${i.price}`;
+            ul.appendChild(li);
+        });
+    });
+})();
+</script>

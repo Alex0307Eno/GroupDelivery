@@ -24,6 +24,12 @@ namespace GroupDelivery.Domain
 
         public string ImageUrl { get; set; }
 
+        public TimeSpan? AvailableStartTime { get; set; }
+
+        public TimeSpan? AvailableEndTime { get; set; }
+
+        public byte[] RowVersion { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public StoreMenuCategory Category { get; set; }

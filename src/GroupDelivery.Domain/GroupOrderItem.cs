@@ -22,6 +22,12 @@ namespace GroupDelivery.Domain
 
         public decimal SubTotal { get; set; }
 
+        public string MenuItemNameSnapshot { get; set; }
+
+        public decimal UnitPriceSnapshot { get; set; }
+
+        public decimal LineTotalSnapshot { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public virtual GroupOrder GroupOrder { get; set; }

@@ -1,27 +1,32 @@
 using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Exceptions;
 using GroupDelivery.Domain;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-
+using System.Threading.Tasks;
 
 namespace GroupDelivery.Application.Services
 {
-    // 此服務類別用於處理開團相關業務邏輯
-    public class GroupOrderService: IGroupOrderService
+    public class GroupOrderService : IGroupOrderService
     {
         private readonly IGroupOrderRepository _groupOrderRepository;
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IStoreMenuRepository _storeMenuRepository;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository)
+        public GroupOrderService(
+            IGroupOrderRepository groupOrderRepository,
+            IUserRepository userRepository,
+            IStoreRepository storeRepository,
+            IStoreMenuRepository storeMenuRepository)
         {
-            _groupOrderRepository = groupOrderRepository; ;
+            _groupOrderRepository = groupOrderRepository;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
+            _storeMenuRepository = storeMenuRepository;
         }
-        #region 取得指定團單的詳細資料，供團單詳情頁顯示
+
         public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
         {
             var group = await _groupOrderRepository.GetDetailAsync(groupId);
@@ -35,43 +40,31 @@ namespace GroupDelivery.Application.Services
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,
-                MenuImages = group.Store.MenuImageUrl ?.Split(',').ToList()
+                MenuImages = group.Store.MenuImageUrl?.Split(',').ToList()
             };
         }
-        #endregion
 
-        #region 建立一筆新的揪團，僅允許商家開團
         public async Task CreateGroupAsync(int userId, CreateGroupRequest request)
         {
             var store = await _storeRepo.GetByIdAsync(request.StoreId);
-
             if (store == null)
-                throw new Exception("店家不存在");
+                throw new BusinessException("店家不存在");
 
             var isMerchant = await _userRepo.IsMerchantAsync(userId);
+            if (isMerchant && store.OwnerUserId != userId)
+                throw new BusinessException("無權限操作此店家");
 
-            if (isMerchant)
-            {
-                if (store.OwnerUserId != userId)
-                    throw new Exception("無權限操作此店家");
-            }
-
-            var deadline = request.Deadline;
-            if (deadline <= DateTime.Now)
-                throw new Exception("截止時間必須晚於現在");
-
-            if (deadline <= DateTime.Now)
-                throw new Exception("截止時間必須晚於現在");
-
+            if (request.Deadline <= DateTime.Now)
+                throw new BusinessException("截止時間必須晚於現在");
 
             var group = new GroupOrder
             {
                 StoreId = request.StoreId,
                 CreatorUserId = userId,
-                OwnerUserId = store.OwnerUserId, 
+                OwnerUserId = store.OwnerUserId,
                 TargetAmount = request.TargetAmount,
-                CurrentAmount = 0,               
-                Deadline = deadline,
+                CurrentAmount = 0,
+                Deadline = request.Deadline,
                 Status = GroupOrderStatus.Open,
                 CreatedAt = DateTime.Now,
                 Remark = request.Remark
@@ -79,57 +72,42 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.AddAsync(group);
         }
-        #endregion
 
-        #region 將已超過截止時間的揪團標記為過期狀態
-        public async Task ExpireOverdueGroupsAsync()
-        {
-            var now = DateTime.UtcNow;
-
-            var overdueGroups = await _groupOrderRepository
-                .GetActiveOverdueAsync(now);
-
-            foreach (var group in overdueGroups)
-            {
-                group.Status = GroupOrderStatus.Expired;
-            }
-
-        }
-        #endregion
-        #region 取得我開的團列表
         public async Task<List<GroupOrder>> GetMyGroupOrdersAsync(int userId)
         {
             return await _groupOrderRepository.GetByCreatorAsync(userId);
         }
-        #endregion
-        #region 加入團單，新增訂單明細並更新團金額，判斷是否成團
+
         public async Task JoinGroupAsync(int userId, int groupOrderId, decimal amount)
         {
             var group = await _groupOrderRepository.GetByIdAsync(groupOrderId);
+            EnsureJoinable(group);
 
-            if (group == null)
-                throw new Exception("團不存在");
+            var quantity = 1;
+            var firstMenuItem = (await _storeMenuRepository.GetByStoreIdAsync(group.StoreId)).FirstOrDefault(x => x.IsActive);
+            if (firstMenuItem == null)
+                throw new BusinessException("目前無可用菜單品項");
 
-            if (group.Status != GroupOrderStatus.Open)
-                throw new Exception("此團無法加入");
+            var menuItemName = firstMenuItem.Name;
+            var unitPrice = firstMenuItem.Price > 0 ? firstMenuItem.Price : amount;
 
-            if (group.Deadline <= DateTime.Now)
-                throw new Exception("已截止");
-
-            // 新增訂單明細
             var item = new GroupOrderItem
             {
                 GroupOrderId = groupOrderId,
                 UserId = userId,
+                StoreMenuItemId = firstMenuItem.StoreMenuItemId,
+                Quantity = quantity,
+                UnitPrice = unitPrice,
+                SubTotal = unitPrice * quantity,
+                MenuItemNameSnapshot = menuItemName,
+                UnitPriceSnapshot = unitPrice,
+                LineTotalSnapshot = unitPrice * quantity,
                 CreatedAt = DateTime.Now
             };
 
             await _groupOrderRepository.AddItemAsync(item);
 
-            // 更新團金額
-            group.CurrentAmount += amount;
-
-            // 判斷是否成團
+            group.CurrentAmount += item.LineTotalSnapshot;
             if (group.CurrentAmount >= group.TargetAmount)
             {
                 group.Status = GroupOrderStatus.Success;
@@ -137,19 +115,17 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
-        #endregion
-        #region 取得指定商店的所有開團中團單
+
         public async Task<List<GroupOrder>> GetOpenGroupsByStoreAsync(int storeId)
         {
-            var now = DateTime.Now;
-
-            return await _groupOrderRepository
-                .GetOpenByStoreAsync(storeId, now);
+            return await _groupOrderRepository.GetOpenByStoreAsync(storeId, DateTime.Now);
         }
-        #endregion
+
         public async Task<GroupDetailDto> GetDetailAsync(int groupId)
         {
             var group = await _groupOrderRepository.GetByIdAsync(groupId);
+            if (group == null)
+                return null;
 
             return new GroupDetailDto
             {
@@ -159,17 +135,22 @@ namespace GroupDelivery.Application.Services
                 TargetAmount = group.TargetAmount
             };
         }
+
         public async Task JoinGroupAsync(int userId, int groupId)
         {
-            var group = await _groupOrderRepository.GetByIdAsync(groupId);
-
-            if (group.Status != GroupOrderStatus.Open)
-                throw new Exception("團已結束");
-
-            group.CurrentAmount += 100; // 暫時固定金額
-
-            await _groupOrderRepository.UpdateAsync(group);
+            await JoinGroupAsync(userId, groupId, 100);
         }
 
+        private static void EnsureJoinable(GroupOrder group)
+        {
+            if (group == null)
+                throw new BusinessException("團不存在");
+
+            if (group.Status != GroupOrderStatus.Open)
+                throw new BusinessException("此團無法加入");
+
+            if (group.Deadline <= DateTime.Now)
+                throw new BusinessException("已截止");
+        }
     }
 }

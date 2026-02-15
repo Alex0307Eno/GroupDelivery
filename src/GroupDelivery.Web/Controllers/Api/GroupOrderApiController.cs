@@ -1,3 +1,4 @@
+using GroupDelivery.Domain;
 using GroupDelivery.Application.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -21,9 +22,9 @@ public class GroupOrderApiController : ControllerBase
         var result = await _groupOrderService.GetDetailAsync(id);
 
         if (result == null)
-            return NotFound();
+            return NotFound(ApiResponse.Fail("找不到團單"));
 
-        return Ok(result);
+        return Ok(ApiResponse.Ok(result));
     }
 
     // POST api/groups/5/join
@@ -38,6 +39,6 @@ public class GroupOrderApiController : ControllerBase
 
         await _groupOrderService.JoinGroupAsync(userId, id);
 
-        return Ok();
+        return Ok(ApiResponse.Ok());
     }
 }
