@@ -19,7 +19,7 @@ public class AccountController : Controller
     private readonly IMerchantService _merchantService;
     private readonly IUserService _userService;
 
-    public AccountController(  IUserRepository userRepo, IAuthService authService, IMerchantService merchantService, IUserService userService)
+    public AccountController(IUserRepository userRepo, IAuthService authService, IMerchantService merchantService, IUserService userService)
     {
         _userRepo = userRepo;
         _authService = authService;
@@ -39,6 +39,12 @@ public class AccountController : Controller
 
         return View(user);
     }
+
+    public IActionResult Orders()
+    {
+        return View();
+    }
+
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> ProfileData()
@@ -102,7 +108,6 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult UpgradeToMerchant()
     {
-        // 已是商家就不要再來
         if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(UserRole.Merchant))
             return RedirectToAction("Profile");
 
@@ -123,9 +128,9 @@ public class AccountController : Controller
         return Ok();
     }
 
-    
+
     [HttpPost]
-    [Authorize] 
+    [Authorize]
     public async Task<IActionResult> UpgradeToMerchant(
     [FromBody] UpgradeMerchantRequest request)
     {
@@ -171,10 +176,4 @@ public class AccountController : Controller
 
         return Ok(new { storeId });
     }
-
-
-
-
-
-
 }

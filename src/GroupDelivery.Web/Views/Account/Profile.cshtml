@@ -1,190 +1,20 @@
-﻿@{
-    ViewData["Title"] = "我的檔案";
-}
-
-<style>
-    body {
-        background: linear-gradient(135deg, #fff7ed 0%, #f5f7fb 50%, #eef2ff 100%);
-    }
-
-    .profile-hero {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff;
-        border-radius: 22px;
-        box-shadow: 0 25px 60px rgba(99,102,241,.35);
-    }
-
-    .profile-card {
-        border-radius: 20px;
-        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-        border: 0;
-    }
-
-    .profile-mini-card {
-        border-radius: 18px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-        border: 0;
-    }
-
-    .lift {
-        transition: transform .2s ease, box-shadow .2s ease;
-    }
-
-        .lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,.12);
-        }
-
-    .fade-up {
-        animation: fadeUp .6s ease both;
-    }
-
-    @@keyframes fadeUp {
-        from {
-            opacity: 0;
-            transform: translateY(16px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .progress {
-        height: 8px;
-        border-radius: 99px;
-        background: rgba(255,255,255,.3);
-    }
-
-    .progress-bar {
-        background: #22c55e;
-    }
-</style>
-
-<div id="app" class="container py-5"></div>
-
+@{ ViewData["Title"] = "個人資料"; }
+<div id="app">
+    <app-loading :show="loading"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="card" v-if="profile"><div class="card-body">
+        <h4 class="mb-3">個人資料</h4>
+        <div>姓名：{{ profile.displayName || '-' }}</div>
+        <div>Email：{{ profile.email || '-' }}</div>
+        <div>LINE 綁定：{{ profile.lineLinked ? '已綁定' : '未綁定' }}</div>
+        <div class="mt-3">
+            <a class="btn btn-outline-secondary me-2" href="/Auth/Logout">登出</a>
+            <a class="btn btn-primary" href="/Onboarding/ChooseRole">切換角色</a>
+        </div>
+    </div></div>
+</div>
 @section Scripts {
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-
-    <script>
-        const { createApp } = Vue;
-
-        createApp({
-            data() {
-                return {
-                    user: null,
-                    loading: true,
-                    saving: false
-                };
-            },
-            computed: {
-                profileCompletion() {
-                    let score = 0;
-                    if (this.user.phone) score += 20;
-                    if (this.user.city) score += 20;
-                    if (this.user.bio) score += 20;
-                    if (this.user.foodPreference) score += 20;
-                    if (this.user.notifyOptIn) score += 20;
-                    return score;
-                }
-            },
-            async mounted() {
-                const res = await axios.get('/Account/ProfileData');
-                this.user = {
-                    ...res.data,
-                    bio: res.data.bio || '',
-                    city: res.data.city || '',
-                    foodPreference: res.data.foodPreference || '',
-                    notifyOptIn: res.data.notifyOptIn ?? true
-                };
-                this.loading = false;
-            },
-            methods: {
-                async saveProfile() {
-                    this.saving = true;
-                    await axios.post('/Account/UpdateProfile', this.user);
-                    this.saving = false;
-                    alert('已儲存，你離快速成團更近了');
-                }
-            },
-            template: `
-            <div v-if="loading" class="text-center py-5 text-muted">載入中…</div>
-
-            <div v-else class="row justify-content-center">
-                <div class="col-lg-7">
-
-                    <!-- HERO -->
-                    <div class="profile-hero p-4 mb-4 fade-up">
-                        <div class="d-flex align-items-center">
-                            <img v-if="user.pictureUrl"
-                                 :src="user.pictureUrl"
-                                 class="rounded-circle me-3"
-                                 style="width:88px;height:88px;object-fit:cover;">
-                            <div>
-                                <h4 class="fw-bold mb-1">{{ user.displayName }}</h4>
-                                <div class="small opacity-75">
-                                    個人完成度 {{ profileCompletion }}%
-                                </div>
-                                <div class="progress mt-2">
-                                    <div class="progress-bar"
-                                         :style="{ width: profileCompletion + '%' }"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 快速配對 -->
-                    <div class="profile-mini-card p-4 mb-3 lift fade-up">
-                        <h6 class="fw-bold mb-2">📍 快速配對設定</h6>
-                        <p class="small text-muted mb-3">
-                            填寫常用地區，系統會優先幫你配對附近即將成團的訂單，
-                            <strong>成團速度會快很多。</strong>
-                        </p>
-
-                        <input class="form-control mb-2"
-                               placeholder="常出沒城市（例如：台中 西屯）"
-                               v-model="user.city">
-
-                        <div class="form-check">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   v-model="user.notifyOptIn">
-                            <label class="form-check-label small">
-                                優先接收附近揪團通知
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 偏好 -->
-                    <div class="profile-mini-card p-4 mb-3 lift fade-up">
-                        <h6 class="fw-bold mb-3">🍽 偏好</h6>
-
-                        <select class="form-select mb-2"
-                                v-model="user.foodPreference">
-                            <option value="">飲食偏好（選填）</option>
-                            <option>辣</option>
-                            <option>不辣</option>
-                            <option>素食</option>
-                        </select>
-
-                        <textarea class="form-control"
-                                  rows="2"
-                                  placeholder="一句介紹你自己"
-                                  v-model="user.bio"></textarea>
-                    </div>
-
-                    <!-- CTA -->
-                    <button class="btn btn-primary w-100 py-3 fw-bold lift"
-                            :disabled="saving"
-                            v-on:click="saveProfile">
-                        儲存設定，開始更快成團
-                    </button>
-
-                </div>
-            </div>
-            `
-        }).mount('#app');
-    </script>
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/consumer-profile.js"></script>
 }

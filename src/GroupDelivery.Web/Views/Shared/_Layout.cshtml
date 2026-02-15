@@ -1,222 +1,74 @@
 @{
     var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 }
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - 外送湊單平台</title>
-    
-    <!-- Google Fonts: Inter & Noto Sans TC -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap 5 (用於佈局輔助) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - JoinIn 揪IN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <link href="/css/site-custom.css" rel="stylesheet" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top app-shell-header">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/img/jouin-logo.png"
-                     alt="JOUIN"
-                     style="height:32px;width:auto;" />
-
-                <span class="fw-bold d-none d-sm-inline"
-                      style="letter-spacing:.08em;">
-                    JO<span style="color:#22c55e;">U</span>IN
-                </span>
-            </a>
-
-            <button class="navbar-toggler" type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-
-                    <!-- 探索（所有人都能看） -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown">
-                            探索
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/Home/Index">探索店家</a></li>
-                            <li><a class="dropdown-item" href="/Home/NearbyStores">附近商家</a></li>
-                            <li><a class="dropdown-item" href="/Home/StoreGroups">正在揪團</a></li>
-                        </ul>
-                    </li>
-
-                    @if (User.Identity.IsAuthenticated)
+            <a class="navbar-brand fw-bold" href="/Home/Index">揪IN JoinIn</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="appNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/Home/Index">揪團列表</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Account/Orders">我的訂單</a></li>
+                    @if (role == "Merchant")
                     {
-                        <!-- 我的（所有登入者都有） -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle"
-                               href="#"
-                               role="button"
-                               data-bs-toggle="dropdown">
-                                我的
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/Account/Orders">我的訂單</a></li>
-                            </ul>
-                        </li>
-
-                        @* 只有店家才顯示 *@
-                        @if (role == "Merchant")
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle fw-bold text-success"
-                                   href="#"
-                                   role="button"
-                                   data-bs-toggle="dropdown">
-                                    團主管理
-                                </a>
-                                <ul class="dropdown-menu">
-
-                                    <li>
-                                        <a class="dropdown-item fw-bold"
-                                           href="/Store/CreateGroup">
-                                            ➕ 開新團
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item"
-                                           href="/Store/MyGroups">
-                                            📋 我開的團
-                                        </a>
-                                    </li>
-
-                                    <li><hr class="dropdown-divider" /></li>
-
-                                    @* 這個是重點入口 *@
-                                    <li>
-                                        <a class="dropdown-item text-primary fw-bold"
-                                           href="/Store/MyGroups">
-                                            ⚙ 管理我的團
-                                        </a>
-                                    </li>
-
-                                    <li><hr class="dropdown-divider" /></li>
-
-                                    <li>
-                                        <a class="dropdown-item"
-                                           href="/Store/MyStores">
-                                            🏪 我的商店
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-
-
-                        <!-- 帳號 -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle fw-bold"
-                               href="#"
-                               role="button"
-                               data-bs-toggle="dropdown">
-                                @User.Identity.Name
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/Account/Profile">個人資料</a></li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="/Auth/Logout">登出</a>
-                                </li>
-                            </ul>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/Store/Dashboard">商家中心</a></li>
+                    }
+                    @if (role == "Admin")
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Admin/Dashboard">管理後台</a></li>
+                    }
+                </ul>
+                <ul class="navbar-nav">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Account/Profile">@User.Identity.Name</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Auth/Logout">登出</a></li>
                     }
                     else
                     {
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold"
-                               href="#"
-                               data-bs-toggle="modal"
-                               data-bs-target="#authModal">
-                                登入 / 註冊
-                            </a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">登入</a></li>
                     }
-
                 </ul>
-
             </div>
         </div>
     </nav>
+
+    <main class="container py-3">
+        @RenderBody()
+    </main>
+
+    <footer class="border-top py-4 text-center text-muted small">
+        <div>© @DateTime.Now.Year JoinIn 揪IN</div>
+        <div>聯絡我們 | 使用條款</div>
+    </footer>
+
     <div class="modal fade" id="authModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content auth-card">
-
-                <div class="modal-body p-4 p-md-5">
-
-                    <!-- Logo / Title -->
-                    <div class="text-center mb-4">
-                        <img src="/img/jouin-logo.png" style="height:42px" class="mb-3" />
-                        <h4 class="fw-bold mb-1">歡迎回來</h4>
-                        <div class="text-muted small">
-                            登入或註冊 JO U IN，只要一封信
-                        </div>
-                    </div>
-
-                    <!-- Email login -->
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Email</label>
-                        <input type="email"
-                               class="form-control form-control-lg"
-                               placeholder="you@example.com"
-                               id="loginEmail">
-                    </div>
-
-                    <button class="btn btn-warning btn-lg w-100 mb-3"
-                            onclick="sendLoginEmail()">
-                        寄送登入驗證信
-                    </button>
-
-                    <div class="text-center text-muted small my-3">
-                        或使用快速登入
-                    </div>
-
-                    <!-- LINE -->
-                    <a href="/Auth/LineLogin"
-                       class="btn btn-outline-success btn-lg w-100" style="color:#22c55e;">
-                        使用 LINE 登入
-                    </a>
-
-                    <div class="text-center text-muted small mt-4">
-                        我們不使用密碼，避免外洩風險
-                    </div>
-
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h5 class="mb-3">登入 / 註冊</h5>
+                    <input type="email" id="loginEmail" class="form-control mb-2" placeholder="Email" />
+                    <button type="button" class="btn btn-primary w-100" onclick="sendLoginEmail()">寄送登入驗證信</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container body-content">
-        @RenderBody()
-        <hr class="mt-5" />
-        <footer class="text-center text-muted pb-4">
-            <p>&copy; @DateTime.Now.Year - 外送湊單平台 (Alex Project)</p>
-        </footer>
-    </div>
-
-    <!-- Vue 3 & Axios -->
-    <script src="/js/layout.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="/js/layout.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

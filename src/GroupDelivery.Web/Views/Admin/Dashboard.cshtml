@@ -1,0 +1,16 @@
+@{ ViewData["Title"] = "管理儀表板"; }
+<div id="app">
+    <app-loading :show="loading"></app-loading>
+    <app-toast :items="toasts" v-on:remove="removeToast"></app-toast>
+    <div class="row g-3">
+        <div class="col-md-3"><div class="card card-body">商家數：{{ stats.storeCount || 0 }}</div></div>
+        <div class="col-md-3"><div class="card card-body">活躍揪團：{{ stats.activeGroups || 0 }}</div></div>
+        <div class="col-md-3"><div class="card card-body">今日訂單：{{ stats.todayOrders || 0 }}</div></div>
+        <div class="col-md-3"><div class="card card-body">月營收：<app-money :value="stats.monthRevenue || 0"></app-money></div></div>
+    </div>
+</div>
+@section Scripts {
+<script src="/js/api/apiClient.js"></script>
+<script src="/js/components/app-components.js"></script>
+<script src="/js/pages/admin-dashboard.js"></script>
+}

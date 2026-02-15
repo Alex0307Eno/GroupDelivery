@@ -281,5 +281,20 @@ namespace GroupDelivery.Web.Controllers
             return View(groups);
         }
 
+
+        [Authorize(Roles = "Merchant")]
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Merchant")]
+        [HttpGet]
+        public IActionResult Subscription()
+        {
+            return View();
+        }
+
     }
 }
