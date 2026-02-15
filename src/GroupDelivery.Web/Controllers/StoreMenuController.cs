@@ -2,8 +2,7 @@
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Security.Claims;
+using System;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers
@@ -25,18 +24,19 @@ namespace GroupDelivery.Web.Controllers
             return View();
         }
 
-
-
-
-
         [HttpGet("Manage/{storeId}")]
-        public async Task<IActionResult> Manage(int storeId)
+        public async Task<IActionResult> Manage(int storeId, bool? categoryIsActive)
         {
-            ViewBag.StoreId = storeId; 
+            // 管理頁顯示分類與菜單資料
+            var viewModel = new StoreMenuManageViewModel
+            {
+                StoreId = storeId,
+                CategoryIsActiveFilter = categoryIsActive,
+                Categories = await _service.GetCategoriesAsync(storeId, categoryIsActive),
+                Items = await _service.GetMenuAsync(storeId)
+            };
 
-            var items = await _service.GetMenuAsync(storeId);
-
-            return View(items);
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -45,15 +45,12 @@ namespace GroupDelivery.Web.Controllers
             await _service.ToggleActiveAsync(id);
             return RedirectToAction("Manage");
         }
+
         [HttpGet("BatchCreate/{storeId}")]
         public IActionResult BatchCreate(int storeId)
         {
             ViewBag.StoreId = storeId;
             return View();
         }
-
-        
-
-
     }
 }

@@ -76,6 +76,31 @@
                                   placeholder="可不填"></textarea>
                     </div>
 
+                    <div class="form-check mt-3">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               v-model="item.useTimeRange"
+                               :id="`timeRange-${index}`" />
+                        <label class="form-check-label" :for="`timeRange-${index}`">
+                            指定供應時段
+                        </label>
+                    </div>
+
+                    <div class="row g-2 mt-1" v-if="item.useTimeRange">
+                        <div class="col-6">
+                            <label class="form-label small text-muted">開始</label>
+                            <input v-model="item.availableStartTime"
+                                   type="time"
+                                   class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted">結束</label>
+                            <input v-model="item.availableEndTime"
+                                   type="time"
+                                   class="form-control" />
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -125,7 +150,7 @@
             return {
                 storeId: @storeId,
                 items: [
-                    { name: '', price: 0, description: '' }
+                    { name: '', price: 0, description: '', useTimeRange:false, availableStartTime:'', availableEndTime:'' }
                 ],
                 menuImage: null,
                 previewUrl: null
@@ -135,7 +160,7 @@
         methods: {
 
             addRow() {
-                this.items.push({ name: '', price: 0, description: '' });
+                this.items.push({ name: '', price: 0, description: '', useTimeRange:false, availableStartTime:'', availableEndTime:'' });
             },
 
             remove(index) {
@@ -155,13 +180,21 @@
                 const formData = new FormData();
 
                 formData.append("storeId", this.storeId);
-                formData.append("items", JSON.stringify(this.items));
+                const normalizedItems = this.items.map(x => ({
+                    name: x.name,
+                    price: x.price,
+                    description: x.description,
+                    availableStartTime: x.useTimeRange ? x.availableStartTime : null,
+                    availableEndTime: x.useTimeRange ? x.availableEndTime : null
+                }));
+
+                formData.append("items", JSON.stringify(normalizedItems));
 
                 if (this.menuImage) {
                     formData.append("menuImage", this.menuImage);
                 }
 
-                axios.post('/api/storemenu/batchcreate', formData)
+                axios.post('/api/store-menu/batchcreate', formData)
                 .then(() => {
                     window.location.href =
                         `/Manage/${this.storeId}`;

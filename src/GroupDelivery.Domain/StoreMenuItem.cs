@@ -26,6 +26,12 @@ namespace GroupDelivery.Domain
 
         public DateTime CreatedAt { get; set; }
 
+        public TimeSpan? AvailableStartTime { get; set; }
+
+        public TimeSpan? AvailableEndTime { get; set; }
+
+        public byte[] RowVersion { get; set; }
+
         public StoreMenuCategory Category { get; set; }
         public virtual ICollection<GroupOrderItem> GroupOrderItems { get; set; }
 

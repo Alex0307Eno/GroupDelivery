@@ -21,6 +21,7 @@ namespace GroupDelivery.Application.Services
         private readonly IConfiguration _config;
         private readonly IUserRepository _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IStoreRepository _storeRepository;
 
 
         public AuthService(
@@ -29,7 +30,8 @@ namespace GroupDelivery.Application.Services
             EmailService emailService,
             IConfiguration config,
             IUserRepository userRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IStoreRepository storeRepository)
         {
             _tokenService = tokenService;
             _userRepo = userRepo;
@@ -37,6 +39,7 @@ namespace GroupDelivery.Application.Services
             _config = config;
             _userRepository = userRepository;
             _httpContextAccessor = httpContextAccessor;
+            _storeRepository = storeRepository;
         }
         #region  寄送無密碼登入用的驗證連結到使用者 Email
         public async Task SendLoginLinkAsync(string email)
@@ -63,11 +66,13 @@ namespace GroupDelivery.Application.Services
 
             var user = await _userRepo.GetOrCreateByEmail(email);
 
+            var store = await _storeRepository.GetFirstByOwnerAsync(user.UserId);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Email)
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim("StoreId", (store?.StoreId ?? 0).ToString())
             };
 
             var identity = new ClaimsIdentity(
@@ -106,6 +111,8 @@ namespace GroupDelivery.Application.Services
             if (user == null)
                 throw new Exception("User not found");
 
+            var store = await _storeRepository.GetFirstByOwnerAsync(user.UserId);
+
             var claims = new List<Claim>
     {
         // 🔑 核心：系統 UserId 一定要放在 NameIdentifier
@@ -114,7 +121,9 @@ namespace GroupDelivery.Application.Services
         new Claim(ClaimTypes.Name, user.DisplayName ?? "使用者"),
 
         // 角色用標準 ClaimTypes.Role
-        new Claim(ClaimTypes.Role, user.Role.ToString())
+        new Claim(ClaimTypes.Role, user.Role.ToString()),
+
+        new Claim("StoreId", (store?.StoreId ?? 0).ToString())
     };
 
             var identity = new ClaimsIdentity(

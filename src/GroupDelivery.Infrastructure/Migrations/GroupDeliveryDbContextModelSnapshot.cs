@@ -200,6 +200,12 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsRowVersion()
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
@@ -218,7 +224,13 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -232,7 +244,8 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StoreId");
+                    b.HasIndex("StoreId", "Name", "IsDeleted")
+                        .IsUnique();
 
                     b.ToTable("StoreMenuCategories");
                 });
@@ -247,6 +260,12 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan?>("AvailableEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("AvailableStartTime")
+                        .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -265,6 +284,12 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRowVersion()
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
@@ -410,7 +435,8 @@ namespace GroupDelivery.Infrastructure.Migrations
                 {
                     b.HasOne("GroupDelivery.Domain.StoreMenuCategory", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
                 });
