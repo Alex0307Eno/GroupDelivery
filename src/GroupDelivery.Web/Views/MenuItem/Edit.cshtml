@@ -1,0 +1,62 @@
+@model GroupDelivery.Domain.MenuItem
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "編輯菜單";
+    var categories = ViewBag.Categories as SelectList;
+}
+
+<h2>編輯菜單</h2>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label asp-for="Name">名稱</label>
+        <input asp-for="Name" />
+    </div>
+
+    <div>
+        <label asp-for="Description">描述</label>
+        <input asp-for="Description" />
+    </div>
+
+    <div>
+        <label asp-for="CategoryId">分類</label>
+        <select asp-for="CategoryId" asp-items="categories">
+            <option value="">請選擇分類</option>
+        </select>
+    </div>
+
+    <div>
+        <label asp-for="OriginalPrice">原價</label>
+        <input asp-for="OriginalPrice" />
+    </div>
+
+    <div>
+        <label asp-for="IsOnSale">是否特價</label>
+        <input asp-for="IsOnSale" type="checkbox" />
+    </div>
+
+    <div>
+        <label asp-for="SalePrice">特價</label>
+        <input asp-for="SalePrice" />
+    </div>
+
+    <div>
+        <label>目前圖片</label>
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.Name" style="width:120px;height:120px;object-fit:cover;" />
+        }
+    </div>
+
+    <div>
+        <label for="imageFile">重新上傳圖片</label>
+        <input type="file" id="imageFile" name="imageFile" accept="image/*" />
+    </div>
+
+    <button type="submit">更新</button>
+    <a asp-action="Index">返回列表</a>
+</form>

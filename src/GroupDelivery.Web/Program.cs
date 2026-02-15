@@ -139,6 +139,8 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddScoped<IStoreMenuRepository, StoreMenuRepository>();
             builder.Services.AddScoped<IStoreMenuService, StoreMenuService>();
+            builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+            builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
 
             var app = builder.Build();

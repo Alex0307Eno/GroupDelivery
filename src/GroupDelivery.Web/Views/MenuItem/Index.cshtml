@@ -1,0 +1,106 @@
+@model List<GroupDelivery.Domain.MenuItem>
+@using GroupDelivery.Domain
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "電子菜單列表";
+    var categories = ViewBag.Categories as SelectList;
+    var deletedItems = ViewBag.DeletedItems as List<MenuItem>;
+}
+
+<h2>電子菜單列表</h2>
+
+@if (TempData["MenuError"] != null)
+{
+    <div class="text-danger">@TempData["MenuError"]</div>
+}
+
+<form method="get" asp-action="Index" class="mb-3">
+    <label for="categoryId">分類篩選</label>
+    <select id="categoryId" name="categoryId" asp-items="categories">
+        <option value="">全部</option>
+    </select>
+    <button type="submit">查詢</button>
+    <a asp-action="Index">清除</a>
+</form>
+
+<form method="post" asp-action="CreateCategory" class="mb-3">
+    @Html.AntiForgeryToken()
+    <label for="name">新增分類</label>
+    <input id="name" name="name" type="text" />
+    <button type="submit">建立分類</button>
+</form>
+
+<p>
+    <a asp-action="Create">新增菜單</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>名稱</th>
+            <th>描述</th>
+            <th>原價</th>
+            <th>特價</th>
+            <th>圖片</th>
+            <th>分類</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Description</td>
+            <td>@item.OriginalPrice</td>
+            <td>@(item.IsOnSale ? item.SalePrice : null)</td>
+            <td>
+                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                {
+                    <img src="@item.ImageUrl" alt="@item.Name" style="width:80px;height:80px;object-fit:cover;" />
+                }
+            </td>
+            <td>@(item.Category == null ? string.Empty : item.Category.Name)</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">編輯</a>
+                <form asp-action="Delete" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button type="submit" onclick="return confirm('確定刪除此菜單嗎？');">刪除</button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<h3>已刪除菜單</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>名稱</th>
+            <th>刪除時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+@if (deletedItems != null)
+{
+    foreach (var deleted in deletedItems)
+    {
+        <tr>
+            <td>@deleted.Name</td>
+            <td>@deleted.DeletedAt</td>
+            <td>
+                <form asp-action="Restore" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@deleted.Id" />
+                    <button type="submit">還原</button>
+                </form>
+            </td>
+        </tr>
+    }
+}
+    </tbody>
+</table>
