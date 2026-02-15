@@ -1,0 +1,53 @@
+@model GroupDelivery.Domain.MenuItem
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "新增菜單";
+    var categories = ViewBag.Categories as SelectList;
+}
+
+<h2>新增菜單</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div>
+        <label asp-for="Name">名稱</label>
+        <input asp-for="Name" />
+    </div>
+
+    <div>
+        <label asp-for="Description">描述</label>
+        <input asp-for="Description" />
+    </div>
+
+    <div>
+        <label asp-for="CategoryId">分類</label>
+        <select asp-for="CategoryId" asp-items="categories">
+            <option value="">請選擇分類</option>
+        </select>
+    </div>
+
+    <div>
+        <label asp-for="OriginalPrice">原價</label>
+        <input asp-for="OriginalPrice" />
+    </div>
+
+    <div>
+        <label asp-for="IsOnSale">是否特價</label>
+        <input asp-for="IsOnSale" type="checkbox" />
+    </div>
+
+    <div>
+        <label asp-for="SalePrice">特價</label>
+        <input asp-for="SalePrice" />
+    </div>
+
+    <div>
+        <label for="imageFile">圖片上傳</label>
+        <input type="file" id="imageFile" name="imageFile" accept="image/*" />
+    </div>
+
+    <button type="submit">儲存</button>
+    <a asp-action="Index">返回列表</a>
+</form>
