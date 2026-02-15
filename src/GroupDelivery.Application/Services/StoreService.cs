@@ -89,9 +89,9 @@ namespace GroupDelivery.Infrastructure.Services
             await _storeRepo.DeleteAsync(store);
         }
 
-        public async Task UpdateCoverImageAsync(int storeId, int ownerUserId, string url)
+        public async Task UpdateCoverImageAsync(int storeId, string url)
         {
-            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            var store = await _storeRepo.GetByIdAsync(storeId);
             if (store == null)
                 throw new Exception("Store not found");
 
@@ -100,9 +100,9 @@ namespace GroupDelivery.Infrastructure.Services
             await _storeRepo.UpdateAsync(store);
         }
 
-        public async Task UpdateMenuImageAsync(int storeId, int ownerUserId, string url)
+        public async Task UpdateMenuImageAsync(int storeId, string url)
         {
-            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            var store = await _storeRepo.GetByIdAsync(storeId);
             if (store == null)
                 throw new Exception("Store not found");
 
@@ -149,6 +149,25 @@ namespace GroupDelivery.Infrastructure.Services
                 .ToList();
 
             return result;
+        }
+
+        public void ValidateImage(string fileName, long fileSize)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new Exception("未選擇檔案");
+
+            const long maxSize = 2 * 1024 * 1024;
+            if (fileSize <= 0 || fileSize > maxSize)
+                throw new Exception("檔案大小不可超過 2MB");
+
+            var safeName = fileName.Trim();
+            var parts = safeName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
+                throw new Exception("檔名格式錯誤，禁止雙副檔名");
+
+            var ext = parts[1].ToLowerInvariant();
+            if (ext != "jpg" && ext != "jpeg" && ext != "png")
+                throw new Exception("僅支援 jpg/jpeg/png");
         }
     }
 }

@@ -17,6 +17,8 @@ namespace GroupDelivery.Domain
         public string Name { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }
+        public TimeSpan? AvailableStartTime { get; set; }
+        public TimeSpan? AvailableEndTime { get; set; }
     }
 
 }

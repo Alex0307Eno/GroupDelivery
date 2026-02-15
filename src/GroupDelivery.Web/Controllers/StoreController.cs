@@ -1,5 +1,6 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
+using GroupDelivery.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers
@@ -20,18 +20,21 @@ namespace GroupDelivery.Web.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IGroupService _groupService;
         private readonly IGroupOrderService _groupOrderService;
+        private readonly ICurrentUserContextService _currentUserContextService;
 
 
         public StoreController(
        IStoreService storeService,
        IWebHostEnvironment env,
        IGroupService groupService,
-       IGroupOrderService groupOrderService)
+       IGroupOrderService groupOrderService,
+       ICurrentUserContextService currentUserContextService)
         {
             _storeService = storeService;
             _env = env;
             _groupService = groupService;
             _groupOrderService = groupOrderService;
+            _currentUserContextService = currentUserContextService;
         }
         // StoreController.cs
         [Authorize(Roles = "Merchant")]
@@ -122,7 +125,7 @@ namespace GroupDelivery.Web.Controllers
                     request.CoverImage,
                     "cover");
 
-                await _storeService.UpdateCoverImageAsync(storeId, userId, coverUrl);
+                await _storeService.UpdateCoverImageAsync(storeId, coverUrl);
             }
 
             // 3️⃣ 處理菜單圖片（先最小可用：第一張）
@@ -133,7 +136,7 @@ namespace GroupDelivery.Web.Controllers
                     request.MenuImages.First(),
                     "menu");
 
-                await _storeService.UpdateMenuImageAsync(storeId, userId, menuUrl);
+                await _storeService.UpdateMenuImageAsync(storeId, menuUrl);
             }
 
             return RedirectToAction(nameof(MyStores));
@@ -189,7 +192,6 @@ namespace GroupDelivery.Web.Controllers
 
                 await _storeService.UpdateCoverImageAsync(
                     request.StoreId,
-                    userId,
                     coverUrl);
             }
 
@@ -203,7 +205,6 @@ namespace GroupDelivery.Web.Controllers
 
                 await _storeService.UpdateMenuImageAsync(
                     request.StoreId,
-                    userId,
                     menuUrl);
             }
 
@@ -229,15 +230,15 @@ namespace GroupDelivery.Web.Controllers
         // =========================
         private int GetUserId()
         {
-            return int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier).Value
-            );
+            return _currentUserContextService.GetRequiredUserId(User);
         }
         private async Task<string> SaveStoreImage(
     int storeId,
     IFormFile file,
     string prefix)
         {
+            _storeService.ValidateImage(file?.FileName, file?.Length ?? 0);
+
             var folder = Path.Combine(
                 _env.WebRootPath,
                 "uploads",

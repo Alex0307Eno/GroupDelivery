@@ -154,13 +154,19 @@ namespace GroupDelivery.Web.Controllers.Api
             
             await db.SaveChangesAsync();
 
+            var currentStore = await db.Stores
+                .Where(x => x.OwnerUserId == user.UserId)
+                .OrderBy(x => x.StoreId)
+                .FirstOrDefaultAsync();
+
             //  發你自己系統的登入 Cookie
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.DisplayName),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim("LineUserId", user.LineUserId)
+                new Claim("LineUserId", user.LineUserId),
+                new Claim("StoreId", (currentStore?.StoreId ?? 0).ToString())
             };
 
 

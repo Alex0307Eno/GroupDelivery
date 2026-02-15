@@ -6,6 +6,7 @@ using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Repositories;
 using GroupDelivery.Infrastructure.Services;
 using GroupDelivery.Handlers;
+using GroupDelivery.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -139,6 +140,8 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddScoped<IStoreMenuRepository, StoreMenuRepository>();
             builder.Services.AddScoped<IStoreMenuService, StoreMenuService>();
+            builder.Services.AddScoped<ICurrentStoreContextService, CurrentStoreContextService>();
+            builder.Services.AddScoped<ICurrentUserContextService, CurrentUserContextService>();
 
 
             var app = builder.Build();
