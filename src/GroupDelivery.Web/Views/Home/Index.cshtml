@@ -3,344 +3,51 @@
 }
 
 <style>
-    /* 整體基調 */
     body {
-        background: radial-gradient(circle at top, #fef3c7 0, #ffffff 45%, #e0f2fe 100%);
+        background: #f9fafb;
     }
 
-    .hero-section {
-        border-radius: 2rem;
-        padding: 3rem 3.5rem;
-        background: radial-gradient(circle at top left, #ffe8d6, #fffdf7 40%, #e3f2ff 100%);
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 18px 40px rgba(15, 23, 42, .18);
-        transform: translateZ(0);
+    .hero-simple {
+        padding: 4rem 1rem 3rem;
     }
 
-    /* 浮動光暈 */
-    .hero-glow {
-        position: absolute;
-        width: 280px;
-        height: 280px;
-        border-radius: 999px;
-        background: radial-gradient(circle, rgba(255, 126, 95, .55), transparent 70%);
-        top: -80px;
-        right: -40px;
-        filter: blur(2px);
-        animation: glow-move 9s ease-in-out infinite alternate;
-        pointer-events: none;
-    }
-
-    @@keyframes glow-move {
-        0%
-
-    {
-        transform: translate3d(0, 0, 0);
-        opacity: .7;
-    }
-
-    100% {
-        transform: translate3d(-60px, 40px, 0);
-        opacity: .4;
-    }
-
-    }
-
-    .hero-section::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, .35), transparent 40%);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity .4s ease-out;
-    }
-
-    .hero-section:hover::before {
-        opacity: 1;
-    }
-
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: .5rem;
-        padding: .25rem .85rem;
-        border-radius: 999px;
-        font-size: .85rem;
-        background: rgba(0, 0, 0, .05);
-        backdrop-filter: blur(6px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, .04);
-        animation: float-soft 6s ease-in-out infinite;
-    }
-
-    @@keyframes float-soft {
-        0%
-
-    {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-4px);
-    }
-
-    100% {
-        transform: translateY(0);
-    }
-
-    }
-
-    .brand-name {
-        font-weight: 800;
-        letter-spacing: .08em;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        color: #fb923c;
-    }
-
-    .brand-tagline {
-        font-size: 2.6rem;
-        line-height: 1.1;
-    }
-
-        .brand-tagline span {
-            color: #f97316;
-        }
-
-    .hero-subtitle {
-        min-height: 3.5rem;
-        white-space: pre-line;
-    }
-
-    .hero-subtitle-cursor {
-        display: inline-block;
-        width: 10px;
-        height: 1.1em;
-        margin-left: 2px;
-        background: #111827;
-        vertical-align: text-bottom;
-        animation: cursor-blink 1s steps(1) infinite;
-    }
-
-    @@keyframes cursor-blink {
-        0%, 50%
-
-    {
-        opacity: 1;
-    }
-
-    50.01%, 100% {
-        opacity: 0;
-    }
-
-    }
-
-    .cta-main {
-        padding: .85rem 1.9rem;
-        border-radius: 999px;
-        font-weight: 700;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, .22);
-        transform: translateY(0);
-        transition: transform .16s ease-out, box-shadow .16s ease-out;
-    }
-
-        .cta-main:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 18px 36px rgba(15, 23, 42, .35);
-        }
-
-    .cta-outline {
-        padding: .85rem 1.9rem;
-        border-radius: 999px;
-        font-weight: 600;
-        background: rgba(255, 255, 255, .75);
-        backdrop-filter: blur(8px);
-        border-color: #111827;
-        transition: background .2s ease-out, transform .16s ease-out;
-    }
-
-        .cta-outline:hover {
-            background: #111827;
-            color: #f9fafb;
-            transform: translateY(-1px);
-        }
-
-    .hero-stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.1rem;
-        margin-top: 1.4rem;
-        font-size: .88rem;
-    }
-
-    .hero-stat-pill {
-        padding: .45rem 1rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, .9);
-        box-shadow: 0 6px 18px rgba(15, 23, 42, .12);
-    }
-
-    .hero-right-card {
-        border-radius: 1.5rem;
-        background: radial-gradient(circle at top left, #111827, #020617);
-        color: #f9fafb;
-        padding: 1.8rem;
-        box-shadow: 0 20px 46px rgba(15, 23, 42, .9);
-        position: relative;
-        overflow: hidden;
-    }
-
-        .hero-right-card::after {
-            content: "";
-            position: absolute;
-            inset: -1px;
-            border-radius: inherit;
-            border: 1px solid transparent;
-            background: linear-gradient(135deg, rgba(248, 250, 252, .4), rgba(96, 165, 250, .5));
-            opacity: .3;
-            z-index: -1;
-        }
-
-        .hero-right-card h6 {
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            font-size: .8rem;
-            color: #9ca3af;
-        }
-
-    .compare-row {
-        display: flex;
-        flex-direction: column;
-        gap: .6rem;
-        margin-top: .9rem;
-        font-size: .9rem;
-    }
-
-    .compare-label {
-        font-size: .8rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: #9ca3af;
-    }
-
-    .compare-item-bad,
-    .compare-item-good {
-        display: flex;
-        justify-content: space-between;
-        padding: .4rem .8rem;
-        border-radius: .6rem;
-        font-size: .85rem;
-    }
-
-    .compare-item-bad {
-        background: rgba(239, 68, 68, .09);
-        border: 1px solid rgba(248, 113, 113, .5);
-    }
-
-    .compare-item-good {
-        background: rgba(16, 185, 129, .16);
-        border: 1px solid rgba(52, 211, 153, .6);
-    }
-
-    .section-title {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-
-        .section-title h4 {
+        .hero-simple h1 {
+            font-size: 2.4rem;
             font-weight: 800;
         }
 
-    .section-sub {
-        font-size: .9rem;
-        color: #6b7280;
-    }
-
-    .pill-filter-group {
-        display: inline-flex;
-        gap: .5rem;
-        font-size: .85rem;
-    }
-
-    .pill-filter {
-        border-radius: 999px;
-        padding: .25rem .9rem;
-        border: 1px solid #e5e7eb;
-        cursor: pointer;
-        background: #fff;
-        transition: background .15s ease-out, color .15s ease-out, transform .12s ease-out;
-    }
-
-        .pill-filter:hover {
-            transform: translateY(-1px);
-        }
-
-        .pill-filter.active {
-            background: #111827;
-            color: #f9fafb;
-            border-color: #111827;
+        .hero-simple p {
+            font-size: 1.1rem;
+            color: #6b7280;
         }
 
     .search-bar-wrap {
         border-radius: 999px;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
         overflow: hidden;
-        background: #ffffff;
+        background: #fff;
     }
 
-        .search-bar-wrap input {
-            border: none;
-            box-shadow: none;
-        }
-
     .card-group {
-        border-radius: 1.2rem;
+        border-radius: 1rem;
         border: none;
-        box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
-        overflow: hidden;
-        transition: transform .14s ease-out, box-shadow .16s ease-out, translate .14s ease-out;
-        transform: translateY(0);
-        background: #ffffff;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
+        transition: transform .15s ease, box-shadow .15s ease;
     }
 
         .card-group:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 46px rgba(15, 23, 42, .26);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, .18);
         }
 
-    .card-ribbon {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        padding: .2rem .8rem;
-        border-radius: 999px;
-        font-size: .75rem;
-        background: rgba(15, 23, 42, .9);
-        color: #f9fafb;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, .5);
-    }
-
-    .card-ribbon-hot {
-        background: linear-gradient(135deg, #fb923c, #ef4444);
-    }
-
     .card-img-top.cover {
-        height: 180px;
+        height: 170px;
         background-position: center;
         background-size: cover;
-        transform: scale(1.02);
-        transition: transform .25s ease-out;
-    }
-
-    .card-group:hover .card-img-top.cover {
-        transform: scale(1.07);
     }
 
     .progress-sm {
-        height: 0.5rem;
+        height: 0.45rem;
         border-radius: 999px;
         overflow: hidden;
         background: #e5e7eb;
@@ -348,369 +55,107 @@
 
         .progress-sm .progress-bar {
             border-radius: 999px;
-            transition: width .4s ease-out;
         }
-
-    .platform-diff-section {
-        margin-top: 4rem;
-        margin-bottom: 1rem;
-    }
-
-    .platform-card {
-        border-radius: 1.4rem;
-        padding: 1.6rem 1.8rem;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .platform-card.bad {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-        }
-
-        .platform-card.good {
-            background: radial-gradient(circle at top left, #ffedd5, #dcfce7);
-            border: 1px solid rgba(34, 197, 94, .5);
-            box-shadow: 0 14px 32px rgba(22, 163, 74, .35);
-        }
-
-        .platform-card h5 {
-            font-weight: 700;
-        }
-
-        .platform-card ul {
-            padding-left: 1.2rem;
-            margin-bottom: 0;
-            font-size: .9rem;
-        }
-
-    .platform-tag {
-        font-size: .75rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: #6b7280;
-        margin-bottom: .4rem;
-    }
-
-    /* 標題淡入動畫 */
-    .headline-animated {
-        opacity: 0;
-        transform: translateY(10px);
-        animation: fade-up-in .6s ease-out forwards;
-    }
-
-        .headline-animated.delay-1 {
-            animation-delay: .15s;
-        }
-
-        .headline-animated.delay-2 {
-            animation-delay: .3s;
-        }
-
-    @@keyframes fade-up-in {
-        0%
-
-    {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    }
-
-    @@media (max-width: 767.98px) {
-        .hero-section
-
-    {
-        padding: 2rem 1.4rem;
-    }
-
-    .brand-tagline {
-        font-size: 2.1rem;
-    }
-
-    .hero-right-card {
-        margin-top: 1.5rem;
-    }
-
-    body {
-        background: #f9fafb;
-    }
-
-    }
 </style>
 
-<div id="app" class="container py-5">
+<div id="app" class="container py-4">
 
-    <!-- HERO 區：品牌 + 差異 -->
-    <div class="hero-section mb-5">
-        <div class="hero-glow"></div>
+    <!-- HERO -->
+    <div class="hero-simple text-center">
+        <h1>不湊不送，一湊就動</h1>
+        <p class="mt-3 mb-4">
+            人湊齊才送，順路一起吃。<br />
+            不抽成壓商家，不讓外送費壓垮你。
+        </p>
 
-        <div class="row align-items-center">
-            <div class="col-lg-7 mb-4 mb-lg-0">
-                
-                <div class="brand-name mb-2 headline-animated">
-                    JOU IN · 揪IN
-                </div>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#groups" class="btn btn-dark btn-lg">
+                我要跟團
+            </a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a href="/Store/CreateGroup" class="btn btn-outline-dark btn-lg">
+                    我是商家，開團
+                </a>
+            }
+            else
+            {
+                <a href="#"
+                   class="btn btn-outline-dark btn-lg"
+                   data-bs-toggle="modal"
+                   data-bs-target="#authModal">
+                    我是商家，開團
+                </a>
+            }
 
-                <div class="hero-badge mb-3 headline-animated delay-1">
-                    <span>不湊不送，一湊就動</span>
-                    <span class="text-muted">｜專門給會揪團的人用</span>
-                </div>
-
-                <h1 class="brand-tagline fw-bold headline-animated delay-2">
-                    不湊不送，<span>一湊就動</span>
-                </h1>
-
-                <p class="fs-5 text-muted mt-3 mb-4 hero-subtitle">
-                    {{ heroSubtitleShown }}
-                    <span class="hero-subtitle-cursor" v-if="heroTyping"></span>
-                </p>
-
-                <div class="d-flex flex-wrap gap-3 mb-3">
-                    <a href="#groups"
-                       class="btn btn-dark cta-main"
-                       data-scroll-target="#groups">
-                        我要跟團
-                    </a>
-                    <a href="/Store/CreateGroup" class="btn btn-outline-dark cta-outline">
-                        我是商家，要開團
-                    </a>
-                </div>
-
-                <div class="hero-stats text-muted">
-                    <div class="hero-stat-pill">
-                        今日已成團 <strong class="ms-1">27</strong> 團
-                    </div>
-                    <div class="hero-stat-pill">
-                        平均 <strong class="ms-1">6 人</strong> 就出發
-                    </div>
-                    <div class="hero-stat-pill">
-                        約 <strong class="ms-1">18 分鐘</strong> 成團
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-5">
-                <div class="hero-right-card">
-                    <h6>跟外送平台哪裡不一樣？</h6>
-
-                    <div class="compare-row">
-                        <div class="compare-label">外送平台</div>
-                        <div class="compare-item-bad">
-                            <span>一單就送，外送費偏高</span>
-                            <span>❌</span>
-                        </div>
-                        <div class="compare-item-bad">
-                            <span>商家被抽成，只能默默吞</span>
-                            <span>❌</span>
-                        </div>
-                        <div class="compare-item-bad">
-                            <span>大家各自點，各自貴</span>
-                            <span>❌</span>
-                        </div>
-                    </div>
-
-                    <div class="compare-row">
-                        <div class="compare-label mt-2">揪IN</div>
-                        <div class="compare-item-good">
-                            <span>人湊齊才送，順路不浪費</span>
-                            <span>✔</span>
-                        </div>
-                        <div class="compare-item-good">
-                            <span>不逼商家賠本送，送得甘願</span>
-                            <span>✔</span>
-                        </div>
-                        <div class="compare-item-good">
-                            <span>大家一起揪，平均下來比較便宜</span>
-                            <span>✔</span>
-                        </div>
-                    </div>
-
-                    <p class="mt-3 mb-0 small text-gray-300">
-                        不是「更便宜的外送平台」，<br />
-                        是一個讓「商家和客人都不被榨」的揪團系統。
-                    </p>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- 搜尋 + 篩選 -->
-    <div class="row align-items-center mb-3">
-        <div class="col-md-7 mb-3 mb-md-0">
+    <!-- 搜尋 -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
             <div class="search-bar-wrap input-group">
-                <span class="input-group-text bg-white border-0">
-                    <i class="bi bi-search text-muted"></i>
-                </span>
                 <input type="text"
                        class="form-control"
-                       placeholder="想吃什麼？輸入店名或品項，例如：雞排、滷味、便當…"
+                       placeholder="搜尋店名或團名…"
                        v-model="searchQuery" />
                 <button class="btn btn-dark">
-                    找正在揪的
+                    搜尋
                 </button>
             </div>
         </div>
-        <div class="col-md-5 text-md-end">
-            <div class="pill-filter-group">
-                <div class="pill-filter"
-                     :class="{ 'active': filterMode === 'all' }"
-                     @@click ="filterMode = 'all'">
-                    全部團
-                </div>
-                <div class="pill-filter"
-                     :class="{ 'active': filterMode === 'hot' }"
-                     @@click ="filterMode = 'hot'">
-                    快成團
-                </div>
-                <div class="pill-filter"
-                     :class="{ 'active': filterMode === 'new' }"
-                     @@click ="filterMode = 'new'">
-                    新開團
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 團購列表標題，帶諧音梗 -->
-    <div class="section-title headline-animated">
-        <div>
-            <h4>揪 IN 不到，飯吃不到</h4>
-            <div class="section-sub">
-                你一進來，這團就動。
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-dark"></div>
-        <p class="text-muted mt-3">正在幫你掃附近的揪團中…</p>
     </div>
 
     <!-- 團購列表 -->
+    <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-dark"></div>
+        <p class="text-muted mt-3">正在載入揪團…</p>
+    </div>
+
     <div v-else id="groups" class="row g-4">
         <div v-for="group in filteredGroups"
              :key="group.groupOrderId"
              class="col-lg-4 col-md-6">
 
-            <div class="card card-group position-relative">
+            <div class="card card-group">
 
-                <!-- Ribbon -->
-                <div class="card-ribbon"
-                     :class="{ 'card-ribbon-hot': isHot(group) }">
-                    {{ isHot(group) ? '🔥 快成團' : '揪團進行中' }}
-                </div>
-
-                <!-- 圖片區 -->
-                <div class="card-img-top cover position-relative"
+                <div class="card-img-top cover"
                      :style="{
-                    backgroundImage: `url(${group.store && group.store.coverImageUrl
-                        ? group.store.coverImageUrl
-                        : '/img/store-placeholder.jpg'})`
-                 }">
-
-                    <!-- 店名遮罩 -->
-                    <div class="position-absolute bottom-0 start-0 w-100 p-2"
-                         style="background:linear-gradient(transparent, rgba(0,0,0,.65))">
-                        <span class="badge bg-dark">
-                            {{ group.store.storeName }}
-                        </span>
-                    </div>
+                        backgroundImage: `url(${group.store && group.store.coverImageUrl
+                            ? group.store.coverImageUrl
+                            : '/img/store-placeholder.jpg'})`
+                     }">
                 </div>
 
-                <!-- 內容區 -->
                 <div class="card-body d-flex flex-column">
 
-                    <!-- 剩餘時間 + 百分比 -->
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small text-muted">
-                            ⏳ 剩 {{ remainingMinutes(group.deadline) }} 分鐘
-                        </span>
-                        <span class="small fw-bold"
-                              :class="isHot(group) ? 'text-danger' : 'text-success'">
-                            {{ calculatePercent(group) }}%
-                        </span>
-                    </div>
+                    <h5 class="fw-bold mb-2">
+                        {{ group.remark || group.store.storeName }}
+                    </h5>
 
-                    <!-- 進度條 -->
-                    <div class="progress progress-sm mb-2">
-                        <div class="progress-bar"
-                             :class="isHot(group) ? 'bg-danger' : 'bg-success'"
+                    <p class="small text-muted mb-2">
+                        還差 ${{ leftAmount(group) }} 出發
+                    </p>
+
+                    <div class="progress progress-sm mb-3">
+                        <div class="progress-bar bg-success"
                              :style="{ width: calculatePercent(group) + '%' }">
                         </div>
                     </div>
 
-                    <!-- 團說明 -->
-                    <h5 class="fw-bold mb-2">
-                        {{ group.remark || group.store.storeName + ' 午餐揪團' }}
-                    </h5>
-
-                    <!-- 金額 -->
-                    <p class="text-muted small mb-3">
-                        已湊 <strong>${{ group.currentAmount }}</strong>，
-                        還差 <strong>${{ leftAmount(group) }}</strong> 出發
-                    </p>
-
-                    <!-- CTA -->
                     <a :href="'/Group/GroupDetail/' + group.groupOrderId"
                        class="btn btn-dark w-100 mt-auto">
-                        立刻跟上
+                        立刻加入
                     </a>
 
                 </div>
             </div>
         </div>
-    </div>
 
         <div v-if="filteredGroups.length === 0"
              class="col-12 text-center text-muted py-5">
-            目前沒有符合條件的揪團。<br />
-            揪不到，就自己開一團。
-        </div>
-    </div>
-
-    <!-- 平台差異說明 -->
-    <div class="platform-diff-section">
-        <div class="section-title">
-            <div>
-                <h4>JOUIN 不是外送平台，是揪團系統</h4>
-                <div class="section-sub">
-                    商家不被抽到懷疑人生；使用者不被運費磨到心累。
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="platform-card bad">
-                    <div class="platform-tag">他們怎麼做</div>
-                    <h5>外送平台的世界</h5>
-                    <ul class="mt-3">
-                        <li>一個人點餐也照送，但外送費和服務費偏高。</li>
-                        <li>商家被抽成，只能在菜單價格裡偷偷補回來。</li>
-                        <li>外送員為了趕單，繞半個城市送一兩份。</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="platform-card good">
-                    <div class="platform-tag">我們的選擇</div>
-                    <h5>JOUIN的規則</h5>
-                    <ul class="mt-3">
-                        <li>人湊到門檻才送，一趟車載滿一整車。</li>
-                        <li>商家不用硬吞抽成，可以開合理的揪團優惠。</li>
-                        <li>一個人也不用擔心點不到餐點。</li>
-                    </ul>
-                </div>
-            </div>
+            目前沒有揪團。<br />
+            不如自己開一團？
         </div>
     </div>
 
@@ -727,117 +172,56 @@
             return {
                 groups: [],
                 loading: true,
-                searchQuery: '',
-                filterMode: 'all', // all | hot | new
-                now: new Date(),
-                heroSubtitleFull: "外送平台一單就跑，費用你自己扛。\n揪IN 人湊齊才送，順路一起吃，大家都不虧。",
-                heroSubtitleIndex: 0,
-                heroTyping: true
+                searchQuery: ''
             };
         },
         computed: {
             filteredGroups() {
-                var list = this.groups.slice(0);
-
-                if (this.filterMode === 'hot') {
-                    list = list.filter(g => this.calculatePercent(g) >= 60);
-                } else if (this.filterMode === 'new') {
-                    list = list.sort(function (a, b) {
-                        return new Date(b.createdTime) - new Date(a.createdTime);
-                    });
-                }
-
                 if (!this.searchQuery) {
-                    return list;
+                    return this.groups;
                 }
 
-                var k = this.searchQuery.toLowerCase();
-                return list.filter(function (g) {
-                    var name = g.store && g.store.storeName
+                const k = this.searchQuery.toLowerCase();
+
+                return this.groups.filter(g => {
+                    const name = g.store && g.store.storeName
                         ? g.store.storeName.toLowerCase()
                         : '';
-                    var remark = g.remark ? g.remark.toLowerCase() : '';
-                    return name.indexOf(k) >= 0 || remark.indexOf(k) >= 0;
+                    const remark = g.remark ? g.remark.toLowerCase() : '';
+                    return name.includes(k) || remark.includes(k);
                 });
-            },
-            heroSubtitleShown() {
-                return this.heroSubtitleFull.substring(0, this.heroSubtitleIndex);
             }
         },
         methods: {
             fetchGroups() {
-                var self = this;
                 axios.get('/api/groups')
-                    .then(function (res) {
-                        self.groups = res.data || [];
-                        self.loading = false;
+                    .then(res => {
+                        this.groups = res.data || [];
+                        this.loading = false;
                     })
-                    .catch(function () {
-                        self.loading = false;
+                    .catch(() => {
+                        this.loading = false;
                     });
             },
-            remainingMinutes(deadline) {
-                if (!deadline) return 0;
-                var d = new Date(deadline);
-                var diff = d - this.now;
-                var minutes = Math.floor(diff / 60000);
-                if (minutes < 0) minutes = 0;
-                return minutes;
-            },
             calculatePercent(g) {
-                var current = g.currentAmount || 0;
-                var target = g.targetAmount || 0;
+                const current = g.currentAmount || 0;
+                const target = g.targetAmount || 0;
                 if (target <= 0) return 0;
-                var v = Math.round(current * 100 / target);
+                let v = Math.round(current * 100 / target);
                 if (v > 100) v = 100;
                 if (v < 0) v = 0;
                 return v;
             },
             leftAmount(g) {
-                var current = g.currentAmount || 0;
-                var target = g.targetAmount || 0;
-                var left = target - current;
+                const current = g.currentAmount || 0;
+                const target = g.targetAmount || 0;
+                let left = target - current;
                 if (left < 0) left = 0;
                 return left;
-            },
-            isHot(g) {
-                return this.calculatePercent(g) >= 70 && this.remainingMinutes(g.deadline) <= 30;
-            },
-            startHeroTyping() {
-                var self = this;
-                var timer = setInterval(function () {
-                    if (self.heroSubtitleIndex >= self.heroSubtitleFull.length) {
-                        clearInterval(timer);
-                        self.heroTyping = false;
-                        return;
-                    }
-                    self.heroSubtitleIndex++;
-                }, 35);
             }
         },
         mounted() {
-            var self = this;
             this.fetchGroups();
-            this.startHeroTyping();
-
-            setInterval(function () {
-                self.now = new Date();
-            }, 1000);
-
-            // 平滑捲動到指定區塊
-            document.querySelectorAll('[data-scroll-target]').forEach(function (el) {
-                el.addEventListener('click', function (e) {
-                    var target = el.getAttribute('data-scroll-target');
-                    var dom = document.querySelector(target);
-                    if (dom) {
-                        e.preventDefault();
-                        window.scrollTo({
-                            top: dom.getBoundingClientRect().top + window.scrollY - 80,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
         }
     }).mount('#app');
 </script>

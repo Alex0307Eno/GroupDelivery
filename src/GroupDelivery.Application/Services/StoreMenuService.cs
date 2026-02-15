@@ -19,28 +19,6 @@ namespace GroupDelivery.Application.Services
             _storeRepository = storeRepository;
         }
 
-        public async Task CreateMenuItemAsync(int userId, int storeId, string name, decimal price, string description)
-        {
-            var store = await _storeRepository.GetByIdAsync(storeId);
-
-            if (store == null)
-                throw new Exception("店家不存在");
-
-            if (store.OwnerUserId != userId)
-                throw new Exception("無權限操作此店家");
-
-            var item = new StoreMenuItem
-            {
-                StoreId = storeId,
-                Name = name,
-                Price = price,
-                Description = description,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _menuRepository.AddAsync(item);
-        }
 
         public async Task<List<StoreMenuItem>> GetMenuAsync(int storeId)
         {

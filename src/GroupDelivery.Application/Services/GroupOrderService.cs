@@ -43,13 +43,11 @@ namespace GroupDelivery.Application.Services
         #region 建立一筆新的揪團，僅允許商家開團
         public async Task CreateGroupAsync(int userId, CreateGroupRequest request)
         {
-            // 檢查店是否存在
             var store = await _storeRepo.GetByIdAsync(request.StoreId);
 
             if (store == null)
                 throw new Exception("店家不存在");
 
-            // 如果是商家角色，驗證擁有權
             var isMerchant = await _userRepo.IsMerchantAsync(userId);
 
             if (isMerchant)
@@ -58,14 +56,25 @@ namespace GroupDelivery.Application.Services
                     throw new Exception("無權限操作此店家");
             }
 
+            var deadline = request.Deadline;
+            if (deadline <= DateTime.Now)
+                throw new Exception("截止時間必須晚於現在");
+
+            if (deadline <= DateTime.Now)
+                throw new Exception("截止時間必須晚於現在");
+
+
             var group = new GroupOrder
             {
                 StoreId = request.StoreId,
                 CreatorUserId = userId,
+                OwnerUserId = store.OwnerUserId, 
                 TargetAmount = request.TargetAmount,
-                Deadline = request.Deadline,
+                CurrentAmount = 0,               
+                Deadline = deadline,
                 Status = GroupOrderStatus.Open,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                Remark = request.Remark
             };
 
             await _groupOrderRepository.AddAsync(group);

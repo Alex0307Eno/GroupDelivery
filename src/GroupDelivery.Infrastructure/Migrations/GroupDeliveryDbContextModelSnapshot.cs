@@ -245,7 +245,7 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuItemId"));
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -410,9 +410,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                 {
                     b.HasOne("GroupDelivery.Domain.StoreMenuCategory", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
                 });

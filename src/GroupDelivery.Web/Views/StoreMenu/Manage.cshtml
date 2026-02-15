@@ -2,15 +2,15 @@
 
 @{
     ViewData["Title"] = "菜單管理";
-    var storeId = ViewBag.StoreId;
+    var storeId = (int)ViewBag.StoreId;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">菜單管理</h3>
 
-    <a class="btn btn-success"
-       href="/StoreMenu/Create?storeId=@storeId">
-        ＋ 新增品項
+    <a href="/BatchCreate/@storeId"
+       class="btn btn-primary">
+        新增菜單
     </a>
 </div>
 
@@ -18,10 +18,12 @@
 {
     <div class="alert alert-light text-center py-5">
         <div class="fw-bold mb-2">目前還沒有任何品項</div>
-        <div class="text-muted mb-3">新增菜單後，消費者才能點餐</div>
+        <div class="text-muted mb-3">
+            新增菜單後，消費者才能點餐
+        </div>
 
         <a class="btn btn-success"
-           href="/StoreMenu/Create?storeId=@storeId">
+           href="/BatchCreate/@storeId">
             新增第一個品項
         </a>
     </div>
@@ -37,6 +39,7 @@ else
 
                     <div>
                         <div class="fw-bold">@item.Name</div>
+
                         <div class="text-muted small">
                             $@item.Price
                         </div>
@@ -65,6 +68,7 @@ else
                         }
 
                         <div class="btn-group btn-group-sm">
+
                             <a class="btn btn-outline-primary"
                                href="/StoreMenu/Edit/@item.StoreMenuItemId">
                                 編輯
@@ -72,26 +76,28 @@ else
 
                             <form method="post"
                                   action="/StoreMenu/Toggle/@item.StoreMenuItemId"
-                                  style="display:inline;">
+                                  class="d-inline">
                                 @Html.AntiForgeryToken()
 
                                 @if (item.IsActive)
                                 {
-                                    <button class="btn btn-outline-warning">
+                                    <button type="submit"
+                                            class="btn btn-outline-warning">
                                         下架
                                     </button>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-outline-success">
+                                    <button type="submit"
+                                            class="btn btn-outline-success">
                                         上架
                                     </button>
                                 }
                             </form>
+
                         </div>
 
                     </div>
-
                 </div>
             }
 
