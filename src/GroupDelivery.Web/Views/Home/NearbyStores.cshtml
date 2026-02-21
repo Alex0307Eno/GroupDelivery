@@ -300,7 +300,6 @@
         },
         methods: {
             enrichStore: function (store) {
-                // 沒有開團就不用算 NEW / 緊急
                 if (!store.hasActiveGroup) {
                     store.isUrgent = false;
                     store.isNew = false;

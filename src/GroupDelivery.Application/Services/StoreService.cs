@@ -11,11 +11,13 @@ namespace GroupDelivery.Infrastructure.Services
     {
         private readonly IStoreRepository _storeRepo;
         private readonly IGroupOrderRepository _groupOrderRepository;
+        private readonly IGeocodingService _geocodingService;
 
-        public StoreService(IStoreRepository storeRepo, IGroupOrderRepository groupOrderRepository)
+        public StoreService(IStoreRepository storeRepo, IGroupOrderRepository groupOrderRepository, IGeocodingService geocodingService)
         {
             _storeRepo = storeRepo;
             _groupOrderRepository = groupOrderRepository;
+            _geocodingService = geocodingService;
         }
         public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
         {
@@ -51,6 +53,9 @@ namespace GroupDelivery.Infrastructure.Services
 
         public async Task<int> CreateAsync(int userId, StoreInitRequest request)
         {
+
+            var (lat, lng) = await _geocodingService.GetLatLngAsync(request.Address);
+
             var store = new Store
             {
                 OwnerUserId = userId,
@@ -58,13 +63,14 @@ namespace GroupDelivery.Infrastructure.Services
                 Phone = request.Phone,
                 Address = request.Address,
                 Description = request.Description,
+                Latitude = lat,
+                Longitude = lng,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
-
+            Console.WriteLine($"Lat: {lat}, Lng: {lng}");
             return await _storeRepo.CreateAsync(store);
         }
-
         public async Task UpdateAsync(int userId, StoreUpdateRequest request)
         {
             var store = await _storeRepo.GetByIdAndOwnerAsync(request.StoreId, userId);

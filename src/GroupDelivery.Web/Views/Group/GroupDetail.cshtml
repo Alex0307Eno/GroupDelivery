@@ -103,10 +103,16 @@
         </div>
 
         <!-- 按鈕 -->
-        <button class="btn btn-success w-100 join-btn"
-                @@click="joinNow"
-                :disabled="remainSeconds <= 0">
-            加入這一團
+        <a v-if="remainSeconds > 0"
+           :href="'/Group/Menu/' + groupId"
+           class="btn btn-success w-100 join-btn">
+            選餐加入
+        </a>
+
+        <button v-else
+                class="btn btn-secondary w-100 join-btn"
+                disabled>
+            已截止
         </button>
 
         <div class="text-center mt-3 muted-note">

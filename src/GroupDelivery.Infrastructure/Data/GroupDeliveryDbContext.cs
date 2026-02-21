@@ -52,10 +52,16 @@ namespace GroupDelivery.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<GroupOrder>()
-       .HasOne(g => g.OwnerUser)
-       .WithMany()
-       .HasForeignKey(g => g.OwnerUserId)
-       .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(g => g.OwnerUser)
+                .WithMany()
+                .HasForeignKey(g => g.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<StoreMenuItem>()
+                .HasOne(x => x.Category)
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

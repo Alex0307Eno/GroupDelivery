@@ -83,7 +83,8 @@ namespace GroupDelivery.Web
             builder.Services.AddHttpContextAccessor();
 
             // DI 注入
-
+            //Google maps
+            builder.Services.AddHttpClient<IGeocodingService, GeocodingService>();
             // Email 發送服務，負責寄送驗證信、通知信等
             builder.Services.AddScoped<EmailService>();
 
@@ -126,6 +127,9 @@ namespace GroupDelivery.Web
 
             // 商店資料存取（tbStore）
             builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+            //菜單分類相關
+            builder.Services.AddScoped<IStoreMenuCategoryRepository, StoreMenuCategoryRepository>();
+            builder.Services.AddScoped<IStoreMenuCategoryService, StoreMenuCategoryService>();
 
             // =========================
             // 商家 / 群組輔助服務

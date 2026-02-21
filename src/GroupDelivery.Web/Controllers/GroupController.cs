@@ -119,6 +119,11 @@ namespace GroupDelivery.Web.Controllers
 
             return Redirect($"/group/{id}");
         }
-
+        [HttpGet]
+        public IActionResult Menu(int id)
+        {
+            ViewData["GroupId"] = id;
+            return View();
+        }
     }
 }

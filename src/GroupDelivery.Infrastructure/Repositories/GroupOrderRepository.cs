@@ -126,6 +126,7 @@ namespace GroupDelivery.Infrastructure.Repositories
             await _db.SaveChangesAsync();
         }
         #endregion
+
         #region 取得指定店家目前所有仍在揪團中的團單
         public async Task<List<GroupOrder>> GetOpenByStoreAsync(int storeId, DateTime now)
         {
@@ -137,6 +138,14 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .ToListAsync();
         }
         #endregion
+
+        public async Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync()
+        {
+            return await _db.GroupOrders
+                .Include(x => x.Store)
+                .Where(x => x.Status == GroupOrderStatus.Open)
+                .ToListAsync();
+        }
 
     }
 }

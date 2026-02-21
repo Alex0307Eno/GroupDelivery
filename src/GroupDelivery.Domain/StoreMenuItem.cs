@@ -25,6 +25,7 @@ namespace GroupDelivery.Domain
         public string ImageUrl { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public StoreMenuCategory Category { get; set; }
         public virtual ICollection<GroupOrderItem> GroupOrderItems { get; set; }

@@ -155,6 +155,12 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("MenuImageUrl")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -212,11 +218,14 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StoreMenuCategoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuCategoryId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -230,7 +239,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("StoreMenuCategoryId");
 
                     b.HasIndex("StoreId");
 
@@ -268,6 +277,9 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("StoreMenuItemId");
 
@@ -410,7 +422,8 @@ namespace GroupDelivery.Infrastructure.Migrations
                 {
                     b.HasOne("GroupDelivery.Domain.StoreMenuCategory", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
                 });

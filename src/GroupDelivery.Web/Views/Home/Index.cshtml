@@ -1,10 +1,9 @@
 @{
     ViewData["Title"] = "揪IN｜不湊不送，一湊就動";
 }
-
 <style>
     body {
-        background: #f9fafb;
+        background: linear-gradient(180deg,#f9fafb,#eef2f7);
     }
 
     .hero-simple {
@@ -12,153 +11,156 @@
     }
 
         .hero-simple h1 {
-            font-size: 2.4rem;
+            font-size: 2.6rem;
             font-weight: 800;
+            letter-spacing: -1px;
         }
-
-        .hero-simple p {
-            font-size: 1.1rem;
-            color: #6b7280;
-        }
-
-    .search-bar-wrap {
-        border-radius: 999px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
-        overflow: hidden;
-        background: #fff;
-    }
 
     .card-group {
         border-radius: 1rem;
         border: none;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
-        transition: transform .15s ease, box-shadow .15s ease;
+        box-shadow: 0 12px 28px rgba(15,23,42,.08);
+        transition: all .2s ease;
+        overflow: hidden; /* 讓上面的圖跟卡片圓角一致 */
     }
 
         .card-group:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(15, 23, 42, .18);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(15,23,42,.15);
         }
 
-    .card-img-top.cover {
-        height: 170px;
-        background-position: center;
+    /* 圖片整個卡片上半部 */
+    .cover {
+        height: 180px;
         background-size: cover;
+        background-position: center;
+        position: relative; /* 給右上角 badge 定位用 */
+    }
+
+    /* 右上角一排：快成團 + 距離 */
+    .badge-row {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* 快成團在左邊 */
+    .hot-badge {
+        background: linear-gradient(135deg,#ef4444,#dc2626);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: .75rem;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,.25);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+        .hot-badge .hot-icon {
+            font-size: .85rem;
+        }
+
+    /* 距離在右邊 */
+    .distance-badge {
+        background: rgba(0,0,0,.7);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: .75rem;
+        white-space: nowrap;
     }
 
     .progress-sm {
-        height: 0.45rem;
+        height: 6px;
         border-radius: 999px;
-        overflow: hidden;
-        background: #e5e7eb;
     }
-
-        .progress-sm .progress-bar {
-            border-radius: 999px;
-        }
 </style>
-
 <div id="app" class="container py-4">
 
-    <!-- HERO -->
     <div class="hero-simple text-center">
         <h1>不湊不送，一湊就動</h1>
-        <p class="mt-3 mb-4">
-            人湊齊才送，順路一起吃。<br />
-            不抽成壓商家，不讓外送費壓垮你。
+        <p class="mt-3 mb-4 text-muted">
+            附近有人開團才送，順路一起吃。
         </p>
 
         <div class="d-flex justify-content-center gap-3">
-            <a href="#groups" class="btn btn-dark btn-lg">
-                我要跟團
-            </a>
-            @if (User.Identity.IsAuthenticated)
-            {
-                <a href="/Store/CreateGroup" class="btn btn-outline-dark btn-lg">
-                    我是商家，開團
-                </a>
-            }
-            else
-            {
-                <a href="#"
-                   class="btn btn-outline-dark btn-lg"
-                   data-bs-toggle="modal"
-                   data-bs-target="#authModal">
-                    我是商家，開團
-                </a>
-            }
-
+            <button class="btn btn-dark btn-lg" @@click="radius = 3">
+                3km 內
+            </button>
+            <button class="btn btn-outline-dark btn-lg" @@click="radius = 5">
+                5km 內
+            </button>
         </div>
     </div>
 
-    <!-- 搜尋 -->
-    <div class="row mb-4">
-        <div class="col-md-8 mx-auto">
-            <div class="search-bar-wrap input-group">
-                <input type="text"
-                       class="form-control"
-                       placeholder="搜尋店名或團名…"
-                       v-model="searchQuery" />
-                <button class="btn btn-dark">
-                    搜尋
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 團購列表 -->
     <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-dark"></div>
-        <p class="text-muted mt-3">正在載入揪團…</p>
+        <p class="mt-3 text-muted">正在搜尋附近揪團...</p>
     </div>
 
-    <div v-else id="groups" class="row g-4">
+    <div v-else class="row g-4">
+
         <div v-for="group in filteredGroups"
              :key="group.groupOrderId"
              class="col-lg-4 col-md-6">
 
-            <div class="card card-group">
+            <div class="card card-group position-relative">
 
-                <div class="card-img-top cover"
-                     :style="{
-                        backgroundImage: `url(${group.store && group.store.coverImageUrl
-                            ? group.store.coverImageUrl
-                            : '/img/store-placeholder.jpg'})`
-                     }">
+                <div class="cover"
+                     :style="{ backgroundImage: 'url(' + getImageUrl(group.store && group.store.coverImageUrl) + ')' }">
+
+                    <div class="badge-row">
+                        <div v-if="isHot(group)" class="hot-badge">
+                            <span class="hot-icon">🔥</span>
+                            <span>快成團</span>
+                        </div>
+
+                        <div class="distance-badge" v-if="group.distance != null">
+                            {{ group.distance.toFixed(1) }} km
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="card-body d-flex flex-column">
 
-                    <h5 class="fw-bold mb-2">
-                        {{ group.remark || group.store.storeName }}
+                    <h5 class="fw-bold mb-1">
+                        {{ group.remark || (group.store && group.store.storeName) }}
                     </h5>
 
-                    <p class="small text-muted mb-2">
+                    <small class="text-muted mb-2">
                         還差 ${{ leftAmount(group) }} 出發
-                    </p>
+                    </small>
 
                     <div class="progress progress-sm mb-3">
                         <div class="progress-bar bg-success"
-                             :style="{ width: calculatePercent(group) + '%' }">
+                             :style="{ width: percent(group) + '%' }">
                         </div>
                     </div>
 
+                    <small class="text-muted mb-3">
+                        ⏰ {{ remainingTime(group.deadline) }}
+                    </small>
+
                     <a :href="'/Group/GroupDetail/' + group.groupOrderId"
-                       class="btn btn-dark w-100 mt-auto">
+                       class="btn btn-dark w-100">
                         立刻加入
                     </a>
-
                 </div>
             </div>
         </div>
 
         <div v-if="filteredGroups.length === 0"
-             class="col-12 text-center text-muted py-5">
-            目前沒有揪團。<br />
-            不如自己開一團？
+             class="text-center text-muted py-5">
+            附近目前沒有開團 😢
         </div>
-    </div>
 
+    </div>
 </div>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -171,57 +173,74 @@
         data() {
             return {
                 groups: [],
-                loading: true,
-                searchQuery: ''
+            loading: true,
+                userLat: null,
+                userLng: null,
+                radius: 3
             };
         },
         computed: {
             filteredGroups() {
-                if (!this.searchQuery) {
-                    return this.groups;
-                }
-
-                const k = this.searchQuery.toLowerCase();
-
-                return this.groups.filter(g => {
-                    const name = g.store && g.store.storeName
-                        ? g.store.storeName.toLowerCase()
-                        : '';
-                    const remark = g.remark ? g.remark.toLowerCase() : '';
-                    return name.includes(k) || remark.includes(k);
-                });
+                return this.groups.filter(g => g.distance <= this.radius);
             }
         },
         methods: {
-            fetchGroups() {
-                axios.get('/api/groups')
-                    .then(res => {
-                        this.groups = res.data || [];
-                        this.loading = false;
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
+            getLocation() {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        this.userLat = pos.coords.latitude;
+                        this.userLng = pos.coords.longitude;
+                        this.fetchGroups();
+                    },
+                    () => this.fetchGroups()
+                );
             },
-            calculatePercent(g) {
-                const current = g.currentAmount || 0;
-                const target = g.targetAmount || 0;
-                if (target <= 0) return 0;
-                let v = Math.round(current * 100 / target);
+            fetchGroups() {
+                let url = "/api/groups";
+
+                if (this.userLat && this.userLng) {
+                    url += "?lat=" + this.userLat + "&lng=" + this.userLng;
+                }
+
+                axios.get(url).then(res => {
+                    this.groups = res.data || [];
+                    this.loading = false;
+                });
+            },
+            getImageUrl(path) {
+                if (!path)
+                    return '/img/store-placeholder.jpg';
+
+                if (path.startsWith('http'))
+                    return path;
+
+                return window.location.origin + path;
+            },
+            percent(g) {
+                if (!g.targetAmount) return 0;
+                let v = Math.round(g.currentAmount * 100 / g.targetAmount);
                 if (v > 100) v = 100;
-                if (v < 0) v = 0;
                 return v;
             },
             leftAmount(g) {
-                const current = g.currentAmount || 0;
-                const target = g.targetAmount || 0;
-                let left = target - current;
-                if (left < 0) left = 0;
-                return left;
+                return Math.max(g.targetAmount - g.currentAmount, 0);
+            },
+            isHot(g) {
+                return this.percent(g) >= 80;
+            },
+            remainingTime(deadline) {
+                const diff = new Date(deadline) - new Date();
+                if (diff <= 0) return "已截止";
+
+                const mins = Math.floor(diff / 60000);
+                if (mins < 60) return mins + " 分鐘後截止";
+
+                const hrs = Math.floor(mins / 60);
+                return hrs + " 小時後截止";
             }
         },
         mounted() {
-            this.fetchGroups();
+            this.getLocation();
         }
-    }).mount('#app');
+    }).mount("#app");
 </script>

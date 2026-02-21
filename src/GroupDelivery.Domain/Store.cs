@@ -30,7 +30,8 @@ namespace GroupDelivery.Domain
 
         [StringLength(255)]
         public string MenuImageUrl { get; set; }
-
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
 

@@ -46,13 +46,29 @@ public class AccountController : Controller
         var userId = int.Parse(
             User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        var profile = await _userService.GetProfileAsync(userId);
+        var user = await _userRepo.GetByIdAsync(userId);
 
-        if (profile == null)
+        if (user == null)
             return Unauthorized();
 
-        return Json(profile);
+        return Json(new
+        {
+            userId = user.UserId,
+            displayName = user.DisplayName,
+            nickname = user.Nickname,
+            phone = user.Phone,
+            email = user.Email,
+            role = user.Role,
+            pictureUrl = user.PictureUrl,
+            bio = user.Bio,
+            city = user.City,
+            foodPreference = user.FoodPreference,
+            notifyOptIn = user.NotifyOptIn,
+            createdAt = user.CreatedAt,
+            lastLoginAt = user.LastLoginAt
+        });
     }
+
 
     [Authorize]
     public async Task<IActionResult> CompleteProfile()
@@ -102,12 +118,18 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult UpgradeToMerchant()
     {
-        // 已是商家就不要再來
-        if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(UserRole.Merchant))
-            return RedirectToAction("Profile");
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        int role;
+        if (int.TryParse(roleClaim, out role))
+        {
+            if ((UserRole)role == UserRole.Merchant)
+                return RedirectToAction("Profile");
+        }
 
         return View();
     }
+
 
 
     [Authorize]

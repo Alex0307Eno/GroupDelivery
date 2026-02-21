@@ -1,12 +1,10 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace GroupDelivery.Infrastructure.Repositories
 {
@@ -21,14 +19,16 @@ namespace GroupDelivery.Infrastructure.Repositories
 
         public async Task AddAsync(StoreMenuItem item)
         {
-            _db.StoreMenuItems.Add(item);
-            await _db.SaveChangesAsync();
+            // 這裡只負責追蹤實體，實際寫入交給 SaveChangesAsync
+            await _db.StoreMenuItems.AddAsync(item);
         }
 
         public async Task<List<StoreMenuItem>> GetByStoreIdAsync(int storeId)
         {
+            // 管理頁要看全部品項，所以不要用 IsActive 過濾
             return await _db.StoreMenuItems
-                .Where(x => x.StoreId == storeId && x.IsActive)
+                .Where(x => x.StoreId == storeId)
+                .OrderBy(x => x.StoreMenuItemId)
                 .ToListAsync();
         }
 
@@ -38,15 +38,20 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.StoreMenuItemId == id);
         }
 
-        public async Task UpdateAsync(StoreMenuItem item)
+        // 名稱要跟介面一致，不能叫 UpdateAsync
+        public void Update(StoreMenuItem item)
         {
             _db.StoreMenuItems.Update(item);
-            await _db.SaveChangesAsync();
         }
+
+        public void Remove(StoreMenuItem item)
+        {
+            _db.StoreMenuItems.Remove(item);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _db.SaveChangesAsync();
         }
-
     }
 }

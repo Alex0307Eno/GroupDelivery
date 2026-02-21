@@ -14,12 +14,14 @@ namespace GroupDelivery.Application.Services
         private readonly IGroupOrderRepository _groupOrderRepository;
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IStoreMenuService _menuService;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService)
         {
             _groupOrderRepository = groupOrderRepository; ;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
+            _menuService = menuService;
         }
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
         public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
@@ -170,6 +172,115 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
+        // 新增：首頁附近開團列表
+        public async Task<List<GroupSummaryDto>> GetOpenGroupsAsync(double? lat, double? lng)
+        {
+            var groups = await _groupOrderRepository.GetOpenGroupsWithStoreAsync();
 
+            var result = groups.Select(x =>
+            {
+                var dto = new GroupSummaryDto();
+
+                dto.GroupOrderId = x.GroupOrderId;
+                dto.TargetAmount = x.TargetAmount;
+                dto.CurrentAmount = x.CurrentAmount;
+                dto.Deadline = x.Deadline;
+                dto.Remark = x.Remark;
+
+                dto.Store = new StoreSummaryDto
+                {
+                    StoreId = x.StoreId,
+                    StoreName = x.Store.StoreName,
+                    CoverImageUrl = x.Store.CoverImageUrl,
+                    Latitude = x.Store.Latitude,
+                    Longitude = x.Store.Longitude
+                };
+
+                return dto;
+            }).ToList();
+
+            // 有定位才算距離
+            if (lat.HasValue && lng.HasValue)
+            {
+                foreach (var g in result)
+                {
+                    if (g.Store.Latitude.HasValue && g.Store.Longitude.HasValue)
+                    {
+                        g.Distance = CalculateDistance(
+                            lat.Value,
+                            lng.Value,
+                            g.Store.Latitude.Value,
+                            g.Store.Longitude.Value);
+                    }
+                    else
+                    {
+                        g.Distance = 9999;
+                    }
+                }
+
+                result = result
+                    .OrderBy(x => x.Distance)
+                    .ToList();
+            }
+
+            return result;
+        }
+        public async Task<GroupMenuDto> GetMenuAsync(int groupOrderId)
+        {
+            // 1. 找這個團
+            var group = await _groupOrderRepository.GetByIdAsync(groupOrderId);
+            if (group == null)
+                return null;
+
+            // 2. 找店家
+            var store = await _storeRepo.GetByIdAsync(group.StoreId);
+            if (store == null)
+                return null;
+
+            // 3. 找這家店目前「上架中的」菜單 (你之前 GetMenuAsync(storeId) 就是這個)
+            var menuItems = await _menuService.GetMenuAsync(store.StoreId);
+
+            var dto = new GroupMenuDto
+            {
+                GroupOrderId = group.GroupOrderId,
+                StoreId = store.StoreId,
+                StoreName = store.StoreName,
+                StoreAddress = store.Address,
+                Items = menuItems.Select(m => new GroupMenuItemDto
+                {
+                    StoreMenuItemId = m.StoreMenuItemId,
+                    Name = m.Name,
+                    Price = m.Price,
+                    Description = m.Description
+                }).ToList()
+            };
+
+            return dto;
+        }
+        // Haversine 距離公式，回傳公里
+        private double CalculateDistance(
+            double lat1,
+            double lon1,
+            double lat2,
+            double lon2)
+        {
+            double R = 6371; // 地球半徑，公里
+
+            double dLat = (lat2 - lat1) * Math.PI / 180.0;
+            double dLon = (lon2 - lon1) * Math.PI / 180.0;
+
+            double a =
+                Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180.0) *
+                Math.Cos(lat2 * Math.PI / 180.0) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            double d = R * c;
+
+            return d;
+        }
+    
     }
 }

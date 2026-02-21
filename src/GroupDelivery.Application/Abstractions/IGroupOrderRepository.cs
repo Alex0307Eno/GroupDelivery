@@ -39,6 +39,6 @@ namespace GroupDelivery.Application.Abstractions
         // 取得指定店家目前仍應顯示在前台的有效團單清單
         Task<List<GroupOrder>> GetOpenByStoreAsync(int storeId, DateTime now);
 
-
+        Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync();
     }
 }

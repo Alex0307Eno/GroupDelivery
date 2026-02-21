@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,11 @@ namespace GroupDelivery.Web.Controllers
     [Authorize(Roles = "Merchant")]
     public class StoreMenuController : Controller
     {
-        private readonly IStoreMenuService _service;
+        private readonly IStoreMenuService _storeMenuService;
 
-        public StoreMenuController(IStoreMenuService service)
+        public StoreMenuController(IStoreMenuService storeMenuService)
         {
-            _service = service;
+            _storeMenuService = storeMenuService;
         }
 
         [HttpGet]
@@ -34,26 +35,31 @@ namespace GroupDelivery.Web.Controllers
         {
             ViewBag.StoreId = storeId; 
 
-            var items = await _service.GetMenuAsync(storeId);
+            var items = await _storeMenuService.GetMenuAsync(storeId);
 
             return View(items);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Toggle(int id)
-        {
-            await _service.ToggleActiveAsync(id);
-            return RedirectToAction("Manage");
-        }
+        
         [HttpGet("BatchCreate/{storeId}")]
         public IActionResult BatchCreate(int storeId)
         {
-            ViewBag.StoreId = storeId;
-            return View();
+            if (storeId <= 0)
+            {
+                return NotFound();
+            }
+
+            
+            return View(model: storeId);
         }
 
-        
 
+
+        
+        public class ToggleMenuRequest
+        {
+            public int Id { get; set; }
+        }
 
     }
 }

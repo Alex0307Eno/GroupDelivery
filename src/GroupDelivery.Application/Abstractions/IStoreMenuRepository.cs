@@ -1,8 +1,5 @@
 ﻿using GroupDelivery.Domain;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Application.Abstractions
@@ -15,10 +12,10 @@ namespace GroupDelivery.Application.Abstractions
 
         Task AddAsync(StoreMenuItem item);
 
-        Task UpdateAsync(StoreMenuItem item);
+        void Update(StoreMenuItem item);
+
+        void Remove(StoreMenuItem item);
+
         Task SaveChangesAsync();
-
     }
-
-
 }

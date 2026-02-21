@@ -1,0 +1,226 @@
+﻿@{
+    ViewData["Title"] = "揪IN｜選餐加入";
+    var groupId = ViewData["GroupId"]?.ToString() ?? "0";
+}
+
+<style>
+    .menu-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .store-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .store-name {
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .store-address {
+        color: #6b7280;
+        font-size: .9rem;
+    }
+
+    .menu-item-card {
+        border-radius: 1rem;
+        border: 1px solid #e5e7eb;
+        padding: 1rem 1.2rem;
+        margin-bottom: .8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .menu-item-name {
+        font-weight: 700;
+    }
+
+    .menu-item-desc {
+        font-size: .85rem;
+        color: #6b7280;
+    }
+
+    .menu-item-price {
+        font-weight: 700;
+        color: #16a34a;
+    }
+
+    .qty-input {
+        width: 70px;
+        text-align: center;
+    }
+
+    .summary-box {
+        margin-top: 1.5rem;
+        padding: 1rem 1.2rem;
+        border-radius: 1rem;
+        background: #f9fafb;
+    }
+
+    .summary-label {
+        color: #6b7280;
+        font-size: .9rem;
+    }
+
+    .summary-amount {
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+</style>
+
+<div id="app" class="container py-4">
+    <div class="menu-container">
+
+        <!-- 店家資訊 -->
+        <div class="store-header" v-if="store">
+            <div class="store-name">
+                {{ store.storeName }}
+            </div>
+            <div class="store-address">
+                {{ store.storeAddress || '未提供地址' }}
+            </div>
+        </div>
+
+        <!-- 菜單列表 -->
+        <div v-if="items.length > 0">
+            <div class="menu-item-card" v-for="item in items" :key="item.storeMenuItemId">
+                <div>
+                    <div class="menu-item-name">{{ item.name }}</div>
+                    <div class="menu-item-desc" v-if="item.description">
+                        {{ item.description }}
+                    </div>
+                    <div class="menu-item-price">
+                        ${{ item.price }}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                    @@click ="decQty(item)">
+                        -
+                    </button>
+                    <input type="number"
+                           class="form-control qty-input"
+                           v-model.number="item.qty"
+                           min="0" />
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                    @@click ="incQty(item)">
+                        +
+                    </button>
+                </div>
+            </div>
+
+            <!-- 小計 -->
+            <div class="summary-box">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="summary-label">預估金額</div>
+                        <div class="summary-amount">
+                            ${{ totalAmount }}
+                        </div>
+                    </div>
+                    <button class="btn btn-success"
+                            :disabled="totalAmount <= 0"
+                    @@click ="submitOrder">
+                        確認選餐並送出
+                    </button>
+                </div>
+                <div class="summary-label mt-1">
+                    實際金額以店家確認為準。
+                </div>
+            </div>
+        </div>
+
+        <div v-else class="text-muted">
+            這個團目前沒有可選擇的菜單品項。
+        </div>
+
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                groupId: '@groupId',
+                store: null,
+                items: []
+            };
+        },
+        computed: {
+            totalAmount() {
+                return this.items.reduce(function (sum, x) {
+                    var qty = x.qty || 0;
+                    return sum + (x.price * qty);
+                }, 0);
+            }
+        },
+        methods: {
+            loadMenu() {
+                var self = this;
+                axios.get('/api/groups/' + this.groupId + '/menu')
+                    .then(function (res) {
+                        var data = res.data || {};
+                        self.store = {
+                            storeId: data.storeId,
+                            storeName: data.storeName,
+                            storeAddress: data.storeAddress
+                        };
+
+                        self.items = (data.items || []).map(function (x) {
+                            return {
+                                storeMenuItemId: x.storeMenuItemId,
+                                name: x.name,
+                                price: x.price,
+                                description: x.description,
+                                qty: 0
+                            };
+                        });
+                    });
+            },
+            incQty(item) {
+                if (!item.qty) item.qty = 0;
+                item.qty++;
+            },
+            decQty(item) {
+                if (!item.qty) item.qty = 0;
+                if (item.qty > 0) item.qty--;
+            },
+            submitOrder() {
+                // 這裡先做最小 MVP：只把選擇結果印出來或丟到 console
+                var selected = this.items
+                    .filter(function (x) { return x.qty && x.qty > 0; })
+                    .map(function (x) {
+                        return {
+                            storeMenuItemId: x.storeMenuItemId,
+                            quantity: x.qty
+                        };
+                    });
+
+                if (selected.length === 0) {
+                    alert('請至少選一項品項');
+                    return;
+                }
+
+                console.log('TODO: 呼叫下單 API', {
+                    groupId: this.groupId,
+                    items: selected
+                });
+
+                alert('選餐結果已組好，之後接後端下單 API 即可。');
+            }
+        },
+        mounted() {
+            this.loadMenu();
+        }
+    }).mount('#app');
+</script>

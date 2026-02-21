@@ -25,6 +25,13 @@ public class GroupOrderApiController : ControllerBase
 
         return Ok(result);
     }
+    // GET api/groups
+    [HttpGet]
+    public async Task<IActionResult> Get(double? lat, double? lng)
+    {
+        var result = await _groupOrderService.GetOpenGroupsAsync(lat, lng);
+        return Ok(result);
+    }
 
     // POST api/groups/5/join
     [HttpPost("{id}/join")]
@@ -39,5 +46,14 @@ public class GroupOrderApiController : ControllerBase
         await _groupOrderService.JoinGroupAsync(userId, id);
 
         return Ok();
+    }
+    [HttpGet("{id}/menu")]
+    public async Task<IActionResult> GetMenu(int id)
+    {
+        var dto = await _groupOrderService.GetMenuAsync(id);
+        if (dto == null)
+            return NotFound();
+
+        return Ok(dto);
     }
 }

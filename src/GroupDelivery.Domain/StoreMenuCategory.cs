@@ -8,7 +8,7 @@ namespace GroupDelivery.Domain
 {
     public class StoreMenuCategory
     {
-        public int Id { get; set; }
+        public int StoreMenuCategoryId { get; set; }
 
         public int StoreId { get; set; }
 
@@ -17,6 +17,8 @@ namespace GroupDelivery.Domain
         public int SortOrder { get; set; }
 
         public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
 
         public Store Store { get; set; }
     }

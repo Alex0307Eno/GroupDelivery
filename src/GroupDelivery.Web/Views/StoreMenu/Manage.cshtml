@@ -35,65 +35,68 @@ else
 
             @foreach (var item in Model)
             {
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="list-group-item d-flex justify-content-between align-items-center menu-item-row"
+                     data-id="@item.StoreMenuItemId"
+                     data-category-id="@item.CategoryId">
 
                     <div>
-                        <div class="fw-bold">@item.Name</div>
+                        <div class="fw-bold menu-name">@item.Name</div>
 
                         <div class="text-muted small">
-                            $@item.Price
+                            $<span class="menu-price">@item.Price</span>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(item.Description))
-                        {
-                            <div class="text-muted small">
-                                @item.Description
-                            </div>
-                        }
+                        <div class="text-muted small menu-description">
+                            @item.Description
+                        </div>
                     </div>
 
                     <div class="text-end">
 
                         @if (item.IsActive)
                         {
-                            <span class="badge bg-success mb-2 d-block">
+                            <span class="badge bg-success mb-2 d-block menu-status-badge">
                                 上架中
                             </span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary mb-2 d-block">
+                            <span class="badge bg-secondary mb-2 d-block menu-status-badge">
                                 已下架
                             </span>
                         }
 
                         <div class="btn-group btn-group-sm">
 
-                            <a class="btn btn-outline-primary"
-                               href="/StoreMenu/Edit/@item.StoreMenuItemId">
+                            <!-- 編輯：把名稱 / 價格 / 描述 / 分類 / 狀態都塞進 data-* -->
+                            <button type="button"
+                                    class="btn btn-outline-primary edit-menu-btn"
+                                    data-id="@item.StoreMenuItemId"
+                                    data-category-id="@item.CategoryId"
+                                    data-active="@(item.IsActive.ToString().ToLower())"
+                                    data-json='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+                                {
+                                    name = item.Name,
+                                    price = item.Price,
+                                    description = item.Description
+                                }))'>
                                 編輯
-                            </a>
+                            </button>
 
-                            <form method="post"
-                                  action="/StoreMenu/Toggle/@item.StoreMenuItemId"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
+                            <!-- 上下架 -->
+                            <button type="button"
+                                    class="btn btn-sm toggle-menu-btn @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                    data-id="@item.StoreMenuItemId"
+                                    data-active="@(item.IsActive.ToString().ToLower())">
+                                @(item.IsActive ? "下架" : "上架")
+                            </button>
 
-                                @if (item.IsActive)
-                                {
-                                    <button type="submit"
-                                            class="btn btn-outline-warning">
-                                        下架
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit"
-                                            class="btn btn-outline-success">
-                                        上架
-                                    </button>
-                                }
-                            </form>
+                            <!-- 刪除 -->
+                            <button type="button"
+                                    class="btn btn-outline-danger delete-menu-btn"
+                                    data-id="@item.StoreMenuItemId">
+                                刪除
+                            </button>
 
                         </div>
 
@@ -103,4 +106,213 @@ else
 
         </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // ===== 上下架 =====
+            function bindToggleButtons() {
+                var buttons = document.querySelectorAll(".toggle-menu-btn");
+
+                buttons.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+
+                        var id = btn.getAttribute("data-id");
+                        if (!id) {
+                            alert("找不到品項 Id");
+                            return;
+                        }
+
+                        fetch("/api/storemenu/toggle", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ id: parseInt(id) })
+                        })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                throw new Error("切換狀態失敗");
+                            }
+
+                            var isActive = btn.getAttribute("data-active") === "true";
+                            var newActive = !isActive;
+
+                            btn.setAttribute("data-active", newActive ? "true" : "false");
+                            btn.textContent = newActive ? "下架" : "上架";
+
+                            btn.classList.remove("btn-outline-warning", "btn-outline-success");
+                            btn.classList.add(newActive ? "btn-outline-warning" : "btn-outline-success");
+
+                            var row = btn.closest(".menu-item-row");
+                            if (row) {
+                                var badge = row.querySelector(".menu-status-badge");
+                                if (badge) {
+                                    if (newActive) {
+                                        badge.textContent = "上架中";
+                                        badge.classList.remove("bg-secondary");
+                                        badge.classList.add("bg-success");
+                                    } else {
+                                        badge.textContent = "已下架";
+                                        badge.classList.remove("bg-success");
+                                        badge.classList.add("bg-secondary");
+                                    }
+                                }
+                            }
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                            alert("切換失敗，請稍後再試");
+                        });
+                    });
+                });
+            }
+
+            // ===== 編輯：名稱 + 價格 + 描述 =====
+            function bindEditButtons() {
+                var buttons = document.querySelectorAll(".edit-menu-btn");
+
+                buttons.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var id = btn.getAttribute("data-id");
+                        var json = btn.getAttribute("data-json");
+                        var data = JSON.parse(json);
+                        var currentName = data.name || "";
+                        var currentPrice = data.price || 0;
+                        var currentDescription = data.description || "";
+                        var categoryId = btn.getAttribute("data-category-id") || "0";
+                        var activeFlag = btn.getAttribute("data-active") === "true";
+
+                        // 品名
+                        var newName = prompt("品名", currentName);
+                        if (newName === null) {
+                            return;
+                        }
+                        newName = newName.trim();
+                        if (!newName) {
+                            alert("品名不能為空");
+                            return;
+                        }
+
+                        // 價格
+                        var priceInput = prompt("價格", currentPrice);
+                        if (priceInput === null) {
+                            return;
+                        }
+
+                        var newPrice = parseInt(priceInput, 10);
+                        if (isNaN(newPrice) || newPrice < 0) {
+                            alert("價格必須為不小於 0 的數字");
+                            return;
+                        }
+
+                        // 商品描述
+                        var newDescription = prompt("商品描述", currentDescription);
+                        if (newDescription === null) {
+                            newDescription = currentDescription;
+                        }
+
+                        var payload = {
+                            storeMenuItemId: parseInt(id, 10),
+                            name: newName,
+                            price: newPrice,
+                            description: newDescription,
+                            categoryId: parseInt(categoryId, 10),
+                            isActive: activeFlag
+                        };
+
+                        fetch("/api/storemenu/edit", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                throw new Error("更新失敗");
+                            }
+
+                            // 更新按鈕上的 data-*，避免下一次還是舊資料
+                            btn.setAttribute("data-name", newName);
+                            btn.setAttribute("data-price", newPrice.toString());
+                            btn.setAttribute("data-description", newDescription);
+
+                            // 更新列表上的顯示
+                            var row = btn.closest(".menu-item-row");
+                            if (row) {
+                                var nameEl = row.querySelector(".menu-name");
+                                var priceEl = row.querySelector(".menu-price");
+                                var descEl = row.querySelector(".menu-description");
+
+                                if (nameEl) {
+                                    nameEl.textContent = newName;
+                                }
+                                if (priceEl) {
+                                    priceEl.textContent = newPrice;
+                                }
+                                if (descEl) {
+                                    descEl.textContent = newDescription;
+                                }
+                            }
+
+                            alert("已更新品項");
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                            alert("更新失敗，請稍後再試");
+                        });
+                    });
+                });
+            }
+
+            // ===== 刪除 =====
+            function bindDeleteButtons() {
+                var buttons = document.querySelectorAll(".delete-menu-btn");
+
+                buttons.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var id = btn.getAttribute("data-id");
+                        if (!id) {
+                            alert("找不到品項 Id");
+                            return;
+                        }
+
+                        var confirmDelete = confirm("確定要刪除這個品項嗎？");
+                        if (!confirmDelete) {
+                            return;
+                        }
+
+                        fetch("/api/storemenu/delete", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ id: parseInt(id, 10) })
+                        })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                throw new Error("刪除失敗");
+                            }
+
+                            var row = btn.closest(".menu-item-row");
+                            if (row && row.parentNode) {
+                                row.parentNode.removeChild(row);
+                            }
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                            alert("刪除失敗，請稍後再試");
+                        });
+                    });
+                });
+            }
+
+            bindToggleButtons();
+            bindEditButtons();
+            bindDeleteButtons();
+        });
+    </script>
 }
