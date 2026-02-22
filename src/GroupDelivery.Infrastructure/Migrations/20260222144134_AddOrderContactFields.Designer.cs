@@ -4,6 +4,7 @@ using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupDelivery.Infrastructure.Migrations
 {
     [DbContext(typeof(GroupDeliveryDbContext))]
-    partial class GroupDeliveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222144134_AddOrderContactFields")]
+    partial class AddOrderContactFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

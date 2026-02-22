@@ -38,7 +38,7 @@ namespace GroupDelivery.Domain
         public virtual Store Store { get; set; }
         public virtual ICollection<GroupOrderItem> GroupOrderItems { get; set; }
         public virtual User OwnerUser { get; set; }
-
+        public ICollection<Order> Orders { get; set; }
 
 
 

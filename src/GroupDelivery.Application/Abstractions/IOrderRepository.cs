@@ -10,5 +10,8 @@ namespace GroupDelivery.Application.Abstractions
     public interface IOrderRepository
     {
         Task AddAsync(Order order);
+        Task<List<Order>> GetByGroupOrderIdAsync(int groupOrderId);
+        Task<List<Order>> GetOrdersByUserIdAsync(int userId);
+        Task<List<Order>> GetOrdersForMerchantAsync(int merchantUserId);
     }
 }

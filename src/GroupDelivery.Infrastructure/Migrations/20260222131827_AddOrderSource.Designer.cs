@@ -4,6 +4,7 @@ using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupDelivery.Infrastructure.Migrations
 {
     [DbContext(typeof(GroupDeliveryDbContext))]
-    partial class GroupDeliveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222131827_AddOrderSource")]
+    partial class AddOrderSource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,12 +144,6 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
-                    b.Property<string>("ContactName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContactPhone")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -163,8 +160,6 @@ namespace GroupDelivery.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("OrderId");
-
-                    b.HasIndex("GroupOrderId");
 
                     b.HasIndex("UserId");
 
@@ -465,19 +460,11 @@ namespace GroupDelivery.Infrastructure.Migrations
 
             modelBuilder.Entity("GroupDelivery.Domain.Order", b =>
                 {
-                    b.HasOne("GroupDelivery.Domain.GroupOrder", "GroupOrder")
-                        .WithMany("Orders")
-                        .HasForeignKey("GroupOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("GroupDelivery.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("GroupOrder");
 
                     b.Navigation("User");
                 });
@@ -536,8 +523,6 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
                     b.Navigation("GroupOrderItems");
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.Order", b =>

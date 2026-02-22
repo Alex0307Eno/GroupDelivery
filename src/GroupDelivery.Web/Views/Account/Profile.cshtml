@@ -57,12 +57,28 @@
                     if (!d) return '';
                     return new Date(d).toLocaleString();
                 },
-                async saveProfile() {
-                    this.saving = true;
-                    await axios.post('/Account/UpdateProfile', this.user);
-                    this.saving = false;
-                    alert("已儲存");
-                }
+                        async saveProfile() {
+
+            if (!this.user.phone || this.user.phone.trim() === "") {
+                alert("手機號碼為必填欄位");
+                return;
+            }
+
+            // 台灣手機簡單格式驗證
+            const phoneRegex = /^09\d{8}$/;
+
+            if (!phoneRegex.test(this.user.phone)) {
+                alert("請輸入正確的手機格式 (09xxxxxxxx)");
+                return;
+            }
+
+            this.saving = true;
+
+            await axios.post('/Account/UpdateProfile', this.user);
+
+            this.saving = false;
+            alert("已儲存");
+        }
             },
                     template: `
         <div v-if="loading" class="text-center py-5 text-muted">

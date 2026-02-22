@@ -1,0 +1,133 @@
+﻿@model List<GroupDelivery.Domain.Order>
+@using GroupDelivery.Domain
+
+@{
+    ViewData["Title"] = "我的訂單";
+}
+
+<style>
+    .page-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .order-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 15px 30px rgba(15,23,42,.06);
+        margin-bottom: 1.5rem;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-store {
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+
+    .order-meta {
+        font-size: .85rem;
+        color: #6b7280;
+    }
+
+    .order-total {
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+
+    .badge-manual {
+        background: #f59e0b;
+    }
+
+    .badge-online {
+        background: #16a34a;
+    }
+
+    .item-row {
+        font-size: .9rem;
+    }
+</style>
+
+<div class="page-wrap py-4">
+
+    <h2 class="fw-bold mb-4">我的訂單</h2>
+
+    @if (Model.Count == 0)
+    {
+        <div class="text-muted">
+            目前沒有任何訂單。
+        </div>
+    }
+    else
+    {
+        @foreach (var order in Model)
+        {
+            <div class="order-card">
+
+                <div class="order-header mb-3">
+                    <div>
+                        <div class="order-store">
+                            @order.GroupOrder?.Store?.StoreName
+                        </div>
+
+                        <div class="order-meta">
+                            下單時間：@order.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <div class="order-total">
+                            $@order.TotalAmount
+                        </div>
+
+                        @if (order.Source == OrderSource.Manual)
+                        {
+                            <span class="badge badge-manual">
+                                電話訂單
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-online">
+                                線上下單
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="border-top pt-3">
+
+                    @if (order.OrderItems != null && order.OrderItems.Count > 0)
+                    {
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <div class="d-flex justify-content-between item-row mb-1">
+                                <div>
+                                    @item.StoreMenuItem?.Name
+                                </div>
+
+                                <div>
+                                    x @item.Quantity
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted">
+                            電話訂單無細項
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+        }
+    }
+
+</div>

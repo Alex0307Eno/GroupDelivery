@@ -15,9 +15,15 @@ namespace GroupDelivery.Domain
         public int GroupOrderId { get; set; }
 
         public decimal TotalAmount { get; set; }
-
+        public string ContactPhone { get; set; }
+        public string ContactName { get; set; }
+        public OrderSource Source { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        public virtual User User { get; set; }
+        public GroupOrder GroupOrder { get; set; }
+
+
     }
 }

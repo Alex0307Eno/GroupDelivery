@@ -1,5 +1,6 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
+using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,10 +14,12 @@ namespace GroupDelivery.Web.Controllers
     {
         private readonly IGroupService _groupService;
         private readonly IGroupOrderService _groupOrderService;
-        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService)
+        private readonly IOrderService _orderService;
+        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService, IOrderService orderService)
         {
             _groupService = groupService;
             _groupOrderService = groupOrderService;
+            _orderService = orderService;
         }
 
         [Authorize]
@@ -33,7 +36,15 @@ namespace GroupDelivery.Web.Controllers
             if (groupOrder.OwnerUserId != userId)
                 return Forbid();
 
-            return View(groupOrder);
+            var orders = await _orderService.GetOrdersByGroupAsync(id);
+
+            var vm = new GroupManageViewModel
+            {
+                GroupOrder = groupOrder,
+                Orders = orders
+            };
+
+            return View(vm);
         }
 
 

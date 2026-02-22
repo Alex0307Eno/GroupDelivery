@@ -1,13 +1,15 @@
-﻿using GroupDelivery.Domain;
+﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using GroupDelivery.Application.Abstractions;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers.Api
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/orders")]
     public class OrderApiController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -29,6 +31,19 @@ namespace GroupDelivery.Web.Controllers.Api
             int userId = int.Parse(userIdClaim.Value);
 
             await _orderService.CreateOrderAsync(userId, request);
+
+            return Ok();
+        }
+        [Authorize]
+        [HttpPost("manual")]
+        public async Task<IActionResult> CreateManual([FromBody] CreateManualOrderRequest request)
+        {
+            if (request == null || request.Amount <= 0)
+                return BadRequest("金額錯誤");
+
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            await _orderService.CreateManualOrderAsync(userId, request);
 
             return Ok();
         }

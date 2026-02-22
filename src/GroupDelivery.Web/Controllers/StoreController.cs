@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers
 {
-    [Authorize(Roles = "Merchant")]
     public class StoreController : Controller
     {
         private readonly IStoreService _storeService;
@@ -34,7 +33,6 @@ namespace GroupDelivery.Web.Controllers
             _groupOrderService = groupOrderService;
         }
         // StoreController.cs
-        [Authorize(Roles = "Merchant")]
         public IActionResult CreateGroup()
         {
             return View();

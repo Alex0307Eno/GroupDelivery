@@ -67,7 +67,13 @@
                                 我的
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/Account/Orders">我的訂單</a></li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Order"
+                                       asp-action="MyOrders">
+                                        我的訂單
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 
@@ -79,12 +85,25 @@
                                    href="#"
                                    role="button"
                                    data-bs-toggle="dropdown">
-                                    團主管理
+                                    商家中心
                                 </a>
+
                                 <ul class="dropdown-menu">
 
+                                    <!-- 訂單管理（最重要） -->
                                     <li>
-                                        <a class="dropdown-item fw-bold"
+                                        <a asp-controller="Order"
+                                           asp-action="MerchantOrders"
+                                           class="dropdown-item fw-bold text-primary">
+                                            📦 收到的訂單
+                                        </a>
+                                    </li>
+
+                                    <li><hr class="dropdown-divider" /></li>
+
+                                    <!-- 團相關 -->
+                                    <li>
+                                        <a class="dropdown-item"
                                            href="/Store/CreateGroup">
                                             ➕ 開新團
                                         </a>
@@ -99,26 +118,17 @@
 
                                     <li><hr class="dropdown-divider" /></li>
 
-                                    @* 這個是重點入口 *@
-                                    <li>
-                                        <a class="dropdown-item text-primary fw-bold"
-                                           href="/Store/MyGroups">
-                                            ⚙ 管理我的團
-                                        </a>
-                                    </li>
-
-                                    <li><hr class="dropdown-divider" /></li>
-
+                                    <!-- 商店管理 -->
                                     <li>
                                         <a class="dropdown-item"
                                            href="/Store/MyStores">
                                             🏪 我的商店
                                         </a>
                                     </li>
+
                                 </ul>
                             </li>
                         }
-
 
                         <!-- 帳號 -->
                         <li class="nav-item dropdown">
