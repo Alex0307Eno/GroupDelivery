@@ -29,6 +29,8 @@ namespace GroupDelivery.Application.Abstractions
         Task JoinGroupAsync(int userId, int groupId);
         Task<List<GroupSummaryDto>> GetOpenGroupsAsync(double? lat, double? lng);
         Task<GroupMenuDto> GetMenuAsync(int groupOrderId);
+        Task<GroupOrder> GetByIdAsync(int id);
+        Task UpdateAsync(GroupOrder groupOrder);
 
     }
 

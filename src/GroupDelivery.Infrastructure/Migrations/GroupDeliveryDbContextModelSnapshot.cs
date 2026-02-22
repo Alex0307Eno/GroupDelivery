@@ -133,6 +133,60 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("GroupOrderItems");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.Order", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("GroupOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.OrderItem", b =>
+                {
+                    b.Property<int>("OrderItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderItemId"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreMenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("OrderItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("StoreMenuItemId");
+
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
                 {
                     b.Property<int>("StoreId")
@@ -396,6 +450,25 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.OrderItem", b =>
+                {
+                    b.HasOne("GroupDelivery.Domain.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
+                        .WithMany()
+                        .HasForeignKey("StoreMenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("StoreMenuItem");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenu", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
@@ -431,6 +504,11 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
                     b.Navigation("GroupOrderItems");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.Order", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>

@@ -124,9 +124,13 @@
                         </div>
                     </div>
                     <button class="btn btn-success"
-                            :disabled="totalAmount <= 0"
-                    @@click ="submitOrder">
-                        確認選餐並送出
+                            :disabled="totalAmount <= 0 || submitting"
+                            @@click="submitOrder">
+                        <span v-if="!submitting">確認選餐並送出</span>
+                        <span v-else>
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            送出中...
+                        </span>
                     </button>
                 </div>
                 <div class="summary-label mt-1">
@@ -153,7 +157,8 @@
             return {
                 groupId: '@groupId',
                 store: null,
-                items: []
+                items: [],
+                submitting: false
             };
         },
         computed: {
@@ -195,29 +200,50 @@
                 if (!item.qty) item.qty = 0;
                 if (item.qty > 0) item.qty--;
             },
-            submitOrder() {
-                // 這裡先做最小 MVP：只把選擇結果印出來或丟到 console
-                var selected = this.items
-                    .filter(function (x) { return x.qty && x.qty > 0; })
-                    .map(function (x) {
-                        return {
-                            storeMenuItemId: x.storeMenuItemId,
-                            quantity: x.qty
-                        };
-                    });
+                   submitOrder() {
+        var self = this;
 
-                if (selected.length === 0) {
-                    alert('請至少選一項品項');
-                    return;
-                }
+        if (this.submitting) return;
 
-                console.log('TODO: 呼叫下單 API', {
-                    groupId: this.groupId,
-                    items: selected
-                });
+        var selected = this.items
+            .filter(function (x) { return x.qty && x.qty > 0; })
+            .map(function (x) {
+                return {
+                    storeMenuItemId: x.storeMenuItemId,
+                    quantity: x.qty
+                };
+            });
 
-                alert('選餐結果已組好，之後接後端下單 API 即可。');
+        if (selected.length === 0) {
+            alert('請至少選一項品項');
+            return;
+        }
+
+        this.submitting = true;
+
+        axios.post('/api/orders', {
+            groupOrderId: parseInt(this.groupId),
+            items: selected
+        })
+        .then(function () {
+
+            // 成功 → 直接跳轉
+            window.location.href = '/Group/GroupDetail/' + self.groupId;
+
+        })
+        .catch(function (err) {
+
+            if (err.response && err.response.data) {
+                alert(err.response.data);
+            } else {
+                alert('下單失敗，請稍後再試');
             }
+
+        })
+        .finally(function () {
+            self.submitting = false;
+        });
+    }
         },
         mounted() {
             this.loadMenu();

@@ -143,7 +143,18 @@ namespace GroupDelivery.Web
             builder.Services.AddScoped<IGroupService, GroupService>();
             builder.Services.AddScoped<IStoreMenuRepository, StoreMenuRepository>();
             builder.Services.AddScoped<IStoreMenuService, StoreMenuService>();
+            // =========================
+            // 訂單（Order）相關
+            // =========================
 
+            // 下單商業邏輯
+            builder.Services.AddScoped<IOrderService, OrderService>();
+
+            // 訂單資料存取（tbOrder / tbOrderItem）
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+            // 菜單品項資料存取（tbStoreMenuItem）
+            builder.Services.AddScoped<IStoreMenuItemRepository, StoreMenuItemRepository>();
 
             var app = builder.Build();
 

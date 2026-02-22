@@ -20,7 +20,8 @@ namespace GroupDelivery.Infrastructure.Data
         public DbSet<GroupOrderItem> GroupOrderItems { get; set; }
         public DbSet<StoreMenu> StoreMenus { get; set; }
 
-
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

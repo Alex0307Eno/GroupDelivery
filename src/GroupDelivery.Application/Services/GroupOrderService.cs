@@ -172,6 +172,7 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
+
         // 新增：首頁附近開團列表
         public async Task<List<GroupSummaryDto>> GetOpenGroupsAsync(double? lat, double? lng)
         {
@@ -257,7 +258,16 @@ namespace GroupDelivery.Application.Services
 
             return dto;
         }
-        // Haversine 距離公式，回傳公里
+        public async Task<GroupOrder> GetByIdAsync(int id)
+        {
+            return await _groupOrderRepository.GetByIdAsync(id);
+        }
+
+        public async Task UpdateAsync(GroupOrder groupOrder)
+        {
+            await _groupOrderRepository.UpdateAsync(groupOrder);
+        }
+        #region  Haversine 距離公式，回傳公里
         private double CalculateDistance(
             double lat1,
             double lon1,
@@ -281,6 +291,6 @@ namespace GroupDelivery.Application.Services
 
             return d;
         }
-    
+        #endregion
     }
 }

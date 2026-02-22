@@ -141,11 +141,15 @@ namespace GroupDelivery.Infrastructure.Repositories
 
         public async Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync()
         {
+            var now = DateTime.Now;
+
             return await _db.GroupOrders
                 .Include(x => x.Store)
-                .Where(x => x.Status == GroupOrderStatus.Open)
+                .Where(x => x.Status == GroupOrderStatus.Open
+                            && x.Deadline > now)
                 .ToListAsync();
         }
+
 
     }
 }
