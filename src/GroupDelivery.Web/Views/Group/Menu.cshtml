@@ -231,15 +231,26 @@
             window.location.href = '/Group/GroupDetail/' + self.groupId;
 
         })
-        .catch(function (err) {
+                .catch(function (err) {
 
-            if (err.response && err.response.data) {
-                alert(err.response.data);
-            } else {
-                alert('下單失敗，請稍後再試');
+        if (err.response && err.response.status === 401) {
+
+            // 觸發登入 Modal
+            var authModalEl = document.getElementById('authModal');
+            if (authModalEl) {
+                var modal = new bootstrap.Modal(authModalEl);
+                modal.show();
             }
 
-        })
+            return;
+        }
+
+        if (err.response && err.response.data) {
+            alert(err.response.data);
+        } else {
+            alert('下單失敗，請稍後再試');
+        }
+    })
         .finally(function () {
             self.submitting = false;
         });

@@ -18,7 +18,7 @@ public class GroupOrderApiController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var result = await _groupOrderService.GetDetailAsync(id);
+        var result = await _groupOrderService.GetGroupDetailAsync(id);
 
         if (result == null)
             return NotFound();

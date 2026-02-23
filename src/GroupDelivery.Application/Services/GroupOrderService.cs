@@ -33,11 +33,19 @@ namespace GroupDelivery.Application.Services
             return new GroupDetailDto
             {
                 GroupId = group.GroupOrderId,
-                StoreName = group.Store.StoreName,
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,
-                MenuImages = group.Store.MenuImageUrl ?.Split(',').ToList()
+                JoinCount = group.GroupOrderItems != null
+                    ? group.GroupOrderItems.Count
+                    : 0,
+
+                Store = group.Store == null ? null : new StoreDto
+                {
+                    Name = group.Store.StoreName,
+                    Phone = group.Store.Phone,
+                    Address = group.Store.Address
+                }
             };
         }
         #endregion

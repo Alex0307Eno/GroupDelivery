@@ -61,7 +61,7 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             return await _db.GroupOrders
                 .Include(g => g.Store)
-                .ThenInclude(s => s.MenuImageUrl)
+                .Include(g => g.GroupOrderItems) // 如果要算人數
                 .FirstOrDefaultAsync(g => g.GroupOrderId == groupId);
         }
         #endregion
