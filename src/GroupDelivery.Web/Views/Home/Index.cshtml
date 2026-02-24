@@ -147,11 +147,11 @@
                         ⏰ {{ remainingTime(group.deadline) }}
                     </small>
 
-                    <a :href="'/Group/GroupDetail/' + group.groupOrderId"
-                       class="btn btn-dark w-100">
+                    <button type="button"
+                            class="btn btn-dark w-100"
+                            @@click="handleJoin(group)">
                         立刻加入
-                    </a>
-                </div>
+                    </button>
             </div>
         </div>
 
@@ -173,6 +173,8 @@
         data() {
             return {
                 groups: [],
+                isAuthenticated: @User.Identity.IsAuthenticated.ToString().ToLower(),
+
             loading: true,
                 userLat: null,
                 userLng: null,
@@ -195,6 +197,26 @@
                     () => this.fetchGroups()
                 );
             },
+             handleJoin(group) {
+
+        // 沒登入 → 彈出登入 modal
+        if (!this.isAuthenticated) {
+
+            var authModalEl = document.getElementById('authModal');
+            if (authModalEl && window.bootstrap) {
+                var modal = new bootstrap.Modal(authModalEl);
+                modal.show();
+            } else {
+                // 萬一 Bootstrap 沒載到，就退而求其次導去登入頁
+                window.location.href = '/Account/Login';
+            }
+
+            return;
+        }
+
+        // 已登入 → 直接導頁
+        window.location.href = '/Group/GroupDetail/' + group.groupOrderId;
+    },
             fetchGroups() {
                 let url = "/api/groups";
 

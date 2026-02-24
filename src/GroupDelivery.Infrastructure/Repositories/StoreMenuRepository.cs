@@ -25,8 +25,8 @@ namespace GroupDelivery.Infrastructure.Repositories
 
         public async Task<List<StoreMenuItem>> GetByStoreIdAsync(int storeId)
         {
-            // 管理頁要看全部品項，所以不要用 IsActive 過濾
             return await _db.StoreMenuItems
+                .Include(x => x.Category)   
                 .Where(x => x.StoreId == storeId)
                 .OrderBy(x => x.StoreMenuItemId)
                 .ToListAsync();

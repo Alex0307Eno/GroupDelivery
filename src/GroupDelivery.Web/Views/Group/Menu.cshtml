@@ -23,6 +23,15 @@
         font-size: .9rem;
     }
 
+    .category-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin-top: 1.5rem;
+        margin-bottom: .8rem;
+        border-left: 4px solid #16a34a;
+        padding-left: .6rem;
+    }
+
     .menu-item-card {
         border-radius: 1rem;
         border: 1px solid #e5e7eb;
@@ -83,35 +92,53 @@
             </div>
         </div>
 
-        <!-- 菜單列表 -->
-        <div v-if="items.length > 0">
-            <div class="menu-item-card" v-for="item in items" :key="item.storeMenuItemId">
-                <div>
-                    <div class="menu-item-name">{{ item.name }}</div>
-                    <div class="menu-item-desc" v-if="item.description">
-                        {{ item.description }}
-                    </div>
-                    <div class="menu-item-price">
-                        ${{ item.price }}
-                    </div>
+        <!-- 分類菜單 -->
+        <div v-if="categories.length > 0">
+
+            <div v-for="cat in categories" :key="cat.categoryId">
+
+                <div class="category-title">
+                    {{ cat.categoryName }}
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button"
-                            class="btn btn-outline-secondary btn-sm"
-                    @@click ="decQty(item)">
-                        -
-                    </button>
-                    <input type="number"
-                           class="form-control qty-input"
-                           v-model.number="item.qty"
-                           min="0" />
-                    <button type="button"
-                            class="btn btn-outline-secondary btn-sm"
-                    @@click ="incQty(item)">
-                        +
-                    </button>
+                <div class="menu-item-card"
+                     v-for="item in cat.items"
+                     :key="item.storeMenuItemId">
+
+                    <div>
+                        <div class="menu-item-name">{{ item.name }}</div>
+
+                        <div class="menu-item-desc"
+                             v-if="item.description">
+                            {{ item.description }}
+                        </div>
+
+                        <div class="menu-item-price">
+                            ${{ item.price }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                @@click ="decQty(item)">
+                            -
+                        </button>
+
+                        <input type="number"
+                               class="form-control qty-input"
+                               v-model.number="item.qty"
+                               min="0" />
+
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                @@click ="incQty(item)">
+                            +
+                        </button>
+                    </div>
+
                 </div>
+
             </div>
 
             <!-- 小計 -->
@@ -123,20 +150,28 @@
                             ${{ totalAmount }}
                         </div>
                     </div>
+
                     <button class="btn btn-success"
                             :disabled="totalAmount <= 0 || submitting"
-                            @@click="submitOrder">
-                        <span v-if="!submitting">確認選餐並送出</span>
+                            @@click ="submitOrder">
+
+                        <span v-if="!submitting">
+                            確認選餐並送出
+                        </span>
+
                         <span v-else>
                             <span class="spinner-border spinner-border-sm me-1"></span>
                             送出中...
                         </span>
+
                     </button>
                 </div>
+
                 <div class="summary-label mt-1">
                     實際金額以店家確認為準。
                 </div>
             </div>
+
         </div>
 
         <div v-else class="text-muted">
@@ -157,107 +192,137 @@
             return {
                 groupId: '@groupId',
                 store: null,
-                items: [],
+                categories: [],
                 submitting: false
             };
         },
+
         computed: {
             totalAmount() {
-                return this.items.reduce(function (sum, x) {
-                    var qty = x.qty || 0;
-                    return sum + (x.price * qty);
+                return this.categories.reduce(function (sum, cat) {
+                    return sum + cat.items.reduce(function (s, x) {
+                        var qty = x.qty || 0;
+                        return s + (x.price * qty);
+                    }, 0);
                 }, 0);
             }
         },
+
         methods: {
+
             loadMenu() {
                 var self = this;
+
                 axios.get('/api/groups/' + this.groupId + '/menu')
                     .then(function (res) {
+
                         var data = res.data || {};
+
                         self.store = {
                             storeId: data.storeId,
                             storeName: data.storeName,
                             storeAddress: data.storeAddress
                         };
 
-                        self.items = (data.items || []).map(function (x) {
+                        var rawCategories = data.categories || [];
+
+                        if (rawCategories.length === 0 && data.items) {
+                            rawCategories = [{
+                                categoryId: 0,
+                                categoryName: '其他',
+                                items: data.items
+                            }];
+                        }
+
+                        self.categories = rawCategories.map(function (c) {
                             return {
-                                storeMenuItemId: x.storeMenuItemId,
-                                name: x.name,
-                                price: x.price,
-                                description: x.description,
-                                qty: 0
+                                categoryId: c.categoryId,
+                                categoryName: c.categoryName || '其他',
+                                items: (c.items || []).map(function (x) {
+                                    return {
+                                        storeMenuItemId: x.storeMenuItemId,
+                                        name: x.name,
+                                        price: x.price,
+                                        description: x.description,
+                                        qty: 0
+                                    };
+                                })
                             };
                         });
+
                     });
             },
+
             incQty(item) {
                 if (!item.qty) item.qty = 0;
                 item.qty++;
             },
+
             decQty(item) {
                 if (!item.qty) item.qty = 0;
                 if (item.qty > 0) item.qty--;
             },
-     submitOrder() {
-        var self = this;
 
-        if (this.submitting) return;
+            submitOrder() {
+                var self = this;
 
-        var selected = this.items
-            .filter(function (x) { return x.qty && x.qty > 0; })
-            .map(function (x) {
-                return {
-                    storeMenuItemId: x.storeMenuItemId,
-                    quantity: x.qty
-                };
-            });
+                if (this.submitting) return;
 
-        if (selected.length === 0) {
-            alert('請至少選一項品項');
-            return;
-        }
+                var selected = [];
 
-        this.submitting = true;
+                this.categories.forEach(function (cat) {
+                    cat.items.forEach(function (x) {
+                        if (x.qty && x.qty > 0) {
+                            selected.push({
+                                storeMenuItemId: x.storeMenuItemId,
+                                quantity: x.qty
+                            });
+                        }
+                    });
+                });
 
-        axios.post('/api/orders', {
-            groupOrderId: parseInt(this.groupId),
-            items: selected
-        })
-        .then(function () {
+                if (selected.length === 0) {
+                    alert('請至少選一項品項');
+                    return;
+                }
 
-            // 成功 → 直接跳轉
-            window.location.href = '/Group/GroupDetail/' + self.groupId;
+                this.submitting = true;
 
-        })
+                axios.post('/api/orders', {
+                    groupOrderId: parseInt(this.groupId),
+                    items: selected
+                })
+                .then(function () {
+                    window.location.href = '/Group/GroupDetail/' + self.groupId;
+                })
                 .catch(function (err) {
 
-        if (err.response && err.response.status === 401) {
+                    if (err.response && err.response.status === 401) {
 
-            // 觸發登入 Modal
-            var authModalEl = document.getElementById('authModal');
-            if (authModalEl) {
-                var modal = new bootstrap.Modal(authModalEl);
-                modal.show();
+                        var authModalEl = document.getElementById('authModal');
+                        if (authModalEl) {
+                            var modal = new bootstrap.Modal(authModalEl);
+                            modal.show();
+                        }
+                        return;
+                    }
+
+                    if (err.response && err.response.data) {
+                        alert(err.response.data);
+                    } else {
+                        alert('下單失敗，請稍後再試');
+                    }
+                })
+                .finally(function () {
+                    self.submitting = false;
+                });
             }
 
-            return;
-        }
-
-        if (err.response && err.response.data) {
-            alert(err.response.data);
-        } else {
-            alert('下單失敗，請稍後再試');
-        }
-    })
-        .finally(function () {
-            self.submitting = false;
-        });
-    }
         },
+
         mounted() {
             this.loadMenu();
         }
+
     }).mount('#app');
 </script>

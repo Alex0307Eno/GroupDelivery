@@ -76,7 +76,6 @@
 <div id="app" class="container py-5">
     <div class="group-container">
 
-        <!-- 店名 + 截止 -->
         <div class="mb-3">
             <div class="group-header">
                 {{ store.name || '正在揪團' }}
@@ -86,19 +85,16 @@
             </div>
         </div>
 
-        <!-- 倒數 -->
         <div class="mb-4">
             <div class="countdown">
                 剩餘 {{ remainText }}
             </div>
         </div>
 
-        <!-- 社交壓力 -->
         <div class="social-box mb-4" v-if="joinCount > 0">
             已有 {{ joinCount }} 人參與，再差 ${{ amountLeft }} 就成團
         </div>
 
-        <!-- 進度 -->
         <div class="progress-box mb-4">
             <div class="d-flex justify-content-between mb-2">
                 <div class="fw-semibold">已達成</div>
@@ -118,38 +114,69 @@
             </div>
         </div>
 
-        <!-- 預估送達 -->
-        <div class="mb-3 muted-note" v-if="estimatedDeliveryTime">
-            預計送達時間：{{ estimatedDeliveryTime }}
+        <!-- 訂購方式選擇 -->
+        <div class="progress-box mb-4" v-if="remainSeconds > 0">
+            <div class="fw-semibold mb-3">
+                請選擇訂購方式
+            </div>
+
+            <div class="d-grid gap-2">
+
+                <button class="btn"
+                        :class="orderMode === 'menu' ? 'btn-success' : 'btn-outline-success'"
+                        @@click ="orderMode = 'menu'">
+                    使用電子菜單（推薦）
+                </button>
+
+                <button class="btn"
+                        :class="orderMode === 'phone' ? 'btn-warning' : 'btn-outline-secondary'"
+                        @@click ="orderMode = 'phone'">
+                    電話聯絡店家
+                </button>
+
+            </div>
         </div>
 
-        <!-- 加入按鈕 -->
-        <a v-if="remainSeconds > 0"
+        <!-- 電子菜單 -->
+        <a v-if="remainSeconds > 0 && orderMode === 'menu'"
            :href="'/Group/Menu/' + groupId"
            class="btn btn-success w-100 join-btn">
-            選餐加入
+            前往電子菜單
         </a>
 
-        <button v-else
+        <!-- 電話模式 -->
+        <div v-if="remainSeconds > 0 && orderMode === 'phone' && store.phone"
+             class="mt-3">
+
+            <div class="store-card">
+                <div class="fw-semibold mb-2">店家電話</div>
+
+                <a class="btn btn-warning w-100"
+                   :href="'tel:' + store.phone">
+                    撥打 {{ store.phone }}
+                </a>
+            </div>
+        </div>
+
+        <!-- 截止 -->
+        <button v-if="remainSeconds <= 0"
                 class="btn btn-secondary w-100 join-btn"
                 disabled>
             已截止
         </button>
 
-        <!-- 店家資訊 -->
+        <div class="mb-3 muted-note mt-3"
+             v-if="estimatedDeliveryTime">
+            預計送達時間：{{ estimatedDeliveryTime }}
+        </div>
+
+        <!-- 店家資訊（不含電話） -->
         <div class="store-card mt-4" v-if="store.name">
             <div class="fw-semibold mb-2">店家資訊</div>
-
             <div class="muted-note">{{ store.name }}</div>
 
-            <div v-if="store.phone" class="mt-2">
-                <span class="fw-semibold">電話：</span>
-                <a :href="'tel:' + store.phone">
-                    {{ store.phone }}
-                </a>
-            </div>
-
-            <div v-if="store.address" class="muted-note mt-2">
+            <div v-if="store.address"
+                 class="muted-note mt-2">
                 {{ store.address }}
             </div>
         </div>
@@ -177,6 +204,7 @@
                 targetAmount: 0,
                 joinCount: 0,
                 estimatedDeliveryTime: '',
+                orderMode: '',
                 store: {
                     name: '',
                     phone: '',
@@ -211,16 +239,22 @@
             fetchGroup() {
                 axios.get('/api/groups/' + this.groupId)
                     .then(res => {
+
                         this.deadline = res.data.deadline;
                         this.currentAmount = res.data.currentAmount;
                         this.targetAmount = res.data.targetAmount;
                         this.joinCount = res.data.joinCount;
                         this.estimatedDeliveryTime = res.data.estimatedDeliveryTime;
+
                         this.store = res.data.store || {
                             name: '',
                             phone: '',
                             address: ''
-                        };                    
+                        };
+
+                        if (this.percent >= 70) {
+                            this.orderMode = 'menu';
+                        }
                     });
             },
             formatTime(t) {

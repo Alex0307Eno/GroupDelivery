@@ -12,8 +12,8 @@ namespace GroupDelivery.Domain
         public int StoreId { get; set; }
         public string StoreName { get; set; }
         public string StoreAddress { get; set; }
+        public List<GroupMenuCategoryDto> Categories { get; set; }
 
-        public List<GroupMenuItemDto> Items { get; set; }
     }
 
     public class GroupMenuItemDto

@@ -236,35 +236,48 @@ namespace GroupDelivery.Application.Services
         }
         public async Task<GroupMenuDto> GetMenuAsync(int groupOrderId)
         {
-            // 1. 找這個團
             var group = await _groupOrderRepository.GetByIdAsync(groupOrderId);
             if (group == null)
                 return null;
 
-            // 2. 找店家
             var store = await _storeRepo.GetByIdAsync(group.StoreId);
             if (store == null)
                 return null;
 
-            // 3. 找這家店目前「上架中的」菜單 (你之前 GetMenuAsync(storeId) 就是這個)
             var menuItems = await _menuService.GetMenuAsync(store.StoreId);
 
-            var dto = new GroupMenuDto
+            // 依分類分組
+            var grouped = menuItems
+                .GroupBy(m => new
+                {
+                    CategoryId = m.CategoryId ?? 0,
+                    CategoryName = m.Category != null
+                        ? m.Category.Name
+                        : "其他"
+                })
+                .Select(g => new GroupMenuCategoryDto
+                {
+                    CategoryId = g.Key.CategoryId,
+                    CategoryName = g.Key.CategoryName,
+                    Items = g.Select(m => new GroupMenuItemDto
+                    {
+                        StoreMenuItemId = m.StoreMenuItemId,
+                        Name = m.Name,
+                        Price = m.Price,
+                        Description = m.Description
+                    }).ToList()
+                })
+                .OrderBy(c => c.CategoryId)
+                .ToList();
+
+            return new GroupMenuDto
             {
                 GroupOrderId = group.GroupOrderId,
                 StoreId = store.StoreId,
                 StoreName = store.StoreName,
                 StoreAddress = store.Address,
-                Items = menuItems.Select(m => new GroupMenuItemDto
-                {
-                    StoreMenuItemId = m.StoreMenuItemId,
-                    Name = m.Name,
-                    Price = m.Price,
-                    Description = m.Description
-                }).ToList()
+                Categories = grouped
             };
-
-            return dto;
         }
         public async Task<GroupOrder> GetByIdAsync(int id)
         {
