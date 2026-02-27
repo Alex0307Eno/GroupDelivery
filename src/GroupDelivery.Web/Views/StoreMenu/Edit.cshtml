@@ -1,0 +1,391 @@
+﻿@model MenuItemEditDto
+
+<form asp-action="Edit"
+      asp-controller="StoreMenu"
+      method="post"
+      enctype="multipart/form-data">
+
+    <input type="hidden" asp-for="StoreMenuItemId" />
+    <input type="hidden" asp-for="StoreId" />
+    <input type="hidden" asp-for="ImageUrl" />
+
+    <style>
+        body {
+            background: #f6f7f9;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        }
+
+        .wrapper {
+            max-width: 1000px;
+            margin: 60px auto;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 32px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.06);
+        }
+
+            .card h2 {
+                font-size: 20px;
+                margin-bottom: 6px;
+            }
+
+            .card p.desc {
+                font-size: 13px;
+                color: #666;
+                margin-bottom: 20px;
+            }
+
+        .form-row {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .form-row label {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 6px;
+            }
+
+        input[type=text],
+        input[type=number],
+        select,
+        textarea {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 90px;
+        }
+
+        .status-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-select {
+            width: 200px;
+        }
+
+        .image-preview {
+            width: 220px;
+            height: 220px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        /* 客製化 */
+
+        .custom-group {
+            border: 1px solid #e8e8e8;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .custom-group-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .custom-help {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+            .option-item input[type=text] {
+                flex: 1;
+            }
+
+            .option-item input[type=number] {
+                width: 120px;
+            }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: #111;
+            color: #fff;
+        }
+
+        .btn-light {
+            background: #f1f1f1;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #c92a2a;
+        }
+
+        .footer-action {
+            text-align: right;
+        }
+    </style>
+
+    <div class="wrapper">
+
+        <!-- 基本資訊 -->
+        <div class="card">
+            <h2>商品基本資訊</h2>
+            <p class="desc">
+                設定商品名稱、價格與是否上架。
+            </p>
+
+            <div class="form-row">
+                <label>商品名稱</label>
+                <input asp-for="Name" placeholder="例如：珍珠奶茶" />
+            </div>
+
+            <div class="form-row">
+                <label>商品價格</label>
+                <input asp-for="Price" type="number" step="1" placeholder="例如：50" />
+            </div>
+
+            <div class="form-row">
+                <label>商品分類</label>
+                <select asp-for="CategoryId">
+                    @foreach (var c in (IEnumerable<StoreMenuCategory>)ViewBag.Categories)
+                    {
+                        <option value="@c.StoreMenuCategoryId">@c.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>商品狀態</label>
+                <select asp-for="IsActive" class="status-select">
+                    <option value="true">上架中（顧客可看到）</option>
+                    <option value="false">已下架（顧客看不到）</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>商品描述</label>
+                <textarea asp-for="Description"
+                          placeholder="例如：使用新鮮牛奶與黑糖熬煮"></textarea>
+            </div>
+        </div>
+
+        <!-- 圖片 -->
+        <div class="card">
+            <h2>商品圖片</h2>
+            <p class="desc">
+                上傳一張清楚的商品照片，有助於提高下單率。
+            </p>
+
+            <div style="display:flex;gap:30px;align-items:center;">
+                <div class="image-preview" id="previewBox">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" />
+                    }
+                </div>
+
+                <div>
+                    <button type="button"
+                            class="btn btn-light"
+                            onclick="document.getElementById('fileInput').click()">
+                        更換圖片
+                    </button>
+                    <input type="file" id="fileInput" name="newImage" hidden />
+                </div>
+            </div>
+        </div>
+
+        <!-- 客製化 -->
+        <div class="card">
+            <h2>客製化選項</h2>
+            <p class="desc">
+                如果顧客可以選擇甜度、辣度、加料等，請在這裡設定。
+            </p>
+
+            <div id="optionContainer">
+
+                @{
+                    var groups = Model.OptionGroups ?? new List<StoreMenuItemOptionGroupDto>();
+                }
+
+                @for (int i = 0; i < groups.Count; i++)
+                {
+                    <div class="custom-group">
+
+                        <input type="hidden"
+                               name="OptionGroups[@i].StoreMenuItemOptionGroupId"
+                               value="@groups[i].StoreMenuItemOptionGroupId" />
+
+                        <div class="custom-group-title">
+                            群組名稱（例如：甜度）
+                        </div>
+
+                        <input type="text"
+                               name="OptionGroups[@i].GroupName"
+                               value="@groups[i].GroupName"
+                               placeholder="例如：甜度" />
+
+                        <div class="custom-help">
+                            顧客在下單時會看到這個分類名稱。
+                        </div>
+
+                        @{
+                            var options = groups[i].Options ?? new List<StoreMenuItemOptionDto>();
+                        }
+
+                        @for (int j = 0; j < options.Count; j++)
+                        {
+                            <div class="option-item">
+
+                                <input type="hidden"
+                                       name="OptionGroups[@i].Options[@j].StoreMenuItemOptionId"
+                                       value="@options[j].StoreMenuItemOptionId" />
+
+                                <input type="text"
+                                       name="OptionGroups[@i].Options[@j].OptionName"
+                                       value="@options[j].OptionName"
+                                       placeholder="選項名稱，例如：少糖" />
+
+                                <input type="number"
+                                       step="1"
+                                       name="OptionGroups[@i].Options[@j].PriceAdjust"
+                                       value="@options[j].PriceAdjust"
+                                       placeholder="加價金額，例如：10" />
+                            </div>
+                        }
+
+                        <button type="button"
+                                class="btn btn-light"
+                                onclick="addOption(@i)">
+                            + 新增選項
+                        </button>
+
+                    </div>
+                }
+
+            </div>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="addOptionGroup()">
+                + 新增客製化群組
+            </button>
+        </div>
+
+        <div class="footer-action">
+            <button type="submit" class="btn btn-primary">
+                儲存變更
+            </button>
+        </div>
+
+    </div>
+
+</form>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const previewBox = document.getElementById('previewBox');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewBox.innerHTML = `<img src="${e.target.result}" />`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    let groupIndex = @(Model.OptionGroups != null ? Model.OptionGroups.Count : 0);
+
+    function addOptionGroup() {
+
+        const container = document.getElementById("optionContainer");
+
+        const div = document.createElement("div");
+        div.className = "custom-group";
+
+        div.innerHTML = `
+            <div class="custom-group-title">
+                群組名稱（例如：甜度）
+            </div>
+
+            <input type="text"
+                   name="OptionGroups[${groupIndex}].GroupName"
+                   placeholder="例如：甜度" />
+
+            <div class="custom-help">
+                顧客在下單時會看到這個分類名稱。
+            </div>
+
+            <div class="option-item">
+                <input type="text"
+                       name="OptionGroups[${groupIndex}].Options[0].OptionName"
+                       placeholder="選項名稱，例如：少糖" />
+
+                <input type="number"
+                       step="0.01"
+                       name="OptionGroups[${groupIndex}].Options[0].PriceAdjust"
+                       placeholder="加價金額，例如：10" />
+            </div>
+        `;
+
+        container.appendChild(div);
+        groupIndex++;
+    }
+
+    function addOption(groupIdx) {
+
+        const groups = document.querySelectorAll(".custom-group");
+        const group = groups[groupIdx];
+        if (!group) return;
+
+        const optionCount = group.querySelectorAll(".option-item").length;
+
+        const div = document.createElement("div");
+        div.className = "option-item";
+
+        div.innerHTML = `
+            <input type="text"
+                   name="OptionGroups[${groupIdx}].Options[${optionCount}].OptionName"
+                   placeholder="選項名稱，例如：少糖" />
+
+            <input type="number"
+                   step="0.01"
+                   name="OptionGroups[${groupIdx}].Options[${optionCount}].PriceAdjust"
+                   placeholder="加價金額，例如：10" />
+        `;
+
+        group.appendChild(div);
+    }
+</script>

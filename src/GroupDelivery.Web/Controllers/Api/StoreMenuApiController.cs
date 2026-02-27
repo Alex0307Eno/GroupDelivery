@@ -200,5 +200,26 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok();
         }
+        [HttpPost("delete")]
+        public async Task<IActionResult> Delete([FromBody] DeleteMenuRequest request)
+        {
+            if (request == null || request.Id <= 0)
+                return BadRequest("Id 錯誤");
+
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(claim.Value);
+
+            await _storeMenuService.DeleteAsync(userId, request.Id);
+
+            return Ok();
+        }
+
+        public class DeleteMenuRequest
+        {
+            public int Id { get; set; }
+        }
     }
 }

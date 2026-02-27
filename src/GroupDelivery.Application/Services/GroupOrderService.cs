@@ -244,16 +244,14 @@ namespace GroupDelivery.Application.Services
             if (store == null)
                 return null;
 
+            // 這裡已經是包含 OptionGroups / Options 的版本 (第 2 步有改)
             var menuItems = await _menuService.GetMenuAsync(store.StoreId);
 
-            // 依分類分組
             var grouped = menuItems
                 .GroupBy(m => new
                 {
-                    CategoryId = m.CategoryId ?? 0,
-                    CategoryName = m.Category != null
-                        ? m.Category.Name
-                        : "其他"
+                    CategoryId = m.CategoryId.HasValue ? m.CategoryId.Value : 0,
+                    CategoryName = m.Category != null ? m.Category.Name : "其他"
                 })
                 .Select(g => new GroupMenuCategoryDto
                 {
@@ -265,13 +263,29 @@ namespace GroupDelivery.Application.Services
                         Name = m.Name,
                         Price = m.Price,
                         Description = m.Description,
-                        ImageUrl = m.ImageUrl
+                        ImageUrl = m.ImageUrl,
+
+                        // 這一段是重點：把客製化轉成 DTO
+                        OptionGroups = m.OptionGroups != null
+                            ? m.OptionGroups.Select(og => new GroupMenuOptionGroupDto
+                            {
+                                GroupName = og.GroupName,
+                                Options = og.Options != null
+                                    ? og.Options.Select(o => new GroupMenuOptionDto
+                                    {
+                                        StoreMenuItemOptionId = o.StoreMenuItemOptionId,
+                                        OptionName = o.OptionName,
+                                        PriceAdjust = o.PriceAdjust
+                                    }).ToList()
+                                    : new List<GroupMenuOptionDto>()
+                            }).ToList()
+                            : new List<GroupMenuOptionGroupDto>()
                     }).ToList()
                 })
                 .OrderBy(c => c.CategoryId)
                 .ToList();
 
-            return new GroupMenuDto
+            var dto = new GroupMenuDto
             {
                 GroupOrderId = group.GroupOrderId,
                 StoreId = store.StoreId,
@@ -279,6 +293,8 @@ namespace GroupDelivery.Application.Services
                 StoreAddress = store.Address,
                 Categories = grouped
             };
+
+            return dto;
         }
         public async Task<GroupOrder> GetByIdAsync(int id)
         {

@@ -5,7 +5,7 @@
 
 <style>
     .menu-container {
-        max-width: 800px;
+        max-width: 880px;
         margin: 0 auto;
     }
 
@@ -27,7 +27,7 @@
         font-size: 1.2rem;
         font-weight: 800;
         margin-top: 1.5rem;
-        margin-bottom: .8rem;
+        margin-bottom: .6rem;
         border-left: 4px solid #16a34a;
         padding-left: .6rem;
     }
@@ -39,7 +39,13 @@
         margin-bottom: .8rem;
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        gap: 1rem;
+    }
+
+    .menu-item-left {
+        display: flex;
+        gap: .8rem;
+        align-items: flex-start;
     }
 
     .menu-item-name {
@@ -54,6 +60,13 @@
     .menu-item-price {
         font-weight: 700;
         color: #16a34a;
+        margin-top: .2rem;
+    }
+
+    .menu-item-extra {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-top: .15rem;
     }
 
     .qty-input {
@@ -76,6 +89,38 @@
     .summary-amount {
         font-size: 1.3rem;
         font-weight: 800;
+    }
+
+    .badge-option {
+        font-size: .75rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 2px 8px;
+        margin-right: 4px;
+        margin-top: 2px;
+        display: inline-block;
+    }
+
+    /* 備註區塊 */
+    .note-box {
+        margin-top: 1rem;
+    }
+
+    .note-textarea {
+        width: 100%;
+        min-height: 70px;
+        border-radius: .8rem;
+        border: 1px solid #e5e7eb;
+        padding: .6rem .8rem;
+        font-size: .9rem;
+        resize: vertical;
+    }
+
+    .note-hint {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-top: .2rem;
     }
 </style>
 
@@ -105,15 +150,18 @@
                      v-for="item in cat.items"
                      :key="item.storeMenuItemId">
 
-                    <div class="d-flex gap-3 align-items-center">
+                    <!-- 左側：圖片 + 文字 + 已選客製化 -->
+                    <div class="menu-item-left">
 
-                        <!-- 🔥 圖片 -->
+                        <!-- 圖片 -->
                         <img v-if="item.imageUrl"
                              :src="item.imageUrl"
-                             style="width:90px;height:90px;object-fit:cover;border-radius:12px;" />
+                             style="width:86px;height:86px;object-fit:cover;border-radius:12px;" />
 
                         <div>
-                            <div class="menu-item-name">{{ item.name }}</div>
+                            <div class="menu-item-name">
+                                {{ item.name }}
+                            </div>
 
                             <div class="menu-item-desc"
                                  v-if="item.description">
@@ -121,39 +169,78 @@
                             </div>
 
                             <div class="menu-item-price">
-                                ${{ item.price }}
+                                ${{ displayItemPrice(item) }}
                             </div>
+
+                            <!-- 已選客製化摘要 -->
+                            <div v-if="item.optionGroups && item.optionGroups.length > 0"
+                                 class="menu-item-extra">
+
+                                <span v-if="getSelectedOptions(item).length === 0">
+                                    尚未選擇客製化
+                                </span>
+
+                                <div v-else>
+                                    <span class="badge-option"
+                                          v-for="opt in getSelectedOptions(item)"
+                                          :key="opt.optionId">
+                                        {{ opt.optionName }}
+                                        <span v-if="opt.priceAdjust > 0">
+                                            (+{{ opt.priceAdjust.toFixed(1) }})
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-link p-0 mt-1"
+                                        style="font-size:.8rem;"
+                                        @@click="openOptions(item)">
+                                    調整客製化
+                                </button>
+                            </div>
+
                         </div>
 
                     </div>
 
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                @@click="decQty(item)">
-                            -
+                    <!-- 右側：數量 -->
+                    <div class="d-flex flex-column align-items-end gap-2">
+
+                        <button v-if="item.optionGroups && item.optionGroups.length > 0"
+                                type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                @@click="openOptions(item)">
+                            客製化
                         </button>
 
-                        <input type="number"
-                               class="form-control qty-input"
-                               v-model.number="item.qty"
-                               min="0" />
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    @@click="decQty(item)">
+                                -
+                            </button>
 
-                        <button type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                @@click="incQty(item)">
-                            +
-                        </button>
+                            <input type="number"
+                                   class="form-control qty-input"
+                                   v-model.number="item.qty"
+                                   min="0" />
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    @@click="incQty(item)">
+                                +
+                            </button>
+                        </div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- 小計 -->
+            <!-- 小計 + 備註 -->
             <div class="summary-box">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="summary-label">預估金額</div>
+                        <div class="summary-label">預估金額（含加價）</div>
                         <div class="summary-amount">
                             ${{ totalAmount }}
                         </div>
@@ -161,7 +248,7 @@
 
                     <button class="btn btn-success"
                             :disabled="totalAmount <= 0 || submitting"
-                            @@click ="submitOrder">
+                            @@click="submitOrder">
 
                         <span v-if="!submitting">
                             確認選餐並送出
@@ -175,7 +262,20 @@
                     </button>
                 </div>
 
-                <div class="summary-label mt-1">
+                <!-- 給商家的備註 -->
+                <div class="note-box mt-3">
+                    <label class="summary-label mb-1">
+                        給商家的備註（選填）
+                    </label>
+                    <textarea class="note-textarea"
+                              v-model="note"
+                              placeholder="例如：小辣、飯少一點、不要香菜、如果沒有某品項可改成…"></textarea>
+                    <div class="note-hint">
+                        備註內容會一併傳給商家，但是否能完全配合仍以店家實際狀況為主。
+                    </div>
+                </div>
+
+                <div class="summary-label mt-2">
                     實際金額以店家確認為準。
                 </div>
             </div>
@@ -187,6 +287,89 @@
         </div>
 
     </div>
+
+    <!-- 客製化選項 Modal -->
+    <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        客製化設定 - {{ currentItem ? currentItem.name : '' }}
+                    </h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body" v-if="currentItem">
+
+                    <div v-if="!currentItem.optionGroups || currentItem.optionGroups.length === 0"
+                         class="text-muted">
+                        此品項沒有可調整的客製化設定。
+                    </div>
+
+                    <div v-else>
+
+                        <div class="mb-3 small text-muted">
+                            請勾選需要的客製化選項，加價金額會計入總價中。
+                        </div>
+
+                        <div v-for="(grp, gi) in currentItem.optionGroups"
+                             :key="gi"
+                             class="mb-3">
+
+                            <div class="fw-bold mb-1">
+                                {{ grp.groupName || '客製化' }}
+                            </div>
+
+                            <div class="list-group">
+
+                                <label class="list-group-item d-flex align-items-center"
+                                       v-for="(opt, oi) in grp.options"
+                                       :key="opt.optionId">
+
+                                    <input class="form-check-input me-2"
+                                           type="checkbox"
+                                           v-model="opt.selected" />
+
+                                    <div class="d-flex flex-column">
+                                        <span>{{ opt.optionName }}</span>
+                                        <span class="text-muted small" v-if="opt.priceAdjust > 0">
+                                            +{{ opt.priceAdjust.toFixed(1) }} 元
+                                        </span>
+                                        <span class="text-muted small" v-else>
+                                            不加價
+                                        </span>
+                                    </div>
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        取消
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            data-bs-dismiss="modal">
+                        確認
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -201,29 +384,50 @@
                 groupId: '@groupId',
                 store: null,
                 categories: [],
-                submitting: false
+                submitting: false,
+                note: '',
+                currentItem: null
             };
         },
 
         computed: {
+            // 總金額 = sum( (品項價格 + 所有已勾選客製化加價) * 數量 )
             totalAmount() {
+                var self = this;
+
                 return this.categories.reduce(function (sum, cat) {
+
                     return sum + cat.items.reduce(function (s, x) {
                         var qty = x.qty || 0;
-                        return s + (x.price * qty);
+                        if (qty <= 0) return s;
+
+                        var extra = 0;
+
+                        if (x.optionGroups && x.optionGroups.length > 0) {
+                            x.optionGroups.forEach(function (g) {
+                                (g.options || []).forEach(function (o) {
+                                    if (o.selected) {
+                                        extra += o.priceAdjust || 0;
+                                    }
+                                });
+                            });
+                        }
+
+                        return s + (x.price + extra) * qty;
+
                     }, 0);
+
                 }, 0);
             }
         },
 
         methods: {
-
+            // 載入菜單，包含客製化
             loadMenu() {
                 var self = this;
 
                 axios.get('/api/groups/' + this.groupId + '/menu')
                     .then(function (res) {
-
                         var data = res.data || {};
 
                         self.store = {
@@ -234,6 +438,7 @@
 
                         var rawCategories = data.categories || [];
 
+                        // 沒分類就塞到「其他」
                         if (rawCategories.length === 0 && data.items) {
                             rawCategories = [{
                                 categoryId: 0,
@@ -247,19 +452,74 @@
                                 categoryId: c.categoryId,
                                 categoryName: c.categoryName || '其他',
                                 items: (c.items || []).map(function (x) {
+
+                                    // 把客製化選項也一起帶進來，並加上 selected flag
+                                    var groups = (x.optionGroups || []).map(function (g) {
+                                        return {
+                                            groupName: g.groupName,
+                                            options: (g.options || []).map(function (o) {
+                                                return {
+                                                    optionId: o.optionId,
+                                                    optionName: o.optionName,
+                                                    priceAdjust: o.priceAdjust || 0,
+                                                    selected: false
+                                                };
+                                            })
+                                        };
+                                    });
+
                                     return {
                                         storeMenuItemId: x.storeMenuItemId,
                                         name: x.name,
                                         price: x.price,
                                         description: x.description,
                                         imageUrl: x.imageUrl,
-                                        qty: 0
+                                        qty: 0,
+                                        optionGroups: groups
                                     };
                                 })
                             };
                         });
 
                     });
+            },
+
+            // 顯示單顆商品價格（含加價）
+            displayItemPrice(item) {
+                var extra = 0;
+
+                if (item.optionGroups && item.optionGroups.length > 0) {
+                    item.optionGroups.forEach(function (g) {
+                        (g.options || []).forEach(function (o) {
+                            if (o.selected) {
+                                extra += o.priceAdjust || 0;
+                            }
+                        });
+                    });
+                }
+
+                return (item.price + extra).toFixed(0);
+            },
+
+            // 取得已選的客製化，給前端顯示用
+            getSelectedOptions(item) {
+                var result = [];
+
+                if (!item.optionGroups) return result;
+
+                item.optionGroups.forEach(function (g) {
+                    (g.options || []).forEach(function (o) {
+                        if (o.selected) {
+                            result.push({
+                                optionId: o.optionId,
+                                optionName: o.optionName,
+                                priceAdjust: o.priceAdjust || 0
+                            });
+                        }
+                    });
+                });
+
+                return result;
             },
 
             incQty(item) {
@@ -272,6 +532,18 @@
                 if (item.qty > 0) item.qty--;
             },
 
+            // 打開客製化 modal
+            openOptions(item) {
+                this.currentItem = item;
+
+                var modalEl = document.getElementById('optionsModal');
+                if (modalEl && window.bootstrap) {
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            },
+
+            // 送出訂單
             submitOrder() {
                 var self = this;
 
@@ -282,9 +554,27 @@
                 this.categories.forEach(function (cat) {
                     cat.items.forEach(function (x) {
                         if (x.qty && x.qty > 0) {
+
+                            var options = [];
+
+                            if (x.optionGroups && x.optionGroups.length > 0) {
+                                x.optionGroups.forEach(function (g) {
+                                    (g.options || []).forEach(function (o) {
+                                        if (o.selected) {
+                                            options.push({
+                                                optionId: o.optionId,
+                                                optionName: o.optionName,
+                                                priceAdjust: o.priceAdjust || 0
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+
                             selected.push({
                                 storeMenuItemId: x.storeMenuItemId,
-                                quantity: x.qty
+                                quantity: x.qty,
+                                options: options
                             });
                         }
                     });
@@ -299,7 +589,8 @@
 
                 axios.post('/api/orders', {
                     groupOrderId: parseInt(this.groupId),
-                    items: selected
+                    items: selected,
+                    note: this.note || ''
                 })
                 .then(function () {
                     window.location.href = '/Group/GroupDetail/' + self.groupId;
@@ -307,10 +598,9 @@
                 .catch(function (err) {
 
                     if (err.response && err.response.status === 401) {
-
                         var authModalEl = document.getElementById('authModal');
-                        if (authModalEl) {
-                            var modal = new bootstrap.Modal(authModalEl);
+                        if (authModalEl && window.bootstrap) {
+                            var modal = bootstrap.Modal.getOrCreateInstance(authModalEl);
                             modal.show();
                         }
                         return;
