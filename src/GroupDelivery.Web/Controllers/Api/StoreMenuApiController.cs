@@ -1,7 +1,9 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,11 +20,13 @@ namespace GroupDelivery.Web.Controllers.Api
     {
         private readonly IStoreMenuService _storeMenuService;
         private readonly IStoreMenuCategoryService _categoryService;
+        private readonly IWebHostEnvironment _environment;
 
-        public StoreMenuApiController(IStoreMenuService storeMenuService, IStoreMenuCategoryService categoryService)
+        public StoreMenuApiController(IStoreMenuService storeMenuService, IStoreMenuCategoryService categoryService,IWebHostEnvironment environment)
         {
             _storeMenuService = storeMenuService;
             _categoryService = categoryService;
+            _environment = environment;
         }
 
 
@@ -35,7 +39,12 @@ namespace GroupDelivery.Web.Controllers.Api
             if (!form.ContainsKey("storeId"))
                 return BadRequest("StoreId 缺失");
 
-            int storeId = int.Parse(form["storeId"]);
+            int storeId;
+            if (!int.TryParse(form["storeId"], out storeId))
+                return BadRequest("StoreId 格式錯誤");
+
+            if (storeId <= 0)
+                return BadRequest("StoreId 錯誤");
 
             var itemsJson = form["items"];
 
@@ -47,9 +56,6 @@ namespace GroupDelivery.Web.Controllers.Api
             var items = System.Text.Json.JsonSerializer
                 .Deserialize<List<MenuItemDto>>(itemsJson, options);
 
-            if (storeId <= 0)
-                return BadRequest("StoreId 錯誤");
-
             if (items == null || !items.Any())
                 return BadRequest("沒有菜單項目");
 
@@ -59,18 +65,55 @@ namespace GroupDelivery.Web.Controllers.Api
 
             int userId = int.Parse(claim.Value);
 
-            await _storeMenuService.BatchCreateAsync(userId, storeId, items);
+            // 建立圖片對應表
+            var imageMap = new Dictionary<int, string>();
 
-            // 圖片處理
-            var file = form.Files.FirstOrDefault();
-            if (file != null)
+            var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "menu");
+
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            for (int i = 0; i < form.Files.Count; i++)
             {
-                var path = Path.Combine("wwwroot/uploads", file.FileName);
-                using (var stream = new FileStream(path, FileMode.Create))
+                var file = form.Files[i];
+
+                if (file.Length == 0)
+                    continue;
+
+                // 前端是 itemImage_0, itemImage_1
+                var key = file.Name;
+
+                if (!key.StartsWith("itemImage_"))
+                    continue;
+
+                var indexStr = key.Replace("itemImage_", "");
+
+                int index;
+                if (!int.TryParse(indexStr, out index))
+                    continue;
+
+                var newFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+                var fullPath = Path.Combine(uploadPath, newFileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
+
+                imageMap[index] = "/uploads/menu/" + newFileName;
             }
+
+            // 把圖片塞回 DTO
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (imageMap.ContainsKey(i))
+                {
+                    items[i].ImageUrl = imageMap[i];
+                }
+            }
+
+            await _storeMenuService.BatchCreateAsync(userId, storeId, items);
 
             return Ok();
         }
@@ -129,6 +172,7 @@ namespace GroupDelivery.Web.Controllers.Api
             var result = items.Select(x => new
             {
                 storeMenuItemId = x.StoreMenuItemId,
+                imageUrl = x.ImageUrl,
                 categoryId = x.CategoryId,
                 name = x.Name,
                 price = x.Price,

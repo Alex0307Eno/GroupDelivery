@@ -355,6 +355,51 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("StoreMenuItems");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOption", b =>
+                {
+                    b.Property<int>("StoreMenuItemOptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuItemOptionId"));
+
+                    b.Property<int>("OptionGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OptionName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PriceAdjust")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("StoreMenuItemOptionId");
+
+                    b.HasIndex("OptionGroupId");
+
+                    b.ToTable("StoreMenuItemOptions");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOptionGroup", b =>
+                {
+                    b.Property<int>("StoreMenuItemOptionGroupId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreMenuItemOptionGroupId"));
+
+                    b.Property<string>("GroupName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StoreMenuItemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("StoreMenuItemOptionGroupId");
+
+                    b.HasIndex("StoreMenuItemId");
+
+                    b.ToTable("StoreMenuItemOptionGroups");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -533,6 +578,28 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOption", b =>
+                {
+                    b.HasOne("GroupDelivery.Domain.StoreMenuItemOptionGroup", "OptionGroup")
+                        .WithMany("Options")
+                        .HasForeignKey("OptionGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OptionGroup");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOptionGroup", b =>
+                {
+                    b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
+                        .WithMany("OptionGroups")
+                        .HasForeignKey("StoreMenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StoreMenuItem");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.GroupOrder", b =>
                 {
                     b.Navigation("GroupOrderItems");
@@ -548,6 +615,13 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>
                 {
                     b.Navigation("GroupOrderItems");
+
+                    b.Navigation("OptionGroups");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOptionGroup", b =>
+                {
+                    b.Navigation("Options");
                 });
 #pragma warning restore 612, 618
         }

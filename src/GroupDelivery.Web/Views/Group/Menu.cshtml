@@ -105,23 +105,32 @@
                      v-for="item in cat.items"
                      :key="item.storeMenuItemId">
 
-                    <div>
-                        <div class="menu-item-name">{{ item.name }}</div>
+                    <div class="d-flex gap-3 align-items-center">
 
-                        <div class="menu-item-desc"
-                             v-if="item.description">
-                            {{ item.description }}
+                        <!-- 🔥 圖片 -->
+                        <img v-if="item.imageUrl"
+                             :src="item.imageUrl"
+                             style="width:90px;height:90px;object-fit:cover;border-radius:12px;" />
+
+                        <div>
+                            <div class="menu-item-name">{{ item.name }}</div>
+
+                            <div class="menu-item-desc"
+                                 v-if="item.description">
+                                {{ item.description }}
+                            </div>
+
+                            <div class="menu-item-price">
+                                ${{ item.price }}
+                            </div>
                         </div>
 
-                        <div class="menu-item-price">
-                            ${{ item.price }}
-                        </div>
                     </div>
 
                     <div class="d-flex align-items-center gap-2">
                         <button type="button"
                                 class="btn btn-outline-secondary btn-sm"
-                                @@click ="decQty(item)">
+                                @@click="decQty(item)">
                             -
                         </button>
 
@@ -132,13 +141,12 @@
 
                         <button type="button"
                                 class="btn btn-outline-secondary btn-sm"
-                                @@click ="incQty(item)">
+                                @@click="incQty(item)">
                             +
                         </button>
                     </div>
 
                 </div>
-
             </div>
 
             <!-- 小計 -->
@@ -244,6 +252,7 @@
                                         name: x.name,
                                         price: x.price,
                                         description: x.description,
+                                        imageUrl: x.imageUrl,
                                         qty: 0
                                     };
                                 })

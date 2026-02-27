@@ -29,6 +29,8 @@ namespace GroupDelivery.Domain
 
         public StoreMenuCategory Category { get; set; }
         public virtual ICollection<GroupOrderItem> GroupOrderItems { get; set; }
+        public virtual ICollection<StoreMenuItemOptionGroup> OptionGroups { get; set; }
+
 
     }
 

@@ -264,7 +264,8 @@ namespace GroupDelivery.Application.Services
                         StoreMenuItemId = m.StoreMenuItemId,
                         Name = m.Name,
                         Price = m.Price,
-                        Description = m.Description
+                        Description = m.Description,
+                        ImageUrl = m.ImageUrl
                     }).ToList()
                 })
                 .OrderBy(c => c.CategoryId)

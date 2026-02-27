@@ -22,6 +22,8 @@ namespace GroupDelivery.Infrastructure.Data
 
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<StoreMenuItemOptionGroup> StoreMenuItemOptionGroups { get; set; }
+        public DbSet<StoreMenuItemOption> StoreMenuItemOptions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -62,6 +64,11 @@ namespace GroupDelivery.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<StoreMenuItemOption>()
+        .HasKey(x => x.StoreMenuItemOptionId);
+
+            modelBuilder.Entity<StoreMenuItemOptionGroup>()
+                .HasKey(x => x.StoreMenuItemOptionGroupId);
 
         }
     }

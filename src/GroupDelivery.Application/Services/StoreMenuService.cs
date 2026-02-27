@@ -68,17 +68,54 @@ namespace GroupDelivery.Application.Services
                     CategoryId = dto.CategoryId,
                     Name = dto.Name,
                     Price = dto.Price,
+                    ImageUrl = dto.ImageUrl,
                     Description = dto.Description,
                     IsActive = true,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    OptionGroups = new List<StoreMenuItemOptionGroup>()
                 };
+
+                // 建立選項群組
+                if (dto.OptionGroups != null && dto.OptionGroups.Count > 0)
+                {
+                    foreach (var groupDto in dto.OptionGroups)
+                    {
+                        if (string.IsNullOrWhiteSpace(groupDto.GroupName))
+                            continue;
+
+                        var group = new StoreMenuItemOptionGroup
+                        {
+                            GroupName = groupDto.GroupName,
+                            Options = new List<StoreMenuItemOption>()
+                        };
+
+                        // 建立選項
+                        if (groupDto.Options != null && groupDto.Options.Count > 0)
+                        {
+                            foreach (var optDto in groupDto.Options)
+                            {
+                                if (string.IsNullOrWhiteSpace(optDto.OptionName))
+                                    continue;
+
+                                var option = new StoreMenuItemOption
+                                {
+                                    OptionName = optDto.OptionName,
+                                    PriceAdjust = optDto.PriceAdjust
+                                };
+
+                                group.Options.Add(option);
+                            }
+                        }
+
+                        menuItem.OptionGroups.Add(group);
+                    }
+                }
 
                 await _menuRepository.AddAsync(menuItem);
             }
 
             await _menuRepository.SaveChangesAsync();
         }
-
         public async Task UpdateAsync(int userId, MenuItemEditDto dto)
         {
             if (dto == null)

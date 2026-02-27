@@ -16,6 +16,7 @@ namespace GroupDelivery.Application.Abstractions
 
         void Remove(StoreMenuItem item);
 
+
         Task SaveChangesAsync();
     }
 }
