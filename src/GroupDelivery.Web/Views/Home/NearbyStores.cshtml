@@ -276,29 +276,47 @@
                 stores: []
             };
         },
-        computed: {
-            // 上半部：有正在開團的店
-            activeStores() {
-                return this.stores
-                    .filter(function (s) { return s.hasActiveGroup; })
-                    .sort(function (a, b) {
-                        // 先比剩餘時間，再比距離
-                        if (a.minutesLeft !== b.minutesLeft) {
-                            return a.minutesLeft - b.minutesLeft;
-                        }
-                        return a.distance - b.distance;
-                    });
-            },
-            // 下半部：沒有開團的店
-            idleStores() {
-                return this.stores
-                    .filter(function (s) { return !s.hasActiveGroup; })
-                    .sort(function (a, b) {
-                        return a.distance - b.distance;
-                    });
-            }
+    computed: {
+        activeStores() {
+            const today = new Date().getDay();
+
+            return this.stores
+                .filter(s => s.hasActiveGroup)
+                .filter(s => {
+                    if (!s.closedDays) return true;
+
+                    const closed = s.closedDays
+                        .split(',')
+                        .map(x => parseInt(x));
+
+                    return !closed.includes(today);
+                })
+                .sort((a, b) => {
+                    if (a.minutesLeft !== b.minutesLeft) {
+                        return a.minutesLeft - b.minutesLeft;
+                    }
+                    return a.distance - b.distance;
+                });
         },
-        methods: {
+
+        idleStores() {
+            const today = new Date().getDay();
+
+            return this.stores
+                .filter(s => !s.hasActiveGroup)
+                .filter(s => {
+                    if (!s.closedDays) return true;
+
+                    const closed = s.closedDays
+                        .split(',')
+                        .map(x => parseInt(x));
+
+                    return !closed.includes(today);
+                })
+                .sort((a, b) => a.distance - b.distance);
+        }
+    },
+    methods: {
             enrichStore: function (store) {
                 if (!store.hasActiveGroup) {
                     store.isUrgent = false;

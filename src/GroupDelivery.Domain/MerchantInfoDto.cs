@@ -12,7 +12,9 @@ namespace GroupDelivery.Domain
 
         public string StoreName { get; set; }
         public string StoreAddress { get; set; }
-        public string StorePhone { get; set; }
+        public string Landline { get; set; }
+        public string Mobile { get; set; }
+
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }
     }

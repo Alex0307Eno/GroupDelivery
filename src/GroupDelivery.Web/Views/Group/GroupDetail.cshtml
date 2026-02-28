@@ -1,359 +1,176 @@
+@model int
 @{
     ViewData["Title"] = "揪IN｜團購詳情";
-    var groupId = ViewData["GroupId"]?.ToString() ?? "0";
 }
+
 <style>
     body {
-        background: linear-gradient(180deg,#f8fafc,#eef2f7);
-        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+        background: #f4f6fb;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
     }
 
     .group-container {
-        max-width: 760px;
+        max-width: 720px;
         margin: 0 auto;
     }
 
-    .hero-box {
-        background: linear-gradient(135deg,#16a34a,#22c55e);
-        color: white;
-        border-radius: 1.6rem;
-        padding: 2rem;
-        box-shadow: 0 25px 60px rgba(22,163,74,.35);
+    .card-soft {
+        background: white;
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,.05);
+        margin-bottom: 1rem;
     }
 
     .hero-title {
-        font-size: 1.9rem;
+        font-size: 1.6rem;
         font-weight: 800;
     }
 
-    .hero-deadline {
-        opacity: .9;
-        font-size: .95rem;
-    }
-
     .countdown {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 900;
-        letter-spacing: 2px;
+        margin-top: 1rem;
     }
 
-    .card-soft {
-        background: #ffffff;
-        border-radius: 1.2rem;
-        padding: 1.6rem;
-        box-shadow: 0 12px 30px rgba(15,23,42,.07);
-    }
-
-    .progress-bar-bg {
-        height: 14px;
-        border-radius: 999px;
+    .progress-bg {
+        height: 12px;
         background: #e5e7eb;
+        border-radius: 999px;
         overflow: hidden;
     }
 
-    .progress-bar-fill {
+    .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg,#16a34a,#22c55e);
-        transition: width .4s ease;
+        transition: width .4s ease, background .4s ease;
     }
 
     .option-card {
-        border-radius: 1rem;
-        padding: 1rem 1.2rem;
+        border-radius: 999px;
+        padding: .9rem 1.2rem;
         border: 2px solid #e5e7eb;
         cursor: pointer;
-        transition: all .2s ease;
+        text-align: center;
+        transition: .2s ease;
         font-weight: 600;
     }
 
-        .option-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 30px rgba(0,0,0,.08);
-        }
-
     .option-active {
-        border-color: #16a34a;
-        background: #f0fdf4;
+        border-color: #111827;
+        background: #111827;
+        color: white;
     }
 
     .primary-btn {
-        background: linear-gradient(90deg,#16a34a,#22c55e);
+        background: #111827;
         border: none;
         border-radius: 999px;
         padding: 1rem;
         font-weight: 700;
-        font-size: 1.1rem;
         color: white;
-        box-shadow: 0 15px 40px rgba(22,163,74,.4);
-        transition: .2s ease;
     }
 
-        .primary-btn:hover {
-            opacity: .9;
-        }
-
-    .phone-btn {
-        border-radius: 999px;
-        padding: 1rem;
-        font-weight: 700;
-    }
-
-    .store-card {
-        background: white;
+    .phone-box {
+        background: #111827;
+        color: white;
         border-radius: 1rem;
-        padding: 1.2rem;
-        box-shadow: 0 8px 24px rgba(0,0,0,.05);
+        padding: 1.5rem;
+        margin-top: 1rem;
     }
 
-    .muted-note {
-        font-size: .9rem;
-        color: #6b7280;
-    }
+        .phone-box a {
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+        }
 </style>
+
 <div id="app" class="container py-5">
     <div class="group-container">
 
-        <!-- Hero -->
-        <div class="hero-box mb-4">
+        <!-- 商家資訊 -->
+        <div class="card-soft">
             <div class="hero-title">
                 {{ store.name || '正在揪團' }}
             </div>
-            <div class="hero-deadline mt-1">
+            <div class="text-muted small mt-2">
+                地址：{{ store.address || '未提供' }}
+            </div>
+            <div class="text-muted small">
+                市話：{{ store.landline || '未提供' }}
+            </div>
+            <div class="text-muted small">
+                手機：{{ store.mobile || '未提供' }}
+            </div>
+        </div>
+
+        <!-- 倒數 -->
+        <div class="card-soft">
+            <div class="text-muted small">
                 截止時間：{{ formatTime(deadline) }}
             </div>
-            <div class="countdown mt-3">
+            <div class="countdown">
                 {{ remainText }}
             </div>
         </div>
 
-        <!-- 進度 -->
-        <div class="card-soft mb-4">
-            <div class="d-flex justify-content-between mb-2 fw-semibold">
+        <!-- 成團進度 -->
+        <div class="card-soft">
+            <div class="d-flex justify-content-between fw-semibold mb-2">
                 <div>成團進度</div>
                 <div>${{ currentAmount }} / ${{ targetAmount }}</div>
             </div>
 
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill"
-                     :style="{ width: percent + '%' }">
-                </div>
-            </div>
-
-            <div class="mt-2 muted-note">
-                {{ percent }}% 完成
-            </div>
-        </div>
-
-        <!-- 取餐方式 -->
-        <div class="card-soft mb-4" v-if="remainSeconds > 0">
-            <div class="fw-semibold mb-3">選擇取餐方式</div>
-
-            <div class="d-grid gap-3">
-                <div class="option-card"
-                     :class="takeMode === 'pickup' ? 'option-active' : ''"
-                     @@click="takeMode = 'pickup'">
-                    自取
-                </div>
-
-                <div class="option-card"
-                     :class="takeMode === 'takeout' ? 'option-active' : ''"
-                     @@click="takeMode = 'takeout'">
-                    外帶
-                </div>
-
-                <div class="option-card"
-                     :class="takeMode === 'delivery' ? 'option-active' : ''"
-                     @@click="takeMode = 'delivery'">
-                    外送
+            <div class="progress-bg">
+                <div class="progress-fill"
+                     :style="{ width: percent + '%', background: progressColor }">
                 </div>
             </div>
         </div>
 
         <!-- 訂購方式 -->
-        <div class="card-soft mb-4"
-             v-if="remainSeconds > 0 && takeMode">
-
+        <div class="card-soft">
             <div class="fw-semibold mb-3">選擇訂購方式</div>
 
             <div class="d-grid gap-3">
                 <div class="option-card"
                      :class="orderMode === 'menu' ? 'option-active' : ''"
                      @@click="orderMode = 'menu'">
-                    使用電子菜單（推薦）
+                    使用電子菜單
                 </div>
 
                 <div class="option-card"
                      :class="orderMode === 'phone' ? 'option-active' : ''"
                      @@click="orderMode = 'phone'">
-                    電話聯絡店家
+                    電話點餐
                 </div>
             </div>
         </div>
 
-        <!-- 電子菜單按鈕 -->
-        <a v-if="remainSeconds > 0 && takeMode && orderMode === 'menu'"
-           :href="'/Group/Menu/' + groupId + '?takeMode=' + takeMode"
-           class="primary-btn w-100 text-center d-block">
-            前往電子菜單
-        </a>
+        <!-- 電話模式 -->
+        <div v-if="orderMode === 'phone'" class="phone-box">
+            <div class="mb-2">請直接聯絡商家下單</div>
 
-        <!-- 電話 -->
-        <div v-if="remainSeconds > 0 && takeMode && orderMode === 'phone' && store.phone"
-             class="mt-3">
-            <a class="btn btn-warning w-100 phone-btn"
-               :href="'tel:' + store.phone">
-                撥打 {{ store.phone }}
-            </a>
-        </div>
+            <div v-if="store.mobile">
+                📱 <a :href="'tel:' + store.mobile">{{ store.mobile }}</a>
+            </div>
 
-        <!-- 截止 -->
-        <button v-if="remainSeconds <= 0"
-                class="btn btn-secondary w-100"
-                disabled>
-            已截止
-        </button>
-
-        <!-- 店家資訊 -->
-        <div class="store-card mt-4" v-if="store.name">
-            <div class="fw-semibold mb-2">店家資訊</div>
-            <div class="muted-note">{{ store.name }}</div>
-            <div v-if="store.address"
-                 class="muted-note mt-2">
-                {{ store.address }}
+            <div v-if="store.landline">
+                ☎ <a :href="'tel:' + store.landline">{{ store.landline }}</a>
             </div>
         </div>
 
-        <div class="text-center mt-3 muted-note">
-            成團後店家將依序出餐與配送
-        </div>
+        <!-- 電子菜單按鈕 -->
+        <button v-if="orderMode === 'menu'"
+                class="primary-btn w-100 mt-3"
+                @@click="goMenu">
+            前往電子菜單
+        </button>
 
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-<script>
-const { createApp } = Vue;
-
-createApp({
-    data() {
-        return {
-            groupId: '@groupId',
-            deadline: null,
-            now: new Date(),
-            currentAmount: 0,
-            targetAmount: 0,
-            joinCount: 0,
-            takeMode: '',
-            orderMode: '',
-            store: {}
-        };
-    },
-    computed: {
-        remainSeconds() {
-            if (!this.deadline) return 0;
-            const diff = new Date(this.deadline) - this.now;
-            return Math.max(Math.floor(diff / 1000), 0);
-        },
-        remainText() {
-            const m = Math.floor(this.remainSeconds / 60);
-            const s = this.remainSeconds % 60;
-            return m.toString().padStart(2,'0') + ":" +
-                   s.toString().padStart(2,'0');
-        },
-        percent() {
-            if (!this.targetAmount) return 0;
-            return Math.min(
-                Math.round(this.currentAmount * 100 / this.targetAmount),
-                100
-            );
-        }
-    },
-    methods: {
-        fetchGroup() {
-            axios.get('/api/groups/' + this.groupId)
-                .then(res => {
-                    this.deadline = res.data.deadline;
-                    this.currentAmount = res.data.currentAmount;
-                    this.targetAmount = res.data.targetAmount;
-                    this.store = res.data.store || {};
-                });
-        },
-        formatTime(t) {
-            if (!t) return '';
-            return new Date(t).toLocaleString();
-        }
-    },
-    mounted() {
-        this.fetchGroup();
-        setInterval(() => {
-            this.now = new Date();
-        }, 1000);
-    }
-}).mount('#app');
-</script><script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-<script>
-const { createApp } = Vue;
-
-createApp({
-    data() {
-        return {
-            groupId: '@groupId',
-            deadline: null,
-            now: new Date(),
-            currentAmount: 0,
-            targetAmount: 0,
-            joinCount: 0,
-            takeMode: '',
-            orderMode: '',
-            store: {}
-        };
-    },
-    computed: {
-        remainSeconds() {
-            if (!this.deadline) return 0;
-            const diff = new Date(this.deadline) - this.now;
-            return Math.max(Math.floor(diff / 1000), 0);
-        },
-        remainText() {
-            const m = Math.floor(this.remainSeconds / 60);
-            const s = this.remainSeconds % 60;
-            return m.toString().padStart(2,'0') + ":" +
-                   s.toString().padStart(2,'0');
-        },
-        percent() {
-            if (!this.targetAmount) return 0;
-            return Math.min(
-                Math.round(this.currentAmount * 100 / this.targetAmount),
-                100
-            );
-        }
-    },
-    methods: {
-        fetchGroup() {
-            axios.get('/api/groups/' + this.groupId)
-                .then(res => {
-                    this.deadline = res.data.deadline;
-                    this.currentAmount = res.data.currentAmount;
-                    this.targetAmount = res.data.targetAmount;
-                    this.store = res.data.store || {};
-                });
-        },
-        formatTime(t) {
-            if (!t) return '';
-            return new Date(t).toLocaleString();
-        }
-    },
-    mounted() {
-        this.fetchGroup();
-        setInterval(() => {
-            this.now = new Date();
-        }, 1000);
-    }
-}).mount('#app');
-</script><script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
@@ -362,57 +179,79 @@ createApp({
     createApp({
         data() {
             return {
-                groupId: '@groupId',
+                groupOrderId: @Model,
                 deadline: null,
                 now: new Date(),
-                currentAmount: 0,
-                targetAmount: 0,
-                joinCount: 0,
-                takeMode: '',
                 orderMode: '',
-                store: {}
+                store: {},
+                currentAmount: 0,
+                targetAmount: 0
             };
         },
+
         computed: {
             remainSeconds() {
                 if (!this.deadline) return 0;
-                const diff = new Date(this.deadline) - this.now;
+                var diff = new Date(this.deadline) - this.now;
                 return Math.max(Math.floor(diff / 1000), 0);
             },
+
             remainText() {
-                const m = Math.floor(this.remainSeconds / 60);
-                const s = this.remainSeconds % 60;
-                return m.toString().padStart(2,'0') + ":" +
-                       s.toString().padStart(2,'0');
+                var total = this.remainSeconds;
+                var h = Math.floor(total / 3600);
+                var m = Math.floor((total % 3600) / 60);
+                var s = total % 60;
+                return h + " 小時 " + m + " 分 " + s + " 秒";
             },
+
             percent() {
                 if (!this.targetAmount) return 0;
-                return Math.min(
-                    Math.round(this.currentAmount * 100 / this.targetAmount),
-                    100
-                );
+                return Math.min(Math.round(this.currentAmount * 100 / this.targetAmount), 100);
+            },
+
+            progressColor() {
+                if (this.percent >= 100) return "#16a34a";
+                if (this.percent >= 80) return "#2563eb";
+                if (this.percent >= 40) return "#f59e0b";
+                return "#9ca3af";
             }
         },
+
         methods: {
+
             fetchGroup() {
-                axios.get('/api/groups/' + this.groupId)
+                axios.get('/api/groups/' + this.groupOrderId)
                     .then(res => {
                         this.deadline = res.data.deadline;
-                        this.currentAmount = res.data.currentAmount;
-                        this.targetAmount = res.data.targetAmount;
                         this.store = res.data.store || {};
+                        this.currentAmount = res.data.currentAmount || 0;
+                        this.targetAmount = res.data.targetAmount || 0;
                     });
             },
+
             formatTime(t) {
                 if (!t) return '';
                 return new Date(t).toLocaleString();
+            },
+
+            goMenu() {
+                if (!this.orderMode) {
+                    alert("請選擇訂購方式");
+                    return;
+                }
+
+                window.location.href =
+                    '/Group/Menu/' + this.groupOrderId +
+                    '?source=' + this.orderMode;
             }
         },
+
         mounted() {
             this.fetchGroup();
             setInterval(() => {
                 this.now = new Date();
             }, 1000);
         }
+
     }).mount('#app');
 </script>

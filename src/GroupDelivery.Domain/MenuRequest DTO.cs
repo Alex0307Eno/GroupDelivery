@@ -18,5 +18,13 @@ namespace GroupDelivery.Domain
         public int StoreMenuItemId { get; set; }
 
         public int Quantity { get; set; }
+
+        public List<OrderItemOptionRequest> Options { get; set; }
+    }
+    public class OrderItemOptionRequest
+    {
+        public string OptionName { get; set; }
+
+        public decimal PriceAdjust { get; set; }
     }
 }

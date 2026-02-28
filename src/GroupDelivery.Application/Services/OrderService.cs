@@ -67,17 +67,41 @@ namespace GroupDelivery.Application.Services
                 if (menu == null)
                     throw new Exception("菜單項目不存在");
 
-                var subtotal = menu.Price * item.Quantity;
-                totalAmount += subtotal;
+                decimal optionTotal = 0;
 
-                order.OrderItems.Add(new OrderItem
+                var orderItem = new OrderItem
                 {
                     StoreMenuItemId = menu.StoreMenuItemId,
                     Quantity = item.Quantity,
-                    UnitPrice = menu.Price
-                });
-            }
+                    UnitPrice = menu.Price, // 先放原價
+                    OrderItemOptions = new List<OrderItemOption>()
+                };
 
+                //  處理客製化
+                if (item.Options != null && item.Options.Any())
+                {
+                    foreach (var opt in item.Options)
+                    {
+                        optionTotal += opt.PriceAdjust;
+
+                        orderItem.OrderItemOptions.Add(new OrderItemOption
+                        {
+                            OptionName = opt.OptionName,
+                            PriceAdjust = opt.PriceAdjust
+                        });
+                    }
+                }
+
+                // 🔥 單價 = 原價 + 所有加價
+                orderItem.UnitPrice = menu.Price + optionTotal;
+
+                // 🔥 小計 = 單價 × 數量
+                var subtotal = orderItem.UnitPrice * item.Quantity;
+
+                totalAmount += subtotal;
+
+                order.OrderItems.Add(orderItem);
+            }
             order.TotalAmount = totalAmount;
 
             await _orderRepository.AddAsync(order);

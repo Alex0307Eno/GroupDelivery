@@ -1,60 +1,277 @@
 ﻿@model IEnumerable<Store>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold mb-0">我的商店</h3>
-    <a class="btn btn-success" href="/Store/Create">＋ 新增商店</a>
-</div>
+<style>
+    :root {
+        --bg: #f6f8fc;
+        --card: #ffffff;
+        --primary: #ff6a00;
+        --muted: #6b7280;
+        --border: #eef2f7;
+        --danger: #ef4444;
+        --success: #10b981;
+    }
 
-@if (!Model.Any())
-{
-    <div class="alert alert-light text-center py-5">
-        <div class="fw-bold mb-2">你還沒有建立任何商店</div>
-        <div class="text-muted mb-3">建立商店後，才能開始被消費者看到</div>
-        <a class="btn btn-success" href="/Store/Create">建立第一家商店</a>
+    body {
+        background: var(--bg);
+    }
+
+    .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+    }
+
+        .header h1 {
+            font-weight: 900;
+            font-size: 1.9rem;
+            margin: 0;
+        }
+
+    .store-card {
+        background: var(--card);
+        border-radius: 18px;
+        margin-bottom: 1.3rem;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: .25s ease;
+    }
+
+        .store-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,.05);
+        }
+
+        .store-card.paused {
+            opacity: .65;
+        }
+
+    .status-bar {
+        padding: .5rem 1rem;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .status-paused {
+        background: rgba(239,68,68,.08);
+        color: var(--danger);
+    }
+
+    .store-content {
+        display: flex;
+        gap: 1.2rem;
+        padding: 1.2rem 1.4rem;
+    }
+
+    .store-cover {
+        width: 160px;
+        height: 110px;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .store-main {
+        flex: 1;
+    }
+
+    .store-name {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: .3rem;
+    }
+
+    .meta {
+        font-size: .8rem;
+        color: var(--muted);
+        margin-bottom: .2rem;
+    }
+
+    .time {
+        font-size: .75rem;
+        margin-top: .4rem;
+        color: #374151;
+    }
+
+    .actions {
+        display: flex;
+        gap: .6rem;
+        margin-top: .9rem;
+    }
+
+    .btn-lite {
+        font-size: .75rem;
+        font-weight: 700;
+        padding: .35rem .8rem;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        background: #f3f4f6;
+    }
+
+    .btn-edit {
+        color: var(--primary);
+    }
+
+    .btn-menu {
+        color: var(--success);
+    }
+
+    .btn-pause {
+        color: var(--danger);
+    }
+
+    .btn-resume {
+        color: var(--success);
+    }
+
+    .btn-delete {
+        color: var(--danger);
+    }
+
+    .btn-lite:hover {
+        background: #e5e7eb;
+    }
+</style>
+
+<div class="wrap">
+
+    <div class="header">
+        <h1>我的商店</h1>
+        <a class="btn btn-success rounded-pill px-4"
+           href="/Store/Create">
+            ＋ 新增商店
+        </a>
     </div>
-}
-else
-{
-    <div class="row g-4">
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted py-5">
+            尚未建立商店
+        </div>
+    }
+    else
+    {
         @foreach (var store in Model)
         {
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="ratio ratio-16x9 bg-light">
-                        <img src="@(string.IsNullOrEmpty(store.CoverImageUrl) ? "/img/store-placeholder.jpg" : store.CoverImageUrl)" class="w-100 h-100 object-fit-cover" />
-                    </div>
+            <div class="store-card @(store.IsPausedToday ? "paused" : "")">
 
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold mb-0">@store.StoreName</h5>
-                            @if (store.HasActiveGroupOrders)
+                @if (store.IsPausedToday)
+                {
+                    <div class="status-bar status-paused">
+                        今天不接單
+                    </div>
+                }
+
+                <div class="store-content">
+
+                    <img class="store-cover"
+                         src="@(string.IsNullOrEmpty(store.CoverImageUrl)
+                                                  ? "/img/store-placeholder.jpg"
+                                                  : store.CoverImageUrl)" />
+
+            <div class="store-main">
+
+                        <div class="store-name">@store.StoreName</div>
+
+                        <div class="meta">📍 @store.Address</div>
+
+                @if (!string.IsNullOrEmpty(store.Mobile))
+                        {
+                            <div class="meta">📱 @store.Mobile</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(store.Landline))
+                        {
+                            <div class="meta">☎ @store.Landline</div>
+                        }
+
+                        <div class="time">
+                            🕒
+                            @store.OpenTime.ToString(@"hh\:mm") -
+                            @store.CloseTime.ToString(@"hh\:mm")
+                            @if (store.OpenTime2 != null)
                             {
-                                <span class="badge bg-success">有進行中團單</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">目前無進行中團單</span>
+                                <span>
+                                    ／ @store.OpenTime2.Value.ToString(@"hh\:mm") -
+                                    @store.CloseTime2.Value.ToString(@"hh\:mm")
+                                </span>
                             }
                         </div>
+                        @{
+                            var closedDays = string.IsNullOrEmpty(store.ClosedDays)
+                            ? new List<int>()
+                            : store.ClosedDays.Split(',').Select(int.Parse).ToList();
 
-                        <div class="text-muted small mb-2">@store.Address</div>
-                        <div class="text-muted small">@store.Phone</div>
+                            var dayNames = new[] { "日", "一", "二", "三", "四", "五", "六" };
+                            var today = (int)DateTime.Now.DayOfWeek;
+                            var isClosedToday = closedDays.Contains(today);
+                        }
+
+                        @if (closedDays.Any())
+                        {
+                            <div class="meta" style="@(isClosedToday ? "color:#ef4444;font-weight:700;" : "")">
+                                休息日：
+                                @string.Join("、", closedDays.Select(d => "星期" + dayNames[d]))
+
+                                @if (isClosedToday)
+                                {
+                                    <span>（今天公休）</span>
+                                }
+                            </div>
+                        }
+                        <div class="actions">
+
+                            <form method="post"
+                                  action="/Store/TogglePause/@store.StoreId">
+                                @Html.AntiForgeryToken()
+
+                                @if (store.IsPausedToday)
+                                {
+                                    <button type="submit" class="btn-lite btn-resume">
+                                        恢復接單
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn-lite btn-pause">
+                                        今天不接單
+                                    </button>
+                                }
+                            </form>
+
+                            <a class="btn-lite btn-edit"
+                               href="/Store/Edit/@store.StoreId">
+                                編輯
+                            </a>
+
+                            <a class="btn-lite btn-menu"
+                               href="/StoreMenu/Manage/@store.StoreId">
+                                菜單
+                            </a>
+
+                            <form method="post"
+                                  action="/Store/Delete/@store.StoreId"
+                                  onsubmit="return confirm('確定刪除？');">
+                                @Html.AntiForgeryToken()
+                                <button class="btn-lite btn-delete">
+                                    刪除
+                                </button>
+                            </form>
+
+                        </div>
+
                     </div>
 
-                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                        <a class="btn btn-outline-primary btn-sm" href="/Store/Edit/@store.StoreId">編輯商店</a>
-                        <a class="btn btn-outline-success btn-sm"
-                           href="/StoreMenu/Manage/@store.StoreId">
-                            菜單管理
-                        </a>
-
-                        <form method="post" action="/Store/Delete/@store.StoreId" onsubmit="return confirm('確定刪除這家商店？');">
-                            @Html.AntiForgeryToken()
-                            <button class="btn btn-outline-danger btn-sm">刪除</button>
-                        </form>
-                    </div>
                 </div>
+
             </div>
         }
-    </div>
-}
+    }
+</div>

@@ -1,36 +1,85 @@
 ﻿@{
-    ViewData["Title"] = "我的檔案";
+    ViewData["Title"] = "我的帳號";
 }
 
 <style>
     body {
-        background: linear-gradient(135deg, #fff7ed 0%, #f5f7fb 50%, #eef2ff 100%);
+        background: #f6f8fc;
     }
 
-    .profile-hero {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff;
-        border-radius: 22px;
-        box-shadow: 0 25px 60px rgba(99,102,241,.35);
+    .page-wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
     }
 
-    .profile-card, .profile-mini-card {
+    .profile-card {
+        background: #fff;
         border-radius: 20px;
-        box-shadow: 0 18px 45px rgba(15,23,42,.08);
-        border: 0;
+        padding: 2.2rem;
+        box-shadow: 0 18px 45px rgba(0,0,0,.06);
     }
 
-    .lift {
-        transition: transform .2s ease, box-shadow .2s ease;
+    .section-title {
+        font-size: .85rem;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: .4rem;
     }
 
-        .lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,.12);
+    .required {
+        color: #ef4444;
+    }
+
+    .input-modern {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: .75rem 1rem;
+        font-size: .95rem;
+        width: 100%;
+        margin-bottom: 1.2rem;
+        transition: .2s;
+    }
+
+        .input-modern:focus {
+            outline: none;
+            border-color: #111827;
+        }
+
+    .error-box {
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: .85rem;
+        padding: .6rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .success-box {
+        background: #dcfce7;
+        color: #166534;
+        font-size: .85rem;
+        padding: .6rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .btn-primary-clean {
+        background: #111827;
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: .85rem;
+        font-weight: 700;
+        width: 100%;
+    }
+
+        .btn-primary-clean:disabled {
+            opacity: .6;
         }
 </style>
 
-<div id="app" class="container py-5"></div>
+<div id="app" class="container"></div>
 
 @section Scripts {
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -44,130 +93,135 @@
                 return {
                     user: null,
                     loading: true,
-                    saving: false
+                    saving: false,
+                    errorMessage: "",
+                    successMessage: ""
                 }
             },
+
             async mounted() {
-                const res = await axios.get('/Account/ProfileData');
-                this.user = res.data;
+                try {
+                    const res = await axios.get('/Account/ProfileData');
+                    this.user = res.data;
+                } catch {
+                    this.errorMessage = "載入失敗";
+                }
                 this.loading = false;
             },
+
             methods: {
-                formatDate(d) {
-                    if (!d) return '';
-                    return new Date(d).toLocaleString();
-                },
-                        async saveProfile() {
 
-            if (!this.user.phone || this.user.phone.trim() === "") {
-                alert("手機號碼為必填欄位");
-                return;
-            }
+                async saveProfile() {
 
-            // 台灣手機簡單格式驗證
-            const phoneRegex = /^09\d{8}$/;
+                    this.errorMessage = "";
+                    this.successMessage = "";
 
-            if (!phoneRegex.test(this.user.phone)) {
-                alert("請輸入正確的手機格式 (09xxxxxxxx)");
-                return;
-            }
+                    // 暱稱驗證
+                    if (!this.user.nickname || this.user.nickname.trim().length < 2) {
+                        this.errorMessage = "暱稱至少 2 個字";
+                        return;
+                    }
 
-            this.saving = true;
+                    if (this.user.nickname.trim().length > 20) {
+                        this.errorMessage = "暱稱不可超過 20 個字";
+                        return;
+                    }
 
-            await axios.post('/Account/UpdateProfile', this.user);
+                    this.user.nickname = this.user.nickname.trim();
 
-            this.saving = false;
-            alert("已儲存");
-        }
+                    // 手機驗證
+                    if (!this.user.phone || this.user.phone.trim() === "") {
+                        this.errorMessage = "請填寫手機號碼";
+                        return;
+                    }
+
+                    const phoneRegex = /^09\d{8}$/;
+
+                    if (!phoneRegex.test(this.user.phone)) {
+                        this.errorMessage = "手機格式錯誤 (09xxxxxxxx)";
+                        return;
+                    }
+
+                    // 地址驗證
+                    if (!this.user.city || this.user.city.trim().length < 6) {
+                        this.errorMessage = "請填寫完整地址";
+                        return;
+                    }
+
+                    if (!this.user.city.includes("市") && !this.user.city.includes("縣")) {
+                        this.errorMessage = "地址需包含縣市";
+                        return;
+                    }
+
+                    this.saving = true;
+
+                    try {
+                        await axios.post('/Account/UpdateProfile', this.user);
+
+                        this.successMessage = "儲存成功";
+
+                        setTimeout(() => {
+                            this.successMessage = "";
+                        }, 2000);
+
+                    } catch (e) {
+                        this.errorMessage = e.response?.data || "儲存失敗";
+                    }
+
+                    this.saving = false;
+                }
             },
-                    template: `
-        <div v-if="loading" class="text-center py-5 text-muted">
-            載入中...
-        </div>
 
-        <div v-else class="row justify-content-center">
-        <div class="col-lg-7">
-
-            <!-- HERO -->
-            <div class="profile-hero p-4 mb-4 text-center">
-                <img v-if="user.pictureUrl"
-                     :src="user.pictureUrl"
-                     class="rounded-circle mb-3"
-                     style="width:90px;height:90px;object-fit:cover;">
-
-                <h4 class="fw-bold">
-                    {{ user.nickname || user.displayName }}
-                </h4>
-
-                <div class="small opacity-75">
-                    {{ user.email }}
-                </div>
+            template: `
+            <div v-if="loading" class="text-center py-5 text-muted">
+                載入中...
             </div>
 
-            <!-- 角色狀態卡片 -->
-            <div class="profile-mini-card p-4 mb-4 text-center lift">
+            <div v-else class="page-wrap">
+                <div class="profile-card">
 
-                <!-- 一般使用者 -->
-                <div v-if="user.role === 1">
-                    <h5 class="fw-bold mb-3">你目前是一般使用者</h5>
-                    <p class="text-muted small mb-3">
-                        升級為商家即可開始開團、管理菜單、提升曝光。
-                    </p>
+                    <div v-if="errorMessage" class="error-box">
+                        {{ errorMessage }}
+                    </div>
 
-                    <a href="/Account/UpgradeToMerchant"
-                       class="btn btn-warning w-100 py-3 fw-bold">
-                       升級為商家
-                    </a>
+                    <div v-if="successMessage" class="success-box">
+                        {{ successMessage }}
+                    </div>
+
+                    <div class="section-title">
+                        暱稱 <span class="required">*</span>
+                    </div>
+                    <input class="input-modern"
+                           placeholder="2~20 個字"
+                           v-model="user.nickname">
+
+                    <div class="section-title">
+                        手機號碼 <span class="required">*</span>
+                    </div>
+                    <input class="input-modern"
+                           v-model="user.phone">
+
+                    <div class="section-title">
+                        完整地址 <span class="required">*</span>
+                    </div>
+                    <input class="input-modern"
+                           placeholder="例如：台中市西屯區文心路二段100號"
+                           v-model="user.city">
+
+                    <div class="section-title">自我介紹</div>
+                    <textarea class="input-modern"
+                              rows="3"
+                              v-model="user.bio"></textarea>
+
+                    <button class="btn-primary-clean"
+                            :disabled="saving"
+                            v-on:click="saveProfile">
+                        {{ saving ? "儲存中..." : "儲存變更" }}
+                    </button>
+
                 </div>
-
-                <!-- 商家 -->
-                <div v-else-if="user.role === 2 ">
-                    <h5 class="fw-bold mb-3">你目前是商家身份</h5>
-                    <p class="text-muted small mb-3">
-                        前往商家後台管理你的店鋪與團單。
-                    </p>
-
-                    <a href="/Store/MyStores"
-                       class="btn btn-success w-100 py-3 fw-bold">
-                       前往商家後台
-                    </a>
-                </div>
-
-                <!-- 其他角色（預留） -->
-                <div v-else>
-                    <h5 class="fw-bold mb-3">系統角色：{{ user.role }}</h5>
-                </div>
-
             </div>
-
-            <!-- 基本可編輯資料（精簡版） -->
-            <div class="profile-mini-card p-4 mb-3">
-                <h6 class="fw-bold mb-3">基本資料</h6>
-
-                <input class="form-control mb-2"
-                       placeholder="手機"
-                       v-model="user.phone">
-
-                <input class="form-control mb-2"
-                       placeholder="城市"
-                       v-model="user.city">
-
-                <textarea class="form-control"
-                          rows="2"
-                          placeholder="自我介紹"
-                          v-model="user.bio"></textarea>
-            </div>
-
-            <button class="btn btn-primary w-100 py-3 fw-bold"
-                    :disabled="saving"
-                    v-on:click="saveProfile">
-                儲存
-            </button>
-
-        </div>
-        </div>
-        `
-
+            `
         }).mount('#app');
     </script>
 }

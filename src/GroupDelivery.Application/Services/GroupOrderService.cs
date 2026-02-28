@@ -15,13 +15,15 @@ namespace GroupDelivery.Application.Services
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
         private readonly IStoreMenuService _menuService;
+        private readonly IOrderRepository _orderRepository;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService, IOrderRepository orderRepository)
         {
             _groupOrderRepository = groupOrderRepository; ;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
             _menuService = menuService;
+            _orderRepository = orderRepository;
         }
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
         public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
@@ -43,7 +45,8 @@ namespace GroupDelivery.Application.Services
                 Store = group.Store == null ? null : new StoreDto
                 {
                     Name = group.Store.StoreName,
-                    Phone = group.Store.Phone,
+                    Landline = group.Store.Landline,
+                    Mobile = group.Store.Mobile,
                     Address = group.Store.Address
                 }
             };
@@ -304,6 +307,17 @@ namespace GroupDelivery.Application.Services
         public async Task UpdateAsync(GroupOrder groupOrder)
         {
             await _groupOrderRepository.UpdateAsync(groupOrder);
+        }
+        public async Task SetTakeModeAsync(int orderId, TakeMode takeMode)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+
+            if (order == null)
+                throw new Exception("訂單不存在");
+
+            order.TakeMode = takeMode;
+
+            await _orderRepository.UpdateAsync(order);
         }
         #region  Haversine 距離公式，回傳公里
         private double CalculateDistance(

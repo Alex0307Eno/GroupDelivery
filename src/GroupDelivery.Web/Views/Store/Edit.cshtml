@@ -1,49 +1,362 @@
 ﻿@model GroupDelivery.Domain.StoreUpdateRequest
 
-<h3 class="fw-bold mb-4">編輯商店</h3>
+@{
+    ViewData["Title"] = "商店管理";
+}
 
-<form asp-action="Edit" asp-controller="Store" asp-route-id="@Model.StoreId" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="StoreId" />
+<style>
+    :root {
+        --bg: #f4f6fb;
+        --card: #ffffff;
+        --primary: #ff6a00;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+    }
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">商店名稱</label>
-                <input class="form-control" asp-for="StoreName" />
+    body {
+        background: var(--bg);
+    }
+
+    .dashboard-wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+    }
+
+    .hero-card {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 2rem;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 25px 50px rgba(0,0,0,.05);
+    }
+
+    .hero-img {
+        width: 240px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 18px;
+    }
+
+    .hero-placeholder {
+        width: 240px;
+        height: 160px;
+        border-radius: 18px;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+    }
+
+    .hero-info h2 {
+        font-weight: 900;
+        margin-bottom: .5rem;
+    }
+
+    .hero-info p {
+        color: var(--muted);
+        margin-bottom: .3rem;
+    }
+
+    .module-card {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 2.2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,.05);
+    }
+
+    .module-title {
+        font-weight: 800;
+        font-size: .9rem;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .input-modern {
+        width: 100%;
+        border: none;
+        border-bottom: 2px solid var(--border);
+        padding: .8rem 0;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        background: transparent;
+    }
+
+    .input-modern:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .time-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-select {
+        border-radius: 12px;
+        padding: .7rem;
+        border: 1px solid var(--border);
+    }
+
+    .day-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+    }
+
+    .day-wrap input {
+        display: none;
+    }
+
+    .day-wrap label {
+        padding: .6rem 1.2rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .day-wrap input:checked + label {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 1.2rem;
+        border-radius: 999px;
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1rem;
+        transition: .2s;
+    }
+
+    .submit-btn:hover {
+        background: #e65c00;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .field-label {
+        font-weight: 700;
+        font-size: .95rem;
+        display: block;
+        margin-bottom: .3rem;
+    }
+
+    .field-desc {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-bottom: .6rem;
+    }
+</style>
+
+<div class="dashboard-wrap">
+
+    <!-- 商店概覽 -->
+    <div class="hero-card">
+
+        @if (!string.IsNullOrEmpty(Model.CurrentCoverImageUrl))
+        {
+            <img src="@Model.CurrentCoverImageUrl" class="hero-img" />
+        }
+        else
+        {
+            <div class="hero-placeholder">尚未上傳封面</div>
+        }
+
+        <div class="hero-info">
+            <h2>@Model.StoreName</h2>
+            <p>@Model.Address</p>
+            <p>@Model.Landline ｜ @Model.Mobile</p>
+
+            <p>
+                第一段：
+                @Model.OpenTime.ToString(@"hh\:mm")
+                -
+                @Model.CloseTime.ToString(@"hh\:mm")
+            </p>
+
+            @if (Model.OpenTime2 != null)
+            {
+                <p>
+                    第二段：
+                    @Model.OpenTime2.Value.ToString(@"hh\:mm")
+                    -
+                    @Model.CloseTime2.Value.ToString(@"hh\:mm")
+                </p>
+            }
+        </div>
+
+    </div>
+
+    <form asp-action="Edit"
+          asp-controller="Store"
+          asp-route-id="@Model.StoreId"
+          method="post"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="StoreId" />
+
+        <!-- 基本資訊 -->
+        <div class="module-card">
+
+            <div class="module-title">基本資訊</div>
+
+            <!-- 商店名稱 -->
+            <div class="form-group">
+                <label class="field-label">商店名稱</label>
+                <div class="field-desc">
+                    顯示於團購頁面與搜尋列表，建議使用完整店名
+                </div>
+                <input class="input-modern" asp-for="StoreName" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">電話</label>
-                <input class="form-control" asp-for="Phone" />
+            <!-- 地址 -->
+            <div class="form-group">
+                <label class="field-label">店面地址</label>
+                <div class="field-desc">
+                    用於顯示地圖位置與配送範圍計算
+                </div>
+                <input class="input-modern" asp-for="Address" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">地址</label>
-                <input class="form-control" asp-for="Address" />
+            <!-- 市話 -->
+            <div class="form-group">
+                <label class="field-label">市話</label>
+                <div class="field-desc">
+                    讓顧客能直接聯繫門市（選填）
+                </div>
+                <input class="input-modern" asp-for="Landline" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">商店介紹</label>
-                <textarea class="form-control" asp-for="Description" rows="3"></textarea>
+            <!-- 手機 -->
+            <div class="form-group">
+                <label class="field-label">聯絡手機</label>
+                <div class="field-desc">
+                    建議填寫，方便緊急聯繫
+                </div>
+                <input class="input-modern" asp-for="Mobile" />
             </div>
 
-            <h6 class="fw-bold mt-4">圖片</h6>
-
-            <div class="mb-3">
-                <label class="form-label">更新封面照片</label>
-                <input type="file" class="form-control" asp-for="NewCoverImage" accept="image/*" />
+            <!-- 商店介紹 -->
+            <div class="form-group">
+                <label class="field-label">商店介紹</label>
+                <div class="field-desc">
+                    簡單描述特色，會顯示在商店頁面
+                </div>
+                <textarea class="input-modern"
+                          asp-for="Description"
+                          rows="3"></textarea>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">新增菜單照片</label>
-                <input type="file" class="form-control" asp-for="NewMenuImages" multiple accept="image/*" />
+            <!-- 封面圖 -->
+            <div class="form-group">
+                <label class="field-label">封面照片</label>
+                <div class="field-desc">
+                    建議使用橫式圖片，提升商店吸引力
+                </div>
+                <input type="file"
+                       class="form-control"
+                       asp-for="NewCoverImage"
+                       accept="image/*" />
+            </div>
+
+        </div>
+
+        <!-- 營業時間 -->
+        <div class="module-card">
+            <div class="module-title">營業時間</div>
+
+            <div class="fw-bold mb-2">第一段</div>
+            <div class="time-grid">
+                <select class="form-select" asp-for="OpenTime">
+                    @for (int h = 0; h < 24; h++)
+                    {
+                        var t = new TimeSpan(h, 0, 0);
+                        <option value="@t" @@(Model.OpenTime == t ? "selected" : "")>
+                            @t.ToString(@"hh\:mm")
+                        </option>
+                    }
+                </select>
+
+                <select class="form-select" asp-for="CloseTime">
+                    @for (int h = 0; h < 24; h++)
+                    {
+                        var t = new TimeSpan(h, 0, 0);
+                        <option value="@t" @@(Model.CloseTime == t ? "selected" : "")>
+                            @t.ToString(@"hh\:mm")
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="fw-bold mb-2">第二段（可選）</div>
+            <div class="time-grid">
+                <select class="form-select" asp-for="OpenTime2">
+                    <option value="" @@(Model.OpenTime2 == null ? "selected" : "")>不設定</option>
+                    @for (int h = 0; h < 24; h++)
+                    {
+                        var t = new TimeSpan(h, 0, 0);
+                        <option value="@t" @@(Model.OpenTime2 == t ? "selected" : "")>
+                            @t.ToString(@"hh\:mm")
+                        </option>
+                    }
+                </select>
+
+                <select class="form-select" asp-for="CloseTime2">
+                    <option value="" @@(Model.CloseTime2 == null ? "selected" : "")>不設定</option>
+                    @for (int h = 0; h < 24; h++)
+                    {
+                        var t = new TimeSpan(h, 0, 0);
+                        <option value="@t" @@(Model.CloseTime2 == t ? "selected" : "")>
+                            @t.ToString(@"hh\:mm")
+                        </option>
+                    }
+                </select>
             </div>
         </div>
-    </div>
 
-    <div class="mt-4">
-        <button class="btn btn-success">儲存變更</button>
-        <a href="/Store/MyStores" class="btn btn-outline-secondary">返回</a>
-    </div>
-</form>
+        <!-- 公休日 -->
+        <div class="module-card">
+            <div class="module-title">公休日</div>
+
+            <div class="day-wrap">
+                @{
+                    var days = new[] { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
+                    for (int i = 0; i < 7; i++)
+                    {
+                        var isChecked = Model.ClosedDays != null && Model.ClosedDays.Contains(i);
+                        <input type="checkbox"
+                               name="ClosedDays"
+                               value="@i"
+                               id="d_@i"
+                               @(isChecked ? "checked" : "") />
+                        <label for="d_@i">@days[i]</label>
+                    }
+                }
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">
+            儲存變更
+        </button>
+
+    </form>
+</div>

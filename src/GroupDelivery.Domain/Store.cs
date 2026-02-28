@@ -18,7 +18,9 @@ namespace GroupDelivery.Domain
 
         [Required]
         [StringLength(20)]
-        public string Phone { get; set; }
+        public string Landline { get; set; }   // 市話
+
+        public string Mobile { get; set; }     // 手機
 
         [StringLength(255)]
         public string Address { get; set; }
@@ -28,8 +30,13 @@ namespace GroupDelivery.Domain
         [StringLength(255)]
         public string CoverImageUrl { get; set; }
 
-        [StringLength(255)]
-        public string MenuImageUrl { get; set; }
+        public TimeSpan OpenTime { get; set; }
+
+        public TimeSpan CloseTime { get; set; }
+        public TimeSpan? OpenTime2 { get; set; }
+        public TimeSpan? CloseTime2 { get; set; }
+        public string ClosedDays { get; set; }  // 存成 "0,1,6"
+        public bool IsPausedToday { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public DateTime CreatedAt { get; set; }

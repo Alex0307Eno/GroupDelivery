@@ -12,22 +12,22 @@ namespace GroupDelivery.Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Store> Stores { get; set; }
-        public DbSet<Group> Groups { get; set; }
         public DbSet<GroupOrder> GroupOrders { get; set; }
         public DbSet<StoreMenuCategory> StoreMenuCategories { get; set; }
 
         public DbSet<StoreMenuItem> StoreMenuItems { get; set; }
         public DbSet<GroupOrderItem> GroupOrderItems { get; set; }
-        public DbSet<StoreMenu> StoreMenus { get; set; }
 
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<StoreMenuItemOptionGroup> StoreMenuItemOptionGroups { get; set; }
         public DbSet<StoreMenuItemOption> StoreMenuItemOptions { get; set; }
+        public DbSet<OrderItemOption> OrderItemOptions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            modelBuilder.Entity<GroupOrder>()
+        .ToTable("tbGroupOrder");
             // MenuItem 價格精度
             modelBuilder.Entity<StoreMenuItem>()
                 .Property(x => x.Price)

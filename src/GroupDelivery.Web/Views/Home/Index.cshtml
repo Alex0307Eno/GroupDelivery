@@ -16,12 +16,23 @@
             letter-spacing: -1px;
         }
 
+    .radius-btn {
+        min-width: 120px;
+        transition: .2s ease;
+    }
+
+        .radius-btn.active {
+            background: #111827;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
     .card-group {
         border-radius: 1rem;
         border: none;
         box-shadow: 0 12px 28px rgba(15,23,42,.08);
-        transition: all .2s ease;
-        overflow: hidden; /* 讓上面的圖跟卡片圓角一致 */
+        transition: .2s ease;
+        overflow: hidden;
     }
 
         .card-group:hover {
@@ -29,50 +40,35 @@
             box-shadow: 0 20px 40px rgba(15,23,42,.15);
         }
 
-    /* 圖片整個卡片上半部 */
     .cover {
         height: 180px;
         background-size: cover;
         background-position: center;
-        position: relative; /* 給右上角 badge 定位用 */
+        position: relative;
     }
 
-    /* 右上角一排：快成團 + 距離 */
     .badge-row {
         position: absolute;
         top: 12px;
         right: 12px;
         display: flex;
-        align-items: center;
         gap: 8px;
     }
 
-    /* 快成團在左邊 */
     .hot-badge {
         background: linear-gradient(135deg,#ef4444,#dc2626);
         color: #fff;
         padding: 4px 10px;
         border-radius: 999px;
         font-size: .75rem;
-        white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(0,0,0,.25);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
     }
 
-        .hot-badge .hot-icon {
-            font-size: .85rem;
-        }
-
-    /* 距離在右邊 */
     .distance-badge {
         background: rgba(0,0,0,.7);
         color: #fff;
         padding: 4px 10px;
         border-radius: 999px;
         font-size: .75rem;
-        white-space: nowrap;
     }
 
     .progress-sm {
@@ -80,6 +76,7 @@
         border-radius: 999px;
     }
 </style>
+
 <div id="app" class="container py-4">
 
     <div class="hero-simple text-center">
@@ -89,13 +86,26 @@
         </p>
 
         <div class="d-flex justify-content-center gap-3">
-            <button class="btn btn-dark btn-lg" @@click="radius = 3">
+
+            <button class="btn radius-btn btn-outline-dark btn-lg"
+                    :class="{ active: radius === 3 }"
+                    @@click="setRadius(3)">
                 3km 內
             </button>
-            <button class="btn btn-outline-dark btn-lg" @@click="radius = 5">
+
+            <button class="btn radius-btn btn-outline-dark btn-lg"
+                    :class="{ active: radius === 5 }"
+                    @@click="setRadius(5)">
                 5km 內
             </button>
+
         </div>
+
+        <div v-if="radius === 3 && hasFiveKmButNotThree"
+             class="mt-3 text-muted small">
+            3km 內沒有團，5km 內有 {{ fiveKmCount }} 團
+        </div>
+
     </div>
 
     <div v-if="loading" class="text-center py-5">
@@ -109,20 +119,22 @@
              :key="group.groupOrderId"
              class="col-lg-4 col-md-6">
 
-            <div class="card card-group position-relative">
+            <div class="card card-group">
 
                 <div class="cover"
-                     :style="{ backgroundImage: 'url(' + getImageUrl(group.store && group.store.coverImageUrl) + ')' }">
+                     :style="{ backgroundImage: 'url(' + getImageUrl(group.store?.coverImageUrl) + ')' }">
 
                     <div class="badge-row">
+
                         <div v-if="isHot(group)" class="hot-badge">
-                            <span class="hot-icon">🔥</span>
-                            <span>快成團</span>
+                            🔥 快成團
                         </div>
 
-                        <div class="distance-badge" v-if="group.distance != null">
+                        <div class="distance-badge"
+                             v-if="group.distance != null">
                             {{ group.distance.toFixed(1) }} km
                         </div>
+
                     </div>
 
                 </div>
@@ -130,7 +142,7 @@
                 <div class="card-body d-flex flex-column">
 
                     <h5 class="fw-bold mb-1">
-                        {{ group.remark || (group.store && group.store.storeName) }}
+                        {{ group.remark || group.store?.storeName }}
                     </h5>
 
                     <small class="text-muted mb-2">
@@ -147,12 +159,15 @@
                         ⏰ {{ remainingTime(group.deadline) }}
                     </small>
 
-                    <button type="button"
-                            class="btn btn-dark w-100"
+                    <button class="btn btn-dark w-100"
                             @@click="handleJoin(group)">
                         立刻加入
                     </button>
+
+                </div>
+
             </div>
+
         </div>
 
         <div v-if="filteredGroups.length === 0"
@@ -170,99 +185,98 @@
     const { createApp } = Vue;
 
     createApp({
-        data() {
-            return {
-                groups: [],
-                isAuthenticated: @User.Identity.IsAuthenticated.ToString().ToLower(),
 
+    data() {
+        return {
+            groups: [],
             loading: true,
-                userLat: null,
-                userLng: null,
-                radius: 3
-            };
+            radius: 3,
+            isAuthenticated: @User.Identity.IsAuthenticated.ToString().ToLower()
+        };
+    },
+
+    computed: {
+
+        filteredGroups() {
+            return this.groups
+                .filter(g => g.distance != null && g.distance <= this.radius)
+                .sort((a,b) => a.distance - b.distance);
         },
-        computed: {
-            filteredGroups() {
-                return this.groups.filter(g => g.distance <= this.radius);
-            }
+
+        fiveKmCount() {
+            return this.groups.filter(g => g.distance != null && g.distance <= 5).length;
         },
-        methods: {
-            getLocation() {
-                navigator.geolocation.getCurrentPosition(
-                    pos => {
-                        this.userLat = pos.coords.latitude;
-                        this.userLng = pos.coords.longitude;
-                        this.fetchGroups();
-                    },
-                    () => this.fetchGroups()
-                );
-            },
-             handleJoin(group) {
 
-        // 沒登入 → 彈出登入 modal
-        if (!this.isAuthenticated) {
-
-            var authModalEl = document.getElementById('authModal');
-            if (authModalEl && window.bootstrap) {
-                var modal = new bootstrap.Modal(authModalEl);
-                modal.show();
-            } else {
-                // 萬一 Bootstrap 沒載到，就退而求其次導去登入頁
-                window.location.href = '/Account/Login';
-            }
-
-            return;
+        hasFiveKmButNotThree() {
+            return this.fiveKmCount > 0 &&
+                   this.groups.filter(g => g.distance != null && g.distance <= 3).length === 0;
         }
 
-        // 已登入 → 直接導頁
-        window.location.href = '/Group/GroupDetail/' + group.groupOrderId;
     },
-            fetchGroups() {
-                let url = "/api/groups";
 
-                if (this.userLat && this.userLng) {
-                    url += "?lat=" + this.userLat + "&lng=" + this.userLng;
-                }
+    methods: {
 
-                axios.get(url).then(res => {
+        setRadius(km) {
+            this.radius = km;
+        },
+
+        fetchGroups() {
+            axios.get("/api/groups")
+                .then(res => {
                     this.groups = res.data || [];
                     this.loading = false;
                 });
-            },
-            getImageUrl(path) {
-                if (!path)
-                    return '/img/store-placeholder.jpg';
-
-                if (path.startsWith('http'))
-                    return path;
-
-                return window.location.origin + path;
-            },
-            percent(g) {
-                if (!g.targetAmount) return 0;
-                let v = Math.round(g.currentAmount * 100 / g.targetAmount);
-                if (v > 100) v = 100;
-                return v;
-            },
-            leftAmount(g) {
-                return Math.max(g.targetAmount - g.currentAmount, 0);
-            },
-            isHot(g) {
-                return this.percent(g) >= 80;
-            },
-            remainingTime(deadline) {
-                const diff = new Date(deadline) - new Date();
-                if (diff <= 0) return "已截止";
-
-                const mins = Math.floor(diff / 60000);
-                if (mins < 60) return mins + " 分鐘後截止";
-
-                const hrs = Math.floor(mins / 60);
-                return hrs + " 小時後截止";
-            }
         },
-        mounted() {
-            this.getLocation();
+
+        getImageUrl(path) {
+            if (!path) return '/img/store-placeholder.jpg';
+            if (path.startsWith('http')) return path;
+            return window.location.origin + path;
+        },
+
+        percent(g) {
+            if (!g.targetAmount) return 0;
+            let v = Math.round(g.currentAmount * 100 / g.targetAmount);
+            return v > 100 ? 100 : v;
+        },
+
+        leftAmount(g) {
+            return Math.max(g.targetAmount - g.currentAmount, 0);
+        },
+
+        isHot(g) {
+            return this.percent(g) >= 80;
+        },
+
+        remainingTime(deadline) {
+            const diff = new Date(deadline) - new Date();
+            if (diff <= 0) return "已截止";
+            const mins = Math.floor(diff / 60000);
+            if (mins < 60) return mins + " 分鐘後截止";
+            const hrs = Math.floor(mins / 60);
+            return hrs + " 小時後截止";
+        },
+
+        handleJoin(group) {
+
+            if (!this.isAuthenticated) {
+                var authModalEl = document.getElementById('authModal');
+                if (authModalEl && window.bootstrap) {
+                    new bootstrap.Modal(authModalEl).show();
+                } else {
+                    window.location.href = '/Account/Login';
+                }
+                return;
+            }
+
+            window.location.href = '/Group/GroupDetail/' + group.groupOrderId;
         }
+
+    },
+
+    mounted() {
+        this.fetchGroups();
+    }
+
     }).mount("#app");
 </script>

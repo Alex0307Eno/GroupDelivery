@@ -56,5 +56,15 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
         }
+        public async Task<Order> GetByIdAsync(int orderId)
+        {
+            return await _db.Orders
+                .FirstOrDefaultAsync(x => x.OrderId == orderId);
+        }
+        public async Task UpdateAsync(Order order)
+        {
+            _db.Orders.Update(order);
+            await _db.SaveChangesAsync();
+        }
     }
 }

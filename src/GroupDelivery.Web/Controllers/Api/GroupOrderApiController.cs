@@ -1,4 +1,5 @@
 using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -55,5 +56,11 @@ public class GroupOrderApiController : ControllerBase
             return NotFound();
 
         return Ok(dto);
+    }
+    [HttpPost("take-mode")]
+    public async Task<IActionResult> SetTakeMode(int groupOrderId, TakeMode takeMode)
+    {
+        await _groupOrderService.SetTakeModeAsync(groupOrderId, takeMode);
+        return Ok();
     }
 }

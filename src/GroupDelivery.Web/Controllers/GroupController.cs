@@ -113,8 +113,7 @@ namespace GroupDelivery.Web.Controllers
         // 團購詳情頁面
         public IActionResult GroupDetail(int id)
         {
-            ViewData["GroupId"] = id;
-            return View();
+            return View(id);
         }
         [HttpPost("/group/{id}/join")]
         [ValidateAntiForgeryToken]

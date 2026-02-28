@@ -1,25 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GroupDelivery.Domain
 {
     public class UpdateProfileRequest
     {
-        // 使用暱稱
+        // 使用暱稱（可選）
+        [StringLength(50)]
         public string Nickname { get; set; }
-        // 聯絡電話
+
+        // 聯絡電話（必填）
+        [Required]
+        [RegularExpression(@"^09\d{8}$",
+            ErrorMessage = "手機格式必須為 09xxxxxxxx")]
         public string Phone { get; set; }
-        // 居住城市
+
+        // 居住地址（必填）
+       
+
+        // 居住城市（可選）
+        [StringLength(50)]
         public string City { get; set; }
-        // 給其他使用者看的自我介紹（可選）
+
+        // 自我介紹（可選）
+        [StringLength(300)]
         public string Bio { get; set; }
-        // 食物偏好
+
+        // 食物偏好（可選）
+        [StringLength(200)]
         public string FoodPreference { get; set; }
-        // 是否同意接收通知（例如：成團成功、訂單狀態更新等）
+
+        // 是否同意接收通知
         public bool NotifyOptIn { get; set; }
     }
-
 }

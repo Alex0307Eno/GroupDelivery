@@ -77,7 +77,7 @@ namespace GroupDelivery.Web.Controllers.Api
             if (type == ImageType.Cover)
                 store.CoverImageUrl = imageUrl;
             else
-                store.MenuImageUrl = imageUrl;
+                //store.MenuImageUrl = imageUrl;
 
             store.ModifiedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();

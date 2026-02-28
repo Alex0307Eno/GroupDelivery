@@ -20,5 +20,6 @@ namespace GroupDelivery.Domain
 
         public virtual Order Order { get; set; }
         public virtual StoreMenuItem StoreMenuItem { get; set; }
+        public virtual ICollection<OrderItemOption> OrderItemOptions { get; set; }
     }
 }

@@ -16,7 +16,9 @@ namespace GroupDelivery.Domain
         // 聯絡電話
         [Required]
         [StringLength(20)]
-        public string StorePhone { get; set; }
+        public string Landline { get; set; }
+
+        public string Mobile { get; set; }
         // 地址（可選）
         [Required]
         [StringLength(255)]

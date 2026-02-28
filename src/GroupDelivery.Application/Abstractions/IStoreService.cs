@@ -16,6 +16,7 @@ namespace GroupDelivery.Application.Abstractions
         Task<Store> GetFirstByOwnerAsync(int ownerUserId);
         Task<Store> GetByIdAsync(int storeId);
         Task<List<NearbyStoreDto>> GetNearbyStoresAsync();
+        Task TogglePauseAsync(int userId, int storeId);
 
 
     }

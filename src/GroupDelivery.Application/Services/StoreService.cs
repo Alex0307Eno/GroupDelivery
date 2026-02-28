@@ -53,22 +53,32 @@ namespace GroupDelivery.Infrastructure.Services
 
         public async Task<int> CreateAsync(int userId, StoreInitRequest request)
         {
-
             var (lat, lng) = await _geocodingService.GetLatLngAsync(request.Address);
 
             var store = new Store
             {
                 OwnerUserId = userId,
                 StoreName = request.StoreName,
-                Phone = request.Phone,
+                Landline = request.Landline,
+                Mobile = request.Mobile,
                 Address = request.Address,
                 Description = request.Description,
+
+                OpenTime = request.OpenTime,
+                CloseTime = request.CloseTime,
+                OpenTime2 = request.OpenTime2,
+                CloseTime2 = request.CloseTime2,
+
+                ClosedDays = request.ClosedDays != null
+                    ? string.Join(",", request.ClosedDays)
+                    : null,
+
                 Latitude = lat,
                 Longitude = lng,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
-            Console.WriteLine($"Lat: {lat}, Lng: {lng}");
+
             return await _storeRepo.CreateAsync(store);
         }
         public async Task UpdateAsync(int userId, StoreUpdateRequest request)
@@ -77,15 +87,33 @@ namespace GroupDelivery.Infrastructure.Services
             if (store == null)
                 throw new Exception("Store not found");
 
+            // 基本資料
             store.StoreName = request.StoreName;
-            store.Phone = request.Phone;
+            store.Landline = request.Landline;
+            store.Mobile = request.Mobile;
             store.Address = request.Address;
             store.Description = request.Description;
+
+            // 營業時間
+            store.OpenTime = request.OpenTime;
+            store.CloseTime = request.CloseTime;
+            store.OpenTime2 = request.OpenTime2;
+            store.CloseTime2 = request.CloseTime2;
+
+            // 公休日
+            store.ClosedDays = request.ClosedDays != null
+                ? string.Join(",", request.ClosedDays)
+                : null;
+
+            // 如果地址變更，可以選擇重新抓經緯度
+            var (lat, lng) = await _geocodingService.GetLatLngAsync(request.Address);
+            store.Latitude = lat;
+            store.Longitude = lng;
+
             store.ModifiedAt = DateTime.UtcNow;
 
             await _storeRepo.UpdateAsync(store);
         }
-
         public async Task DeleteAsync(int userId, int storeId)
         {
             var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, userId);
@@ -112,13 +140,14 @@ namespace GroupDelivery.Infrastructure.Services
             if (store == null)
                 throw new Exception("Store not found");
 
-            store.MenuImageUrl = url;
+            //store.MenuImageUrl = url;
             store.ModifiedAt = DateTime.UtcNow;
             await _storeRepo.UpdateAsync(store);
         }
         public async Task<List<NearbyStoreDto>> GetNearbyStoresAsync()
         {
             var now = DateTime.Now;
+            var today = (int)now.DayOfWeek;
 
             var stores = await _storeRepo.GetAllAsync();
             var openGroups = await _groupOrderRepository.GetOpenGroupsAsync(now);
@@ -136,7 +165,26 @@ namespace GroupDelivery.Infrastructure.Services
                             .FirstOrDefault()
                     });
 
-            var result = stores
+            var filteredStores = stores
+                .Where(s =>
+                {
+                    // 1️⃣ 手動今日暫停
+                    if (s.IsPausedToday)
+                        return false;
+
+                    // 2️⃣ 固定公休日
+                    if (string.IsNullOrEmpty(s.ClosedDays))
+                        return true;
+
+                    var closed = s.ClosedDays
+                        .Split(',')
+                        .Select(x => int.Parse(x.Trim()))
+                        .ToList();
+
+                    return !closed.Contains(today);
+                });
+
+            var result = filteredStores
                 .Select(s => new NearbyStoreDto
                 {
                     StoreId = s.StoreId,
@@ -155,6 +203,16 @@ namespace GroupDelivery.Infrastructure.Services
                 .ToList();
 
             return result;
+        }
+        public async Task TogglePauseAsync(int userId, int storeId)
+        {
+            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, userId);
+            if (store == null)
+                throw new Exception("Store not found");
+
+            store.IsPausedToday = !store.IsPausedToday;
+
+            await _storeRepo.UpdateAsync(store);
         }
     }
 }

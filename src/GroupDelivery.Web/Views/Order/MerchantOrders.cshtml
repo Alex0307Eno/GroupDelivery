@@ -1,193 +1,381 @@
-﻿@model List<IGrouping<int, GroupDelivery.Domain.Order>>
-@using GroupDelivery.Domain
-
-@{
+﻿@{
     ViewData["Title"] = "商家訂單管理";
 }
 
 <style>
-    .page-wrap {
-        max-width: 1200px;
-        margin: 0 auto;
+    body {
+        background: #f5f7fb;
     }
 
+    .filter-btn {
+        border-radius: 999px;
+        margin-right: 8px;
+        transition: .2s;
+    }
+
+        .filter-btn.active-main {
+            background: #111827;
+            color: #fff;
+        }
+
+        .filter-btn.active-sub {
+            background: #2563eb;
+            color: #fff;
+        }
+
     .group-card {
-        background: #ffffff;
-        border-radius: 18px;
-        padding: 1.8rem;
+        border-radius: 20px;
         box-shadow: 0 12px 30px rgba(0,0,0,.05);
-        margin-bottom: 2.5rem;
-        transition: .2s ease;
+        border: 0;
+        transition: .2s;
+        position: relative;
     }
 
         .group-card:hover {
-            box-shadow: 0 18px 40px rgba(0,0,0,.08);
+            transform: translateY(-3px);
         }
 
-    .group-title {
-        font-size: 1.4rem;
-        font-weight: 800;
-    }
-
-    .group-meta {
-        font-size: .85rem;
-        color: #6b7280;
-    }
-
-    .order-row {
-        border-top: 1px solid #f1f5f9;
-        padding-top: 1.2rem;
-        margin-top: 1.2rem;
-    }
-
-    .user-name {
-        font-weight: 700;
-        font-size: 1rem;
-    }
-
-    .phone-link {
-        font-size: .9rem;
-        color: #2563eb;
-        text-decoration: none;
-    }
-
-        .phone-link:hover {
-            text-decoration: underline;
+        .group-card.soon::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: #dc2626;
+            border-radius: 20px 0 0 20px;
         }
 
-    .total-box {
-        font-weight: 800;
-        font-size: 1.3rem;
-        color: #111827;
+        .group-card.history {
+            opacity: .6;
+            filter: grayscale(.3);
+        }
+
+    .order-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.04);
     }
 
-    .summary-bar {
-        background: #f9fafb;
-        border-radius: 12px;
-        padding: 1rem 1.2rem;
-        margin-top: 1.5rem;
-    }
-
-    .time-badge {
-        font-size: .75rem;
-        background: #e2e8f0;
-        padding: .2rem .6rem;
+    .new-badge {
+        background: #16a34a;
+        color: #fff;
+        font-size: .7rem;
+        padding: 2px 8px;
         border-radius: 999px;
-        margin-left: .5rem;
+        margin-left: 6px;
     }
 
-    .item-row {
-        font-size: .9rem;
-        color: #475569;
+    .source-badge {
+        font-size: .7rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        margin-left: 8px;
+    }
+
+    .source-online {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .source-phone {
+        background: #ea580c;
+        color: #fff;
     }
 </style>
 
-<div class="page-wrap py-4">
+<div id="merchantApp" class="container py-4">
 
     <h2 class="fw-bold mb-4">商家訂單管理</h2>
 
-    @if (!Model.Any())
-    {
-        <div class="text-muted">
-            目前沒有任何訂單。
+    <!-- 主模式 -->
+    <div class="mb-3">
+        <button class="btn filter-btn"
+                :class="mode==='active' ? 'active-main' : 'btn-outline-dark'"
+                @@click ="mode='active'">
+            進行中
+        </button>
+
+        <button class="btn filter-btn"
+                :class="mode==='history' ? 'active-main' : 'btn-outline-dark'"
+                @@click ="mode='history'">
+            歷史訂單
+        </button>
+    </div>
+
+    <!-- 日期 -->
+    <div class="mb-4">
+        <button class="btn filter-btn"
+                :class="range==='today' ? 'active-sub' : 'btn-outline-secondary'"
+                @@click ="range='today'">
+            今日
+        </button>
+
+        <button class="btn filter-btn"
+                :class="range==='week' ? 'active-sub' : 'btn-outline-secondary'"
+                @@click ="range='week'">
+            本週
+        </button>
+
+        <button class="btn filter-btn"
+                :class="range==='month' ? 'active-sub' : 'btn-outline-secondary'"
+                @@click ="range='month'">
+            本月
+        </button>
+
+        <button class="btn filter-btn"
+                :class="range==='all' ? 'active-sub' : 'btn-outline-secondary'"
+                @@click ="range='all'">
+            全部
+        </button>
+    </div>
+
+    <!-- 統計 -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card p-4 group-card">
+                <div class="small text-muted">營收</div>
+                <div class="fs-3 fw-bold">$ {{ totalRevenue }}</div>
+            </div>
         </div>
-    }
-    else
-    {
-        foreach (var group in Model)
-        {
-            var first = group.First();
-            var groupTotal = group.Sum(x => x.TotalAmount);
-            var totalQty = group.Sum(x => x.OrderItems.Sum(i => i.Quantity));
 
-            <div class="group-card">
+        <div class="col-md-4">
+            <div class="card p-4 group-card">
+                <div class="small text-muted">訂單數</div>
+                <div class="fs-3 fw-bold">{{ totalOrders }}</div>
+            </div>
+        </div>
 
-                <!-- 團資訊 -->
-                <div class="d-flex justify-content-between align-items-center">
+        <div class="col-md-4">
+            <div class="card p-4 group-card">
+                <div class="small text-muted">團數</div>
+                <div class="fs-3 fw-bold">{{ filteredGroups.length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 團 -->
+    <div v-for="(group,index) in filteredGroups"
+         :key="index"
+         class="card group-card mb-4"
+         :class="{
+        soon: isSoon(group),
+        history: mode==='history'
+     }">
+
+        <div class="p-4 d-flex justify-content-between align-items-center"
+             @@click ="toggle(index)"
+             style="cursor:pointer">
+
+            <div>
+                <div class="fw-bold">
+                    {{ group[0].groupOrder.store.storeName }}
+                </div>
+
+                <div class="small text-muted">
+                    截止：{{ format(group[0].groupOrder.deadline) }}
+                </div>
+            </div>
+
+            <div class="fw-bold fs-4">
+                $ {{ groupTotal(group) }}
+            </div>
+        </div>
+
+        <div v-if="groupStates[index]"
+             class="border-top p-4 bg-light">
+
+            <!-- 顧客排序：金額由高到低 -->
+            <div v-for="order in sortedOrders(group)"
+                 class="order-card">
+
+                <div class="d-flex justify-content-between">
 
                     <div>
-                        <div class="group-title">
-                            @first.GroupOrder.Store.StoreName
+                        <div class="fw-bold">
+
+                            {{ order.user.nickname || order.user.displayName }}
+
+                            <span class="source-badge"
+                                  :class="order.source === 0
+          ? 'source-online'
+          : 'source-phone'">
+
+                                {{ order.source === 0 ? '線上下單' : '電話訂單' }}
+
+                            </span>
+
                         </div>
-                        <div class="group-meta">
-                            截止時間：
-                            @first.GroupOrder.Deadline.ToString("yyyy/MM/dd HH:mm")
+
+                        <div class="small text-muted">
+                            {{ order.user.phone }}
+                        </div>
+
+                        <div class="small">
+                            {{ order.user.city }}
                         </div>
                     </div>
 
-                    <div class="text-end">
-                        <div class="total-box">
-                            $@groupTotal
-                        </div>
-                        <div class="small text-muted">
-                            共 @totalQty 份
-                        </div>
+                    <div class="fw-bold">
+                        $ {{ order.totalAmount }}
                     </div>
 
                 </div>
 
-                <!-- 訂單列表（最新在上） -->
-                @foreach (var order in group.OrderByDescending(o => o.CreatedAt))
-                {
-                    <div class="order-row">
+                <div v-for="item in order.orderItems"
+                     class="small mt-2">
 
-                        <div class="d-flex justify-content-between align-items-start mb-2">
+                    {{ item.storeMenuItem.name }} x {{ item.quantity }}
 
-                            <div>
-                                <div class="user-name">
-                                    @order.User?.DisplayName
-                                </div>
+                    <div v-if="item.orderItemOptions?.length"
+                         class="text-muted ms-3">
 
-                                @if (!string.IsNullOrEmpty(order.User?.Phone))
-                                {
-                                    <div>
-                                        <a class="phone-link"
-                                           href="tel:@order.User.Phone">
-                                            📞 @order.User.Phone
-                                        </a>
-                                    </div>
-                                }
-                            </div>
-
-                            <div class="text-end">
-                                <div class="fw-bold">
-                                    $@order.TotalAmount
-                                </div>
-                                <div class="time-badge">
-                                    @order.CreatedAt.ToString("MM/dd HH:mm")
-                                </div>
-                            </div>
-
+                        <div v-for="opt in item.orderItemOptions">
+                            • {{ opt.optionName }}
+                            <span v-if="opt.priceAdjust>0">
+                                (+{{ opt.priceAdjust }})
+                            </span>
                         </div>
 
-                        @foreach (var item in order.OrderItems)
-                        {
-                            <div class="d-flex justify-content-between item-row">
-                                <div>
-                                    @item.StoreMenuItem.Name
-                                </div>
-                                <div>
-                                    x @item.Quantity
-                                </div>
-                            </div>
-                        }
-
-                    </div>
-                }
-
-                <!-- 團總結 -->
-                <div class="summary-bar d-flex justify-content-between align-items-center">
-                    <div>
-                        本團總金額：<strong>$@groupTotal</strong>
                     </div>
 
-                    <button class="btn btn-outline-success btn-sm">
-                        標記已出餐
-                    </button>
+                </div>
+
+                <div v-if="order.note"
+                     class="bg-warning-subtle p-2 rounded mt-2 small">
+                    📝 {{ order.note }}
                 </div>
 
             </div>
-        }
-    }
+
+        </div>
+
+    </div>
 
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+
+            data() {
+                return {
+                    groups: [],
+                    groupStates: [],
+                    mode: 'active',
+                    range: 'today'
+                }
+            },
+
+            async mounted() {
+                const res = await axios.get('/api/merchant/orders');
+
+                this.groups = [
+                    ...res.data.today,
+                    ...res.data.week,
+                    ...res.data.month
+                ];
+
+                this.groupStates = this.groups.map(() => false);
+            },
+
+            computed: {
+
+                filteredGroups() {
+
+                    const now = new Date();
+                    const todayStr = now.toDateString();
+
+                    return this.groups.filter(g => {
+
+                        const deadline = new Date(g[0].groupOrder.deadline);
+
+                        if (this.mode === 'active' && deadline < now) return false;
+                        if (this.mode === 'history' && deadline > now) return false;
+
+                        if (this.range === 'today')
+                            return deadline.toDateString() === todayStr;
+
+                        if (this.range === 'week') {
+                            const diff = now - deadline;
+                            return diff <= 7 * 24 * 60 * 60 * 1000 && diff >= 0;
+                        }
+
+                        if (this.range === 'month')
+                            return deadline.getMonth() === now.getMonth();
+
+                        return true;
+                    });
+
+                },
+
+                totalRevenue() {
+                    return this.filteredGroups.reduce(
+                        (sum, g) => sum + this.groupTotal(g), 0);
+                },
+
+                totalOrders() {
+                    return this.filteredGroups.reduce(
+                        (sum, g) => sum + g.length, 0);
+                },
+
+                onlineCount() {
+                    return this.filteredGroups
+                        .flat()
+                        .filter(o => o.source === 0)
+                        .length;
+                },
+
+                phoneCount() {
+                    return this.filteredGroups
+                        .flat()
+                        .filter(o => o.source === 1)
+                        .length;
+                }
+
+            },
+
+            methods: {
+
+                groupTotal(group) {
+                    return group.reduce((sum, o) => sum + o.totalAmount, 0);
+                },
+
+                sortedOrders(group) {
+                    return [...group].sort((a, b) => b.totalAmount - a.totalAmount);
+                },
+
+                toggle(index) {
+                    this.groupStates[index] = !this.groupStates[index];
+                },
+
+                format(d) {
+                    return new Date(d).toLocaleString();
+                },
+
+                isSoon(group) {
+                    const deadline = new Date(group[0].groupOrder.deadline);
+                    const now = new Date();
+                    const diff = (deadline - now) / 60000;
+                    return diff > 0 && diff <= 60;
+                },
+
+                isNew(order) {
+                    const created = new Date(order.createdAt);
+                    const now = new Date();
+                    const diff = (now - created) / 60000;
+                    return diff <= 30;
+                }
+
+            }
+
+        }).mount('#merchantApp');
+    </script>
+}

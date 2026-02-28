@@ -38,6 +38,7 @@ namespace GroupDelivery.Application.Services
         #region 更新使用者可自行編輯的個人資料
         public async Task UpdateProfileAsync(int userId, UpdateProfileRequest req)
         {
+
             var user = await _userRepo.GetByIdAsync(userId);
             if (user == null)
                 throw new Exception("User not found");

@@ -13,5 +13,9 @@ namespace GroupDelivery.Application.Abstractions
         Task<List<Order>> GetByGroupOrderIdAsync(int groupOrderId);
         Task<List<Order>> GetOrdersByUserIdAsync(int userId);
         Task<List<Order>> GetOrdersForMerchantAsync(int merchantUserId);
+        Task<Order> GetByIdAsync(int orderId);
+
+        Task UpdateAsync(Order order);
+
     }
 }

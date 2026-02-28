@@ -17,13 +17,16 @@ namespace GroupDelivery.Domain
         public decimal TotalAmount { get; set; }
         public string ContactPhone { get; set; }
         public string ContactName { get; set; }
+        public string Note { get; set; }
         public OrderSource Source { get; set; }
+        public TakeMode TakeMode { get; set; }  // 取餐方式
+
         public DateTime CreatedAt { get; set; }
 
         public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual User User { get; set; }
         public GroupOrder GroupOrder { get; set; }
 
-
+       
     }
 }

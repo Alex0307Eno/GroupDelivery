@@ -1,11 +1,12 @@
+using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using GroupDelivery.Application.Abstractions;
 
 namespace GroupDelivery.Web.Controllers.Api
 {
@@ -47,5 +48,6 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok(groups);
         }
+        
     }
 }

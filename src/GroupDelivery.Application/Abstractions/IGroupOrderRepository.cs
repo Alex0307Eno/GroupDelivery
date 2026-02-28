@@ -40,5 +40,6 @@ namespace GroupDelivery.Application.Abstractions
         Task<List<GroupOrder>> GetOpenByStoreAsync(int storeId, DateTime now);
 
         Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync();
+
     }
 }

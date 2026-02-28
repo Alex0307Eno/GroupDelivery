@@ -123,16 +123,7 @@ namespace GroupDelivery.Web.Controllers
                 await _storeService.UpdateCoverImageAsync(storeId, userId, coverUrl);
             }
 
-            // 3️⃣ 處理菜單圖片（先最小可用：第一張）
-            if (request.MenuImages != null && request.MenuImages.Any())
-            {
-                var menuUrl = await SaveStoreImage(
-                    storeId,
-                    request.MenuImages.First(),
-                    "menu");
-
-                await _storeService.UpdateMenuImageAsync(storeId, userId, menuUrl);
-            }
+           
 
             return RedirectToAction(nameof(MyStores));
         }
@@ -149,17 +140,27 @@ namespace GroupDelivery.Web.Controllers
             if (store == null)
                 return NotFound();
 
-            var vm = new StoreUpdateRequest
+            var model = new StoreUpdateRequest
             {
                 StoreId = store.StoreId,
                 StoreName = store.StoreName,
-                Phone = store.Phone,
                 Address = store.Address,
-                Description = store.Description
+                Landline = store.Landline,
+                Mobile = store.Mobile,
+                Description = store.Description,
+                CurrentCoverImageUrl = store.CoverImageUrl,
+                OpenTime = store.OpenTime,
+                CloseTime = store.CloseTime,
+                OpenTime2 = store.OpenTime2,
+                CloseTime2 = store.CloseTime2,
+                ClosedDays = string.IsNullOrEmpty(store.ClosedDays)
+           ? new List<int>()
+           : store.ClosedDays.Split(',').Select(int.Parse).ToList(),
+                IsPausedToday=store.IsPausedToday
             };
 
 
-            return View(vm);
+            return View(model);
         }
 
         // =========================
@@ -174,10 +175,10 @@ namespace GroupDelivery.Web.Controllers
 
             var userId = GetUserId();
 
-            // 1️⃣ 更新基本資料（商業邏輯）
+            // 1️⃣ 更新基本資料
             await _storeService.UpdateAsync(userId, request);
 
-            // 2️⃣ 如果有新封面圖
+            // 2️⃣ 如果有上傳新封面
             if (request.NewCoverImage != null && request.NewCoverImage.Length > 0)
             {
                 var coverUrl = await SaveStoreImage(
@@ -191,23 +192,8 @@ namespace GroupDelivery.Web.Controllers
                     coverUrl);
             }
 
-            // 3️⃣ 如果有新菜單圖（先最小可用：第一張）
-            if (request.NewMenuImages != null && request.NewMenuImages.Any())
-            {
-                var menuUrl = await SaveStoreImage(
-                    request.StoreId,
-                    request.NewMenuImages.First(),
-                    "menu");
-
-                await _storeService.UpdateMenuImageAsync(
-                    request.StoreId,
-                    userId,
-                    menuUrl);
-            }
-
             return RedirectToAction(nameof(MyStores));
         }
-
 
         // =========================
         // 刪除
@@ -278,6 +264,15 @@ namespace GroupDelivery.Web.Controllers
 
             return View(groups);
         }
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> TogglePause(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
+            await _storeService.TogglePauseAsync(userId, id);
+
+            return RedirectToAction(nameof(MyStores));
+        }
     }
 }

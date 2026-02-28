@@ -27,7 +27,8 @@ namespace GroupDelivery.Application.Services
             var store = new Store
             {
                 StoreName = dto.StoreName,
-                Phone = dto.StorePhone,
+                Landline = dto.Landline,
+                Mobile = dto.Mobile,
                 Address = dto.StoreAddress,
 
 
@@ -62,7 +63,8 @@ namespace GroupDelivery.Application.Services
                 {
                     OwnerUserId = userId,
                     StoreName = request.StoreName,
-                    Phone = request.StorePhone,
+                    Landline = request.Landline,
+                    Mobile = request.Mobile,
                     Address = request.StoreAddress,
 
 

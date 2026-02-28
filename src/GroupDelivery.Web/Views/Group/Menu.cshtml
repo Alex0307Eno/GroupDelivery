@@ -102,7 +102,6 @@
         display: inline-block;
     }
 
-    /* 備註區塊 */
     .note-box {
         margin-top: 1rem;
     }
@@ -121,6 +120,49 @@
         font-size: .8rem;
         color: #6b7280;
         margin-top: .2rem;
+    }
+
+    .take-mode-wrapper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .take-mode-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all .2s ease;
+        background: white;
+    }
+
+        .take-mode-card:hover {
+            border-color: #16a34a;
+            transform: translateY(-2px);
+        }
+
+    .take-mode-active {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        box-shadow: 0 4px 12px rgba(22,163,74,.15);
+    }
+
+    .take-mode-icon {
+        font-size: 22px;
+        margin-bottom: 6px;
+    }
+
+    .take-mode-title {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .take-mode-desc {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
     }
 </style>
 
@@ -235,7 +277,58 @@
 
                 </div>
             </div>
+            <!-- 取餐方式 -->
+            <div class="summary-box mb-3">
+                <div class="fw-bold mb-3">取餐方式</div>
 
+                <div class="take-mode-wrapper">
+
+                    <div class="take-mode-card"
+                         :class="takeMode === 0 ? 'take-mode-active' : ''"
+                         @@click="takeMode = 0">
+                        <div class="take-mode-icon">🥡</div>
+                        <div class="take-mode-title">自取</div>
+                        <div class="take-mode-desc">自行到店取餐</div>
+                    </div>
+
+                    <div class="take-mode-card"
+                         :class="takeMode === 1 ? 'take-mode-active' : ''"
+                         @@click="takeMode = 1">
+                        <div class="take-mode-icon">🛵</div>
+                        <div class="take-mode-title">外送</div>
+                        <div class="take-mode-desc">店家配送到指定地點</div>
+                    </div>
+
+                    <div class="take-mode-card"
+                         :class="takeMode === 2 ? 'take-mode-active' : ''"
+                         @@click="takeMode = 2">
+                        <div class="take-mode-icon">🍽</div>
+                        <div class="take-mode-title">內用</div>
+                        <div class="take-mode-desc">現場用餐</div>
+                    </div>
+
+                </div>
+
+                <div v-if="takeMode === null" class="text-danger small mt-3">
+                    請選擇取餐方式
+                </div>
+            </div>
+            <!-- 給商家的備註 -->
+            <div class="note-box mt-3">
+                <label class="summary-label mb-1">
+                    給商家的備註（選填）
+                </label>
+                <textarea class="note-textarea"
+                          v-model="note"
+                          placeholder="例如：小辣、飯少一點、不要香菜、如果沒有某品項可改成…"></textarea>
+                <div class="note-hint">
+                    備註內容會一併傳給商家，但是否能完全配合仍以店家實際狀況為主。
+                </div>
+            </div>
+
+            <div class="summary-label mt-2">
+                實際金額以店家確認為準。
+            </div>
             <!-- 小計 + 備註 -->
             <div class="summary-box">
                 <div class="d-flex justify-content-between align-items-center">
@@ -262,22 +355,7 @@
                     </button>
                 </div>
 
-                <!-- 給商家的備註 -->
-                <div class="note-box mt-3">
-                    <label class="summary-label mb-1">
-                        給商家的備註（選填）
-                    </label>
-                    <textarea class="note-textarea"
-                              v-model="note"
-                              placeholder="例如：小辣、飯少一點、不要香菜、如果沒有某品項可改成…"></textarea>
-                    <div class="note-hint">
-                        備註內容會一併傳給商家，但是否能完全配合仍以店家實際狀況為主。
-                    </div>
-                </div>
-
-                <div class="summary-label mt-2">
-                    實際金額以店家確認為準。
-                </div>
+                
             </div>
 
         </div>
@@ -379,6 +457,7 @@
     const { createApp } = Vue;
 
     createApp({
+
         data() {
             return {
                 groupId: '@groupId',
@@ -386,26 +465,27 @@
                 categories: [],
                 submitting: false,
                 note: '',
-                currentItem: null
+                currentItem: null,
+                orderSource: 0,
+                takeMode: null // 0=Pickup,1=Delivery,2=DineIn
             };
         },
 
         computed: {
-            // 總金額 = sum( (品項價格 + 所有已勾選客製化加價) * 數量 )
+
             totalAmount() {
-                var self = this;
+                return this.categories.reduce((sum, cat) => {
+                    return sum + cat.items.reduce((s, x) => {
 
-                return this.categories.reduce(function (sum, cat) {
-
-                    return sum + cat.items.reduce(function (s, x) {
-                        var qty = x.qty || 0;
-                        if (qty <= 0) return s;
+                        if (!x.qty || x.qty <= 0) {
+                            return s;
+                        }
 
                         var extra = 0;
 
-                        if (x.optionGroups && x.optionGroups.length > 0) {
+                        if (x.optionGroups) {
                             x.optionGroups.forEach(function (g) {
-                                (g.options || []).forEach(function (o) {
+                                g.options.forEach(function (o) {
                                     if (o.selected) {
                                         extra += o.priceAdjust || 0;
                                     }
@@ -413,113 +493,51 @@
                             });
                         }
 
-                        return s + (x.price + extra) * qty;
+                        return s + (x.price + extra) * x.qty;
 
                     }, 0);
-
                 }, 0);
             }
+
         },
 
         methods: {
-            // 載入菜單，包含客製化
+
             loadMenu() {
-                var self = this;
-
                 axios.get('/api/groups/' + this.groupId + '/menu')
-                    .then(function (res) {
-                        var data = res.data || {};
+                    .then(res => {
 
-                        self.store = {
+                        const data = res.data || {};
+
+                        this.store = {
                             storeId: data.storeId,
                             storeName: data.storeName,
                             storeAddress: data.storeAddress
                         };
 
-                        var rawCategories = data.categories || [];
-
-                        // 沒分類就塞到「其他」
-                        if (rawCategories.length === 0 && data.items) {
-                            rawCategories = [{
-                                categoryId: 0,
-                                categoryName: '其他',
-                                items: data.items
-                            }];
-                        }
-
-                        self.categories = rawCategories.map(function (c) {
-                            return {
-                                categoryId: c.categoryId,
-                                categoryName: c.categoryName || '其他',
-                                items: (c.items || []).map(function (x) {
-
-                                    // 把客製化選項也一起帶進來，並加上 selected flag
-                                    var groups = (x.optionGroups || []).map(function (g) {
-                                        return {
-                                            groupName: g.groupName,
-                                            options: (g.options || []).map(function (o) {
-                                                return {
-                                                    optionId: o.optionId,
-                                                    optionName: o.optionName,
-                                                    priceAdjust: o.priceAdjust || 0,
-                                                    selected: false
-                                                };
-                                            })
-                                        };
-                                    });
-
-                                    return {
-                                        storeMenuItemId: x.storeMenuItemId,
-                                        name: x.name,
-                                        price: x.price,
-                                        description: x.description,
-                                        imageUrl: x.imageUrl,
-                                        qty: 0,
-                                        optionGroups: groups
-                                    };
-                                })
-                            };
-                        });
+                        this.categories = (data.categories || []).map(c => ({
+                            categoryId: c.categoryId,
+                            categoryName: c.categoryName,
+                            items: (c.items || []).map(x => ({
+                                storeMenuItemId: x.storeMenuItemId,
+                                name: x.name,
+                                price: x.price,
+                                description: x.description,
+                                imageUrl: x.imageUrl,
+                                qty: 0,
+                                optionGroups: (x.optionGroups || []).map(g => ({
+                                    groupName: g.groupName,
+                                    options: (g.options || []).map(o => ({
+                                        optionId: o.optionId,
+                                        optionName: o.optionName,
+                                        priceAdjust: o.priceAdjust || 0,
+                                        selected: false
+                                    }))
+                                }))
+                            }))
+                        }));
 
                     });
-            },
-
-            // 顯示單顆商品價格（含加價）
-            displayItemPrice(item) {
-                var extra = 0;
-
-                if (item.optionGroups && item.optionGroups.length > 0) {
-                    item.optionGroups.forEach(function (g) {
-                        (g.options || []).forEach(function (o) {
-                            if (o.selected) {
-                                extra += o.priceAdjust || 0;
-                            }
-                        });
-                    });
-                }
-
-                return (item.price + extra).toFixed(0);
-            },
-
-            // 取得已選的客製化，給前端顯示用
-            getSelectedOptions(item) {
-                var result = [];
-
-                if (!item.optionGroups) return result;
-
-                item.optionGroups.forEach(function (g) {
-                    (g.options || []).forEach(function (o) {
-                        if (o.selected) {
-                            result.push({
-                                optionId: o.optionId,
-                                optionName: o.optionName,
-                                priceAdjust: o.priceAdjust || 0
-                            });
-                        }
-                    });
-                });
-
-                return result;
             },
 
             incQty(item) {
@@ -531,40 +549,45 @@
                 if (!item.qty) item.qty = 0;
                 if (item.qty > 0) item.qty--;
             },
+                openOptions(item) {
 
-            // 打開客製化 modal
-            openOptions(item) {
-                this.currentItem = item;
+        this.currentItem = item;
 
-                var modalEl = document.getElementById('optionsModal');
-                if (modalEl && window.bootstrap) {
-                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.show();
-                }
-            },
+        var modalEl = document.getElementById('optionsModal');
+        if (!modalEl) {
+            return;
+        }
 
-            // 送出訂單
+        // 需要 Bootstrap 5 JS
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    },
             submitOrder() {
-                var self = this;
 
                 if (this.submitting) return;
 
-                var selected = [];
+                if (this.takeMode === null) {
+                    alert("請選擇取餐方式");
+                    return;
+                }
 
-                this.categories.forEach(function (cat) {
-                    cat.items.forEach(function (x) {
+                const selected = [];
+
+                this.categories.forEach(cat => {
+                    cat.items.forEach(x => {
+
                         if (x.qty && x.qty > 0) {
 
-                            var options = [];
+                            const options = [];
 
-                            if (x.optionGroups && x.optionGroups.length > 0) {
-                                x.optionGroups.forEach(function (g) {
-                                    (g.options || []).forEach(function (o) {
+                            if (x.optionGroups) {
+                                x.optionGroups.forEach(g => {
+                                    g.options.forEach(o => {
                                         if (o.selected) {
                                             options.push({
                                                 optionId: o.optionId,
                                                 optionName: o.optionName,
-                                                priceAdjust: o.priceAdjust || 0
+                                                priceAdjust: o.priceAdjust
                                             });
                                         }
                                     });
@@ -577,11 +600,12 @@
                                 options: options
                             });
                         }
+
                     });
                 });
 
                 if (selected.length === 0) {
-                    alert('請至少選一項品項');
+                    alert("請至少選一項品項");
                     return;
                 }
 
@@ -590,36 +614,70 @@
                 axios.post('/api/orders', {
                     groupOrderId: parseInt(this.groupId),
                     items: selected,
-                    note: this.note || ''
+                    note: this.note || '',
+                    source: this.orderSource,
+                    takeMode: this.takeMode
                 })
-                .then(function () {
-                    window.location.href = '/Group/GroupDetail/' + self.groupId;
+                .then(() => {
+                    window.location.href = '/Group/GroupDetail/' + this.groupId;
                 })
-                .catch(function (err) {
-
-                    if (err.response && err.response.status === 401) {
-                        var authModalEl = document.getElementById('authModal');
-                        if (authModalEl && window.bootstrap) {
-                            var modal = bootstrap.Modal.getOrCreateInstance(authModalEl);
-                            modal.show();
-                        }
-                        return;
-                    }
-
-                    if (err.response && err.response.data) {
-                        alert(err.response.data);
-                    } else {
-                        alert('下單失敗，請稍後再試');
-                    }
+                .catch(() => {
+                    alert("下單失敗");
                 })
-                .finally(function () {
-                    self.submitting = false;
+                .finally(() => {
+                    this.submitting = false;
                 });
-            }
+
+            },
+                displayItemPrice(item) {
+
+        var base = item.price || 0;
+        var extra = 0;
+
+        if (item.optionGroups) {
+            item.optionGroups.forEach(function (g) {
+                g.options.forEach(function (o) {
+                    if (o.selected) {
+                        extra += o.priceAdjust || 0;
+                    }
+                });
+            });
+        }
+
+        return base + extra;
+    },
+        getSelectedOptions(item) {
+
+        var result = [];
+
+        if (!item.optionGroups) {
+            return result;
+        }
+
+        item.optionGroups.forEach(function (g) {
+            g.options.forEach(function (o) {
+                if (o.selected) {
+                    result.push(o);
+                }
+            });
+        });
+
+        return result;
+    }
 
         },
 
         mounted() {
+
+            const params = new URLSearchParams(window.location.search);
+            const src = params.get("source");
+
+            if (src === 'manual') {
+                this.orderSource = 1;
+            } else {
+                this.orderSource = 0;
+            }
+
             this.loadMenu();
         }
 
