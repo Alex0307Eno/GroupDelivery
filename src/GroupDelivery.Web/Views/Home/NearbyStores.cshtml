@@ -196,11 +196,17 @@
                             {{ s.address }} · {{ s.distance }} 公尺
                         </div>
 
-                        <a :href="s.isOpenNow ? '/Store/CreateGroup?storeId=' + s.storeId : '#'"
-                           class="btn w-100 mt-3"
-                           :class="s.isOpenNow ? 'btn-outline-secondary' : 'btn-secondary disabled'">
-                            {{ s.isOpenNow ? '幫這間店開一團' : '已打烊，無法開團' }}
+                        <a v-if="s.isOpenNow"
+                           :href="'/Group/Create?storeId=' + s.storeId"
+                           class="btn btn-outline-secondary w-100 mt-3">
+                            幫這間店開一團
                         </a>
+
+                        <button v-else
+                                class="btn btn-secondary w-100 mt-3"
+                                disabled>
+                            已打烊，無法開團
+                        </button>
 
                     </div>
                 </div>

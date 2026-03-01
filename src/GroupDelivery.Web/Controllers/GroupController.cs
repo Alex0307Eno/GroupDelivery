@@ -1,6 +1,7 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -15,11 +16,29 @@ namespace GroupDelivery.Web.Controllers
         private readonly IGroupService _groupService;
         private readonly IGroupOrderService _groupOrderService;
         private readonly IOrderService _orderService;
-        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService, IOrderService orderService)
+        private readonly IStoreService _storeService;
+        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService, IOrderService orderService, IStoreService storeService)
         {
             _groupService = groupService;
             _groupOrderService = groupOrderService;
             _orderService = orderService;
+            _storeService = storeService;
+        }
+        [HttpGet]
+        public async Task<IActionResult> Create(int storeId)
+        {
+            var store = await _storeService.GetByIdAsync(storeId);
+            if (store == null)
+                return NotFound();
+
+            var vm = new CreateUserGroupRequest
+            {
+                StoreId = store.StoreId,
+                TargetAmount = 0,
+                Deadline = DateTime.Now.AddHours(2)
+            };
+
+            return View(vm); 
         }
 
         [Authorize]
@@ -48,46 +67,9 @@ namespace GroupDelivery.Web.Controllers
         }
 
 
-        [HttpGet("/group/{id}")]
-        public IActionResult Details(int id)
-        {
-            var group = _groupService.GetById(id);
+       
 
-            if (group == null)
-                return NotFound();
-
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-                return Unauthorized();
-
-            var userId = int.Parse(claim.Value);
-
-            ViewBag.IsOwner = group.OwnerUserId == userId;
-
-            return View(group);
-        }
-
-        [Authorize]
-        [HttpPost("api/group/{groupId}/close")]
-        public async Task<IActionResult> Close(int groupId)
-        {
-            var userId = GetUserId();
-            await _groupService.CloseAsync(groupId, userId);
-            return Ok();
-        }
-
-
-        [Authorize]
-        [HttpPost("/group/{id}/cancel")]
-        public IActionResult Cancel(int id)
-        {
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
-            if (!_groupService.IsOwner(id, userId))
-                return Forbid();
-
-            TempData["Message"] = "團已取消（模擬）";
-            return Redirect("/Store/MyGroups");
-        }
+      
         private int GetUserId()
         {
             return int.Parse(

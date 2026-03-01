@@ -32,6 +32,8 @@ namespace GroupDelivery.Application.Abstractions
         Task<GroupOrder> GetByIdAsync(int id);
         Task UpdateAsync(GroupOrder groupOrder);
         Task SetTakeModeAsync(int orderId, TakeMode takeMode);
+        Task<int> CreateAsync(CreateUserGroupRequest request, int userId);
+
     }
 
 }

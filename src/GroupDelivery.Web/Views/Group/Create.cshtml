@@ -1,0 +1,199 @@
+﻿@model GroupDelivery.Domain.CreateUserGroupRequest
+
+@{
+    ViewData["Title"] = "揪IN｜發起揪團";
+}
+
+<style>
+    body {
+        background: #f5f7fb;
+    }
+
+    .wrap {
+        max-width: 680px;
+        margin: auto;
+    }
+
+    .card-box {
+        background: #fff;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 18px 40px rgba(0,0,0,.06);
+    }
+
+    .submit-btn {
+        height: 56px;
+        font-weight: 700;
+        border-radius: 999px;
+    }
+</style>
+
+<div id="app" class="container py-5">
+    <div class="wrap">
+
+        <h2 class="fw-bold mb-3">發起這家店的揪團</h2>
+
+        <div class="card-box">
+
+            
+
+            <!-- 成團金額 -->
+            <div class="mb-4">
+                <label class="form-label">成團金額</label>
+                <div class="input-group mt-2">
+                    <span class="input-group-text">$</span>
+                    <input type="number"
+                           class="form-control"
+                           v-model.number="form.targetAmount"
+                           readonly>
+                </div>
+                <div class="small text-muted mt-2">
+                    {{ thresholdNote }}
+                </div>
+            </div>
+
+            <!-- 截止時間 -->
+            <div class="mb-4">
+                <label class="form-label">截止時間</label>
+                <input type="datetime-local"
+                       class="form-control"
+                       v-model="form.deadline">
+            </div>
+
+            <!-- 備註 -->
+            <div class="mb-4">
+                <label class="form-label">團購說明（選填）</label>
+                <textarea class="form-control"
+                          rows="3"
+                          v-model="form.remark"></textarea>
+            </div>
+
+            <button class="btn btn-dark w-100 submit-btn"
+                    :disabled="submitting"
+                    @@click="submitForm">
+                {{ submitting ? '建立中…' : '發起揪團' }}
+            </button>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        const storeIdFromModel = @Model.StoreId;
+
+        createApp({
+
+            data() {
+                return {
+                    thresholdNote: "",
+                    submitting: false,
+                    form: {
+                        storeId: storeIdFromModel,
+                        targetAmount: 0,
+                        deadline: "",
+                        remark: ""
+                    }
+                }
+            },
+
+                            mounted() {
+
+            if (!this.form.storeId) {
+                alert("未指定店家");
+                return;
+            }
+
+            // 現在時間 + 30 分鐘
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+
+            // 轉成 local datetime-local 格式 (YYYY-MM-DDTHH:mm)
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+
+            this.form.deadline = `${year}-${month}-${day}T${hour}:${minute}`;
+
+            // 載入門檻
+            this.loadThreshold(this.form.storeId);
+        },
+
+            watch: {
+                'form.storeId'(newVal) {
+                    if (newVal) {
+                        this.loadThreshold(newVal);
+                    }
+                }
+            },
+
+            methods: {
+
+                loadThreshold(storeId) {
+
+                    axios.get(`/api/merchant/stores/${storeId}/delivery-threshold`)
+                        .then(res => {
+
+                            const amount = res.data.targetAmount || 0;
+
+                            this.form.targetAmount = amount;
+
+                            if (amount > 0) {
+                                this.thresholdNote =
+                                    "成團金額依外送門檻自動設定為 $" +
+                                    amount.toLocaleString();
+                            }
+                            else {
+                                this.thresholdNote =
+                                    "此店尚未設定外送門檻";
+                            }
+                        })
+                        .catch(() => {
+                            this.form.targetAmount = 0;
+                            this.thresholdNote = "無法取得外送門檻";
+                        });
+                },
+
+                submitForm() {
+
+                    if (!this.form.deadline) {
+                        alert("請設定截止時間");
+                        return;
+                    }
+
+                    const selectedTime = new Date(this.form.deadline);
+
+                    if (selectedTime <= new Date()) {
+                        alert("截止時間必須晚於現在");
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    axios.post('/api/groups', this.form)
+                        .then(res => {
+
+                            const groupId = res.data.groupOrderId;
+
+                            if (!groupId) {
+                                alert("建立成功但未取得團單編號");
+                                return;
+                            }
+
+                        })
+                        .catch(() => alert("建立失敗"))
+                        .finally(() => this.submitting = false);
+                }
+            }
+
+        }).mount('#app');
+    </script>
+}

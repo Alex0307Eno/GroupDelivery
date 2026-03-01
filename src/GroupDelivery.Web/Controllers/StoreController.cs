@@ -37,28 +37,13 @@ namespace GroupDelivery.Web.Controllers
         {
             return View();
         }
-        [Authorize]
-        [HttpGet]
+        [Authorize(Roles = "Merchant")]
+        [HttpPost]
         public async Task<IActionResult> CreateGroup(int? storeId)
         {
             var userId = GetUserId();
 
-            // === 使用者幫店家開團 ===
-            if (storeId.HasValue)
-            {
-                var store = await _storeService.GetByIdAsync(storeId.Value);
-                if (store == null)
-                    return NotFound();
-
-                var vm = new CreateGroupRequest
-                {
-                    StoreId = store.StoreId,
-                    StoreName = store.StoreName,
-                    IsLockedStore = true
-                };
-
-                return View(vm);
-            }
+           
 
             // === 商家自己開團 ===
             if (User.IsInRole("Merchant"))

@@ -16,14 +16,54 @@ namespace GroupDelivery.Application.Services
         private readonly IStoreRepository _storeRepo;
         private readonly IStoreMenuService _menuService;
         private readonly IOrderRepository _orderRepository;
+        private readonly IDeliveryRuleRepository _deliveryRuleRepository;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService, IOrderRepository orderRepository)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService, IOrderRepository orderRepository, IDeliveryRuleRepository deliveryRuleRepository)
         {
             _groupOrderRepository = groupOrderRepository; ;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
             _menuService = menuService;
             _orderRepository = orderRepository;
+            _deliveryRuleRepository = deliveryRuleRepository;
+        }
+        public async Task<int> CreateAsync(CreateUserGroupRequest request, int userId)
+        {
+            var store = await _storeRepo.GetByIdAsync(request.StoreId);
+            if (store == null)
+                throw new Exception("店家不存在");
+
+            // ⬇ 新增時間限制
+            var minDeadline = DateTime.Now.AddMinutes(30);
+            if (request.Deadline <= minDeadline)
+                throw new Exception("截止時間必須至少晚於現在 30 分鐘");
+
+            var rules = await _deliveryRuleRepository
+                .GetByStoreIdAsync(request.StoreId);
+
+            if (rules == null || !rules.Any())
+                throw new Exception("未設定外送門檻");
+
+            var rule = rules.First();
+
+            var entity = new GroupOrder
+            {
+                StoreId = request.StoreId,
+                CreatorUserId = userId,
+                OwnerUserId = store.OwnerUserId,
+
+                TargetAmount = rule.MinimumOrderAmount,
+                CurrentAmount = 0,
+
+                Deadline = request.Deadline,
+                Status = GroupOrderStatus.Open,
+                Remark = request.Remark,
+                CreatedAt = DateTime.Now
+            };
+
+            await _groupOrderRepository.AddAsync(entity);
+
+            return entity.GroupOrderId;
         }
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
         public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
