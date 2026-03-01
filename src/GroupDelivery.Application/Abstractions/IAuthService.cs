@@ -16,7 +16,7 @@ namespace GroupDelivery.Application.Abstractions
 
         // 透過驗證 Token 完成登入流程
         // 負責驗證 Token、建立 Claims、寫入登入 Cookie
-        Task SignInByTokenAsync(string token, HttpContext httpContext);
+        Task SignInByEmailAsync(string token, HttpContext httpContext);
 
         // 判斷目前登入使用者是否已完成必要的個人資料設定
         // 通常用於登入後導向 Onboarding 或首頁的判斷

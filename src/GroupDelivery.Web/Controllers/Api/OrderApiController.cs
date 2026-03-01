@@ -49,15 +49,22 @@ namespace GroupDelivery.Web.Controllers.Api
             return Ok();
         }
         [Authorize]
-        [HttpGet("/api/merchant/orders")]
+        [HttpGet("all-orders")]
         public async Task<IActionResult> GetMerchantOrders()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var orders = await _orderService.GetOrdersForMerchantAsync(userId);
 
-            var grouped = orders
-                .GroupBy(x => x.GroupOrderId)
+            // 團單：有 GroupOrderId 的
+            var groupOrders = orders
+                .Where(o => o.GroupOrderId != null)
+                .GroupBy(o => o.GroupOrderId)
+                .ToList();
+
+            // 客製化單：沒有 GroupOrderId 的
+            var customOrders = orders
+                .Where(o => o.GroupOrderId == null)
                 .ToList();
 
             var today = DateTime.Today;
@@ -71,18 +78,22 @@ namespace GroupDelivery.Web.Controllers.Api
 
             var result = new
             {
-                today = grouped
+                // 團購訂單依截止時間分區段
+                today = groupOrders
                     .Where(g => g.First().GroupOrder.Deadline.Date == today),
 
-                week = grouped
+                week = groupOrders
                     .Where(g =>
                         g.First().GroupOrder.Deadline >= startOfWeek &&
                         g.First().GroupOrder.Deadline < endOfWeek),
 
-                month = grouped
+                month = groupOrders
                     .Where(g =>
                         g.First().GroupOrder.Deadline >= startOfMonth &&
-                        g.First().GroupOrder.Deadline < endOfMonth)
+                        g.First().GroupOrder.Deadline < endOfMonth),
+
+                // 客製化訂單全部丟過去，前端另外一區顯示
+                custom = customOrders
             };
 
             return Ok(result);

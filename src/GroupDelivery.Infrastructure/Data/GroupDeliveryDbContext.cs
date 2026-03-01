@@ -9,7 +9,8 @@ namespace GroupDelivery.Infrastructure.Data
             : base(options)
         {
         }
-
+        public DbSet<LoginTokenUsage> LoginTokenUsages { get; set; }
+        public DbSet<LoginLog> LoginLogs { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<GroupOrder> GroupOrders { get; set; }
@@ -23,6 +24,7 @@ namespace GroupDelivery.Infrastructure.Data
         public DbSet<StoreMenuItemOptionGroup> StoreMenuItemOptionGroups { get; set; }
         public DbSet<StoreMenuItemOption> StoreMenuItemOptions { get; set; }
         public DbSet<OrderItemOption> OrderItemOptions { get; set; }
+        public DbSet<DeliveryRule> DeliveryRules { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

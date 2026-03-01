@@ -165,27 +165,13 @@ namespace GroupDelivery.Infrastructure.Services
                             .FirstOrDefault()
                     });
 
-            var filteredStores = stores
-                .Where(s =>
-                {
-                    // 1️⃣ 手動今日暫停
-                    if (s.IsPausedToday)
-                        return false;
+            var result = new List<NearbyStoreDto>();
 
-                    // 2️⃣ 固定公休日
-                    if (string.IsNullOrEmpty(s.ClosedDays))
-                        return true;
+            foreach (var s in stores)
+            {
+                bool isOpenNow = IsStoreOpenNow(s, now);
 
-                    var closed = s.ClosedDays
-                        .Split(',')
-                        .Select(x => int.Parse(x.Trim()))
-                        .ToList();
-
-                    return !closed.Contains(today);
-                });
-
-            var result = filteredStores
-                .Select(s => new NearbyStoreDto
+                result.Add(new NearbyStoreDto
                 {
                     StoreId = s.StoreId,
                     StoreName = s.StoreName,
@@ -198,9 +184,11 @@ namespace GroupDelivery.Infrastructure.Services
                     ActiveGroupCreatedAt = grouped.ContainsKey(s.StoreId)
                         ? grouped[s.StoreId].CreatedAt
                         : (DateTime?)null,
-                    CoverImageUrl = s.CoverImageUrl
-                })
-                .ToList();
+                    CoverImageUrl = s.CoverImageUrl,
+                    IsOpenNow = isOpenNow,
+                    BusinessHours = BuildBusinessHourText(s)
+                });
+            }
 
             return result;
         }
@@ -213,6 +201,70 @@ namespace GroupDelivery.Infrastructure.Services
             store.IsPausedToday = !store.IsPausedToday;
 
             await _storeRepo.UpdateAsync(store);
+        }
+        private bool IsStoreOpenNow(Store store, DateTime now)
+        {
+            // 今日暫停
+            if (store.IsPausedToday)
+                return false;
+
+            var today = (int)now.DayOfWeek;
+
+            // 固定公休日
+            if (!string.IsNullOrEmpty(store.ClosedDays))
+            {
+                var closed = store.ClosedDays
+                    .Split(',')
+                    .Select(x => int.Parse(x.Trim()))
+                    .ToList();
+
+                if (closed.Contains(today))
+                    return false;
+            }
+
+            var nowTime = now.TimeOfDay;
+
+            // 第一時段
+            if (IsWithinTimeRange(store.OpenTime, store.CloseTime, nowTime))
+                return true;
+
+            // 第二時段
+            if (store.OpenTime2.HasValue && store.CloseTime2.HasValue)
+            {
+                if (IsWithinTimeRange(
+                    store.OpenTime2.Value,
+                    store.CloseTime2.Value,
+                    nowTime))
+                    return true;
+            }
+
+            return false;
+        }
+        private bool IsWithinTimeRange(TimeSpan open, TimeSpan close, TimeSpan now)
+        {
+            if (open <= close)
+            {
+                // 正常區間 (11:00 - 20:00)
+                return now >= open && now <= close;
+            }
+            else
+            {
+                // 跨午夜 (18:00 - 02:00)
+                return now >= open || now <= close;
+            }
+        }
+        private string BuildBusinessHourText(Store store)
+        {
+            var text = store.OpenTime + " - " + store.CloseTime;
+
+            if (store.OpenTime2.HasValue && store.CloseTime2.HasValue)
+            {
+                text += " / " +
+                        store.OpenTime2.Value + " - " +
+                        store.CloseTime2.Value;
+            }
+
+            return text;
         }
     }
 }

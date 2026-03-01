@@ -269,62 +269,82 @@
                 return {
                     groups: [],
                     groupStates: [],
+                    customOrders: [],
                     mode: 'active',
                     range: 'today'
                 }
             },
 
             async mounted() {
-                const res = await axios.get('/api/merchant/orders');
+                const res = await axios.get('/api/orders/all-orders');
 
                 this.groups = [
                     ...res.data.today,
                     ...res.data.week,
                     ...res.data.month
                 ];
-
+                this.customOrders = res.data.custom || [];
                 this.groupStates = this.groups.map(() => false);
             },
 
             computed: {
 
-                filteredGroups() {
+                       filteredGroups() {
 
-                    const now = new Date();
-                    const todayStr = now.toDateString();
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-                    return this.groups.filter(g => {
+            return this.groups.filter(g => {
 
-                        const deadline = new Date(g[0].groupOrder.deadline);
+                const deadline = new Date(g[0].groupOrder.deadline);
+                const deadlineDay = new Date(
+                    deadline.getFullYear(),
+                    deadline.getMonth(),
+                    deadline.getDate()
+                );
 
-                        if (this.mode === 'active' && deadline < now) return false;
-                        if (this.mode === 'history' && deadline > now) return false;
+                // 先處理 mode
+                if (this.mode === 'active' && deadline < now)
+                    return false;
 
-                        if (this.range === 'today')
-                            return deadline.toDateString() === todayStr;
+                if (this.mode === 'history' && deadline >= now)
+                    return false;
 
-                        if (this.range === 'week') {
-                            const diff = now - deadline;
-                            return diff <= 7 * 24 * 60 * 60 * 1000 && diff >= 0;
-                        }
+                // 再處理 range
+                if (this.range === 'today')
+                    return deadlineDay.getTime() === today.getTime();
 
-                        if (this.range === 'month')
-                            return deadline.getMonth() === now.getMonth();
+                if (this.range === 'week') {
+                    const diff = today - deadlineDay;
+                    return diff <= 7 * 24 * 60 * 60 * 1000 && diff >= 0;
+                }
 
-                        return true;
-                    });
+                if (this.range === 'month')
+                    return deadline.getMonth() === now.getMonth() &&
+                           deadline.getFullYear() === now.getFullYear();
 
-                },
+                return true;
+            });
+        },
 
-                totalRevenue() {
-                    return this.filteredGroups.reduce(
-                        (sum, g) => sum + this.groupTotal(g), 0);
-                },
+                        totalRevenue() {
+            const groupRevenue = this.filteredGroups.reduce(
+                (sum, g) => sum + this.groupTotal(g), 0);
 
-                totalOrders() {
-                    return this.filteredGroups.reduce(
-                        (sum, g) => sum + g.length, 0);
-                },
+            const customRevenue = this.customOrders.reduce(
+                (sum, o) => sum + o.totalAmount, 0);
+
+            return groupRevenue + customRevenue;
+        },
+
+        totalOrders() {
+            const groupCount = this.filteredGroups.reduce(
+                (sum, g) => sum + g.length, 0);
+
+            const customCount = this.customOrders.length;
+
+            return groupCount + customCount;
+        },
 
                 onlineCount() {
                     return this.filteredGroups

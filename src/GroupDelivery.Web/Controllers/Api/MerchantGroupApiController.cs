@@ -1,10 +1,11 @@
 ﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Security.Claims;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers.Api
@@ -16,11 +17,13 @@ namespace GroupDelivery.Web.Controllers.Api
     {
         private readonly IGroupOrderService _groupOrderService;
         private readonly IStoreService _storeService;
+        private readonly IDeliveryRuleService _deliveryRuleService;
 
-        public MerchantGroupApiController(IGroupOrderService groupOrderService, IStoreService storeService)
+        public MerchantGroupApiController(IGroupOrderService groupOrderService, IStoreService storeService, IDeliveryRuleService deliveryRuleService)
         {
             _groupOrderService = groupOrderService;
             _storeService = storeService;
+            _deliveryRuleService = deliveryRuleService;
         }
 
         [HttpPost("groups")]
@@ -60,6 +63,24 @@ namespace GroupDelivery.Web.Controllers.Api
             });
 
             return Ok(result);
+        }
+        [HttpGet("stores/{storeId}/delivery-threshold")]
+        public async Task<IActionResult> GetDeliveryThreshold(int storeId)
+        {
+            var rules = await _deliveryRuleService.GetByStoreIdAsync(storeId);
+
+            if (rules == null || !rules.Any())
+                return Ok(new { targetAmount = 0 });
+
+            // 取最大距離那筆門檻（最保守）
+            var maxRule = rules
+                .OrderByDescending(x => x.MaxDistanceKm)
+                .First();
+
+            return Ok(new
+            {
+                targetAmount = maxRule.MinimumOrderAmount
+            });
         }
     }
 }

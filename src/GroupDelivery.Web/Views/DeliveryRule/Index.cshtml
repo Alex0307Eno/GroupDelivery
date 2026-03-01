@@ -1,0 +1,156 @@
+﻿@model List<GroupDelivery.Domain.DeliveryRule>
+
+<style>
+    body {
+        background: #f6f8fc;
+    }
+
+    .wrap {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+    }
+
+    .card-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .title {
+        font-weight: 800;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: .8rem;
+        align-items: end;
+    }
+
+        .form-grid input {
+            padding: .6rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-size: .85rem;
+        }
+
+    .btn-add {
+        background: #10b981;
+        color: #fff;
+        border: none;
+        padding: .6rem 1rem;
+        border-radius: 999px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .rule-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: .9rem 1rem;
+        border-radius: 12px;
+        background: #f9fafb;
+        margin-bottom: .6rem;
+    }
+
+    .rule-left {
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+        .rule-left span {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+    .btn-delete {
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        font-size: .8rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .empty {
+        color: #6b7280;
+        font-size: .9rem;
+        text-align: center;
+        padding: 2rem 0;
+    }
+</style>
+
+<div class="wrap">
+
+    <div class="card-box">
+        <div class="title">新增外送規則</div>
+
+        <form method="post" action="/DeliveryRule/Add">
+            <input type="hidden" name="storeId" value="@ViewBag.StoreId" />
+
+            <div class="form-grid">
+                <div>
+                    <div>距離上限 (km)</div>
+                    <input name="maxDistance" required />
+                </div>
+
+                <div>
+                    <div>最低消費</div>
+                    <input name="minAmount" required />
+                </div>
+
+                <div>
+                    <div>未達收費</div>
+                    <input name="fee" required />
+                </div>
+
+                <button type="submit" class="btn-add">
+                    新增
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-box">
+        <div class="title">已設定規則</div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty">
+                尚未設定外送規則
+            </div>
+        }
+        else
+        {
+            @foreach (var rule in Model)
+            {
+                <div class="rule-row">
+                    <div class="rule-left">
+                        @rule.MaxDistanceKm.ToString("0") km 內
+                        <span>
+                            滿 @rule.MinimumOrderAmount.ToString("0") 元免運，
+                            未達收 @rule.DeliveryFeeIfNotMet.ToString("0") 元
+                        </span>
+                    </div>
+
+                    <form method="post" action="/DeliveryRule/Delete">
+                        <input type="hidden" name="id" value="@rule.DeliveryRuleId" />
+                        <input type="hidden" name="storeId" value="@ViewBag.StoreId" />
+                        <button type="submit"
+                                class="btn-delete"
+                                onclick="return confirm('確定刪除這個區間？');">
+                            刪除
+                        </button>
+                    </form>
+                </div>
+            }
+        }
+    </div>
+
+</div>

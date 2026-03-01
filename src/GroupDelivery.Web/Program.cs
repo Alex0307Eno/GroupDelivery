@@ -87,7 +87,9 @@ namespace GroupDelivery.Web
             builder.Services.AddHttpClient<IGeocodingService, GeocodingService>();
             // Email 發送服務，負責寄送驗證信、通知信等
             builder.Services.AddScoped<EmailService>();
-
+            builder.Services.AddScoped<ILoginTokenUsageRepository, LoginTokenUsageRepository>();
+            builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
+            builder.Services.AddScoped<ILoginLogService, LoginLogService>();
             // =========================
             // 驗證 / 登入相關
             // =========================
@@ -146,7 +148,8 @@ namespace GroupDelivery.Web
             // =========================
             // 訂單（Order）相關
             // =========================
-
+            builder.Services.AddScoped<IDeliveryRuleService, DeliveryRuleService>();
+            builder.Services.AddScoped<IDeliveryRuleRepository, DeliveryRuleRepository>();
             // 下單商業邏輯
             builder.Services.AddScoped<IOrderService, OrderService>();
 

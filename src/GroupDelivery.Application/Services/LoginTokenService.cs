@@ -21,7 +21,9 @@ namespace GroupDelivery.Application.Services
         public string GenerateToken(string email)
         {
             var expire = DateTime.UtcNow.AddMinutes(10);
-            var payload = $"{email}|{expire:O}";
+            var nonce = Guid.NewGuid().ToString();
+
+            var payload = $"{email}|{expire:O}|{nonce}";
             var sign = Sign(payload);
 
             return Convert.ToBase64String(
@@ -31,11 +33,13 @@ namespace GroupDelivery.Application.Services
         #endregion
 
         #region 驗證登入 Token 是否有效，成功時取回對應的 Email
-        public bool TryValidateToken(string token, out string email)
+        public bool TryValidateToken(string token, out string email, out string nonce)
         {
             email = null;
+            nonce = null;
 
             string raw;
+
             try
             {
                 raw = Encoding.UTF8.GetString(Convert.FromBase64String(token));
@@ -46,12 +50,13 @@ namespace GroupDelivery.Application.Services
             }
 
             var parts = raw.Split('|');
-            if (parts.Length != 3)
+            if (parts.Length != 4)
                 return false;
 
-            email = parts[0];
-            var expireText = parts[1];   
-            var sign = parts[2];
+            var tokenEmail = parts[0];
+            var expireText = parts[1];
+            var tokenNonce = parts[2];
+            var sign = parts[3];
 
             DateTime expire;
             if (!DateTime.TryParse(
@@ -64,9 +69,15 @@ namespace GroupDelivery.Application.Services
             if (expire < DateTime.UtcNow)
                 return false;
 
-            var expected = Sign($"{email}|{expireText}");
+            var expected = Sign($"{tokenEmail}|{expireText}|{tokenNonce}");
 
-            return sign == expected;
+            if (!SlowEquals(sign, expected))
+                return false;
+
+            email = tokenEmail;
+            nonce = tokenNonce;
+
+            return true;
         }
         #endregion
 
@@ -89,5 +100,23 @@ namespace GroupDelivery.Application.Services
             }
         }
         #endregion
+
+        private bool SlowEquals(string a, string b)
+        {
+            var aBytes = Encoding.UTF8.GetBytes(a);
+            var bBytes = Encoding.UTF8.GetBytes(b);
+
+            if (aBytes.Length != bBytes.Length)
+                return false;
+
+            int diff = 0;
+
+            for (int i = 0; i < aBytes.Length; i++)
+            {
+                diff |= aBytes[i] ^ bBytes[i];
+            }
+
+            return diff == 0;
+        }
     }
 }

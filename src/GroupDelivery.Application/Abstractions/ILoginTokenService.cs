@@ -16,7 +16,7 @@ namespace GroupDelivery.Application.Abstractions
         // 驗證登入 Token 是否有效
         // 若驗證成功，回傳對應的 Email
         // 驗證失敗則回傳 false
-        bool TryValidateToken(string token, out string email);
+        bool TryValidateToken(string token, out string email, out string nonce);
     }
 
 

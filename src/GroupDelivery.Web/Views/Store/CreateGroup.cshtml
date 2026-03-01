@@ -78,7 +78,7 @@
         <div class="card-box">
 
             <!-- 店家 -->
-            <div class="mb-4">
+            <div class="mb-4" v-if="stores.length > 1">
                 <label class="form-label">店家</label>
                 <select class="form-select" v-model="form.storeId">
                     <option disabled value="">請選擇店家</option>
@@ -90,14 +90,37 @@
                 </select>
             </div>
 
+            <div class="mb-4" v-else-if="stores.length === 1">
+                <label class="form-label">店家</label>
+                <div class="form-control bg-light">
+                    {{ stores[0].storeName }}
+                </div>
+            </div>
+
+            <div class="mb-4 text-danger" v-else>
+                你目前尚未建立商店
+            </div>
+
             <!-- 成團金額 -->
             <div class="mb-4">
                 <label class="form-label">成團金額</label>
+
                 <div class="input-group mt-2">
                     <span class="input-group-text">$</span>
                     <input type="number"
                            class="form-control"
-                           v-model.number="form.targetAmount">
+                           v-model.number="form.targetAmount"
+                           disabled>
+                </div>
+
+                <div v-if="thresholdNote"
+                     class="small text-muted mt-2">
+                    {{ thresholdNote }}
+                </div>
+
+                <div v-if="!form.storeId"
+                     class="small text-muted mt-2">
+                    請先選擇店家
                 </div>
             </div>
 
@@ -163,150 +186,187 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <script>
-        const { createApp } = Vue;
+                const { createApp } = Vue;
 
         createApp({
 
-        data(){
-            return{
-                stores:[],
-                submitting:false,
-                countdown:"",
-                customDeadline:"",
-                form:{
-                    storeId:null,
-                    targetAmount:null,
-                    deadline:"",
-                    remark:""
+            data(){
+                return{
+                    stores:[],
+                    submitting:false,
+                    countdown:"",
+                    customDeadline:"",
+                    thresholdNote:"",
+                    form:{
+                        storeId:null,
+                        targetAmount:null,
+                        deadline:"",
+                        remark:""
+                    },
+                    timeOptions:[]
+                }
+            },
+
+            mounted(){
+
+                    axios.get('/api/merchant/stores')
+        .then(res=>{
+            this.stores = res.data || [];
+
+            if(this.stores.length === 1){
+                this.form.storeId = this.stores[0].storeId;
+            }
+        });
+
+                this.generateTimeOptions();
+                setInterval(this.updateCountdown,1000);
+            },
+
+            watch:{
+                'form.storeId'(newVal){
+
+                    if(!newVal){
+                        this.form.targetAmount = null;
+                        this.thresholdNote = "";
+                        return;
+                    }
+
+                    axios.get(`/api/merchant/stores/${newVal}/delivery-threshold`)
+                        .then(res=>{
+
+                            const amount = res.data.targetAmount || 0;
+
+                            this.form.targetAmount = amount;
+
+                            if(amount > 0){
+                                this.thresholdNote =
+                                    "成團金額依外送門檻自動設定為 $" +
+                                    amount.toLocaleString();
+                            }
+                            else{
+                                this.thresholdNote =
+                                    "此店尚未設定外送門檻";
+                            }
+                        });
+                }
+            },
+
+            computed:{
+                formattedDeadline(){
+                    if(!this.form.deadline) return "尚未設定";
+                    return this.form.deadline.replace('T',' ');
+                }
+            },
+
+            methods:{
+
+                generateTimeOptions(){
+
+                    const now = new Date();
+                    const minTime = new Date(now.getTime() + 15*60000);
+
+                    const options=[];
+
+                    for(let i=0;i<6;i++){
+
+                        const d=new Date(minTime);
+                        d.setMinutes(0);
+                        d.setHours(minTime.getHours() + Math.floor(i/2));
+                        if(i%2===1) d.setMinutes(30);
+
+                        if(d <= minTime) continue;
+
+                        const label =
+                            String(d.getHours()).padStart(2,'0') +
+                            ':' +
+                            String(d.getMinutes()).padStart(2,'0');
+
+                        const value =
+                            d.getFullYear() + '-' +
+                            String(d.getMonth()+1).padStart(2,'0') + '-' +
+                            String(d.getDate()).padStart(2,'0') + 'T' +
+                            String(d.getHours()).padStart(2,'0') + ':' +
+                            String(d.getMinutes()).padStart(2,'0');
+
+                        options.push({ label,value });
+                    }
+
+                    this.timeOptions=options;
                 },
-                timeOptions:[]
+
+                selectTime(value){
+                    this.form.deadline=value;
+                    this.customDeadline="";
+                },
+
+                applyCustom(){
+
+                    if(!this.customDeadline) return;
+
+                    const selected=new Date(this.customDeadline);
+                    const now=new Date();
+
+                    if(selected <= now){
+                        alert("自訂時間不可小於現在");
+                        this.customDeadline="";
+                        return;
+                    }
+
+                    this.form.deadline=this.customDeadline;
+                },
+
+                updateCountdown(){
+
+                    if(!this.form.deadline){
+                        this.countdown="";
+                        return;
+                    }
+
+                    const now=new Date();
+                    const target=new Date(this.form.deadline);
+                    const diff=target-now;
+
+                    if(diff<=0){
+                        this.countdown="已截止";
+                        return;
+                    }
+
+                    const hours=Math.floor(diff/3600000);
+                    const minutes=Math.floor((diff%3600000)/60000);
+                    const seconds=Math.floor((diff%60000)/1000);
+
+                    this.countdown=
+                        String(hours).padStart(2,'0') + " 小時 " +
+                        String(minutes).padStart(2,'0') + " 分 " +
+                        String(seconds).padStart(2,'0') + " 秒";
+                },
+
+                submitForm(){
+
+                    if(!this.form.storeId){
+                        alert("請選擇店家");
+                        return;
+                    }
+
+                    if(!this.form.targetAmount){
+                        alert("此店尚未設定外送門檻");
+                        return;
+                    }
+
+                    if(!this.form.deadline){
+                        alert("請設定截止時間");
+                        return;
+                    }
+
+                    this.submitting=true;
+
+                    axios.post('/api/merchant/groups',this.form)
+                        .then(()=>location.href="/Home/Index")
+                        .catch(()=>alert("建立失敗"))
+                        .finally(()=>this.submitting=false);
+                }
+
             }
-        },
-
-        mounted(){
-
-            axios.get('/api/merchant/stores')
-                .then(res=>{
-                    this.stores = res.data || [];
-                });
-
-            this.generateTimeOptions();
-
-            setInterval(this.updateCountdown,1000);
-        },
-
-        computed:{
-            formattedDeadline(){
-                if(!this.form.deadline) return "尚未設定";
-                return this.form.deadline.replace('T',' ');
-            }
-        },
-
-        methods:{
-
-        generateTimeOptions(){
-
-            const now = new Date();
-            const minTime = new Date(now.getTime() + 15*60000);
-
-            const options=[];
-
-            // 只顯示未來 6 個時間
-            for(let i=0;i<6;i++){
-
-                const d=new Date(minTime);
-                d.setMinutes(0);
-                d.setHours(minTime.getHours() + Math.floor(i/2));
-                if(i%2===1) d.setMinutes(30);
-
-                if(d <= minTime) continue;
-
-                const label =
-                    String(d.getHours()).padStart(2,'0') +
-                    ':' +
-                    String(d.getMinutes()).padStart(2,'0');
-
-                const value =
-                    d.getFullYear() + '-' +
-                    String(d.getMonth()+1).padStart(2,'0') + '-' +
-                    String(d.getDate()).padStart(2,'0') + 'T' +
-                    String(d.getHours()).padStart(2,'0') + ':' +
-                    String(d.getMinutes()).padStart(2,'0');
-
-                options.push({ label,value });
-            }
-
-            this.timeOptions=options;
-        },
-
-        selectTime(value){
-            this.form.deadline=value;
-            this.customDeadline="";
-        },
-
-        applyCustom(){
-
-            if(!this.customDeadline) return;
-
-            const selected=new Date(this.customDeadline);
-            const now=new Date();
-
-            if(selected <= now){
-                alert("自訂時間不可小於現在");
-                this.customDeadline="";
-                return;
-            }
-
-            this.form.deadline=this.customDeadline;
-        },
-
-        updateCountdown(){
-
-            if(!this.form.deadline){
-                this.countdown="";
-                return;
-            }
-
-            const now=new Date();
-            const target=new Date(this.form.deadline);
-            const diff=target-now;
-
-            if(diff<=0){
-                this.countdown="已截止";
-                return;
-            }
-
-            const hours=Math.floor(diff/3600000);
-            const minutes=Math.floor((diff%3600000)/60000);
-            const seconds=Math.floor((diff%60000)/1000);
-
-            this.countdown=
-                String(hours).padStart(2,'0') + " 小時 " +
-                String(minutes).padStart(2,'0') + " 分 " +
-                String(seconds).padStart(2,'0') + " 秒";
-        },
-
-        submitForm(){
-
-            if(!this.form.storeId){
-                alert("請選擇店家");
-                return;
-            }
-
-            if(!this.form.targetAmount || !this.form.deadline){
-                alert("請填寫完整資料");
-                return;
-            }
-
-            this.submitting=true;
-
-            axios.post('/api/merchant/groups',this.form)
-                .then(()=>location.href="/Home/Index")
-                .catch(()=>alert("建立失敗"))
-                .finally(()=>this.submitting=false);
-        }
-
-        }
 
         }).mount('#app');
     </script>

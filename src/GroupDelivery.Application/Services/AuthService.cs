@@ -56,19 +56,16 @@ namespace GroupDelivery.Application.Services
         #endregion
 
         #region 使用驗證 Token 完成登入並建立登入 Cookie
-        public async Task SignInByTokenAsync(string token, HttpContext httpContext)
+        public async Task SignInByEmailAsync(string email, HttpContext httpContext)
         {
-            if (!_tokenService.TryValidateToken(token, out var email))
-                throw new Exception("Token 無效");
-
             var user = await _userRepo.GetOrCreateByEmail(email);
 
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Email)
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Name, user.Email)
+    };
 
             var identity = new ClaimsIdentity(
                 claims,
@@ -77,7 +74,7 @@ namespace GroupDelivery.Application.Services
             await httpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
-        }
+        }        
         #endregion
 
         #region  判斷使用者是否已填寫完成必要的個人資料

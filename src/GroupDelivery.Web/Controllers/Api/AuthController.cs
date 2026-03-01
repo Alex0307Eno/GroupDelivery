@@ -26,16 +26,25 @@ namespace GroupDelivery.Web.Controllers.Api
         private readonly EmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IAuthService _authService;
+        private readonly ILoginTokenService _loginTokenService;
+        private readonly ILoginTokenUsageRepository _tokenUsageRepo;
+        private readonly ILoginLogService _loginLogService;
 
 
         public AuthController(
-            EmailService emailService,
-            IConfiguration config,
-            IAuthService authService)
+     EmailService emailService,
+     IConfiguration config,
+     IAuthService authService,
+     ILoginTokenService loginTokenService,
+     ILoginTokenUsageRepository tokenUsageRepo,
+     ILoginLogService loginLogService)
         {
             _emailService = emailService;
             _config = config;
             _authService = authService;
+            _loginTokenService = loginTokenService;
+            _tokenUsageRepo = tokenUsageRepo;
+            _loginLogService = loginLogService;
         }
 
         [HttpPost("SendLoginLink")]
@@ -47,8 +56,38 @@ namespace GroupDelivery.Web.Controllers.Api
         [HttpGet("VerifyEmail")]
         public async Task<IActionResult> VerifyEmail(string token)
         {
-            await _authService.SignInByTokenAsync(token, HttpContext);
-            
+            if (string.IsNullOrEmpty(token))
+                return BadRequest("無效連結");
+
+            // 1️⃣ 驗證 Token 結構 + 簽章 + 時效
+            string email;
+            string nonce;
+
+            var isValid = _loginTokenService
+                .TryValidateToken(token, out email, out nonce);
+
+            if (!isValid)
+                return BadRequest("連結已失效或格式錯誤");
+
+            // 2️⃣ 檢查是否已使用（防重放）
+            if (await _tokenUsageRepo.IsUsedAsync(nonce))
+                return BadRequest("連結已被使用");
+
+            // 3️⃣ 標記已使用
+            await _tokenUsageRepo.MarkUsedAsync(
+                nonce,
+                DateTime.UtcNow.AddMinutes(10)
+            );
+
+            // 4️⃣ 執行登入
+            await _authService.SignInByEmailAsync(email, HttpContext);
+            await _loginLogService.RecordAsync(
+                    email,
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Request.Headers["User-Agent"].ToString(),
+                    "Email",
+                    true
+             );
             return Redirect("/Account/AfterLogin");
         }
         [HttpGet("LineLogin")]
@@ -171,7 +210,13 @@ namespace GroupDelivery.Web.Controllers.Api
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new System.Security.Claims.ClaimsPrincipal(identity));
-
+            await _loginLogService.RecordAsync(
+                user.LineUserId,
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Request.Headers["User-Agent"].ToString(),
+                "Line",
+                true
+            );
             // 回首頁
             if (user.Role == UserRole.None)
             {

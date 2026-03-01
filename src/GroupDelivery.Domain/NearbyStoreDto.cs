@@ -11,11 +11,16 @@ namespace GroupDelivery.Domain
         public int StoreId { get; set; }
         public string StoreName { get; set; }
         public string Address { get; set; }
-        public decimal Distance { get; set; }
+        public double Distance { get; set; }
+
         public bool HasActiveGroup { get; set; }
         public DateTime? ActiveGroupDeadline { get; set; }
         public DateTime? ActiveGroupCreatedAt { get; set; }
+
         public string CoverImageUrl { get; set; }
+
+        public bool IsOpenNow { get; set; }
+        public string BusinessHours { get; set; }
     }
 
 }

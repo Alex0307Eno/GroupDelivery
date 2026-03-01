@@ -73,9 +73,10 @@ namespace GroupDelivery.Application.Services
             if (deadline <= DateTime.Now)
                 throw new Exception("截止時間必須晚於現在");
 
-            if (deadline <= DateTime.Now)
-                throw new Exception("截止時間必須晚於現在");
+            var now = DateTime.Now;
 
+            if (!IsStoreOpenNow(store, now))
+                throw new Exception("店家目前已打烊，無法開團");
 
             var group = new GroupOrder
             {
@@ -318,6 +319,48 @@ namespace GroupDelivery.Application.Services
             order.TakeMode = takeMode;
 
             await _orderRepository.UpdateAsync(order);
+        }
+        private bool IsStoreOpenNow(Store store, DateTime now)
+        {
+            if (store.IsPausedToday)
+                return false;
+
+            var today = (int)now.DayOfWeek;
+
+            if (!string.IsNullOrEmpty(store.ClosedDays))
+            {
+                var closed = store.ClosedDays
+                    .Split(',')
+                    .Select(x => int.Parse(x.Trim()))
+                    .ToList();
+
+                if (closed.Contains(today))
+                    return false;
+            }
+
+            var nowTime = now.TimeOfDay;
+
+            if (IsWithinTimeRange(store.OpenTime, store.CloseTime, nowTime))
+                return true;
+
+            if (store.OpenTime2.HasValue && store.CloseTime2.HasValue)
+            {
+                if (IsWithinTimeRange(
+                    store.OpenTime2.Value,
+                    store.CloseTime2.Value,
+                    nowTime))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsWithinTimeRange(TimeSpan open, TimeSpan close, TimeSpan now)
+        {
+            if (open <= close)
+                return now >= open && now <= close;
+            else
+                return now >= open || now <= close;
         }
         #region  Haversine 距離公式，回傳公里
         private double CalculateDistance(

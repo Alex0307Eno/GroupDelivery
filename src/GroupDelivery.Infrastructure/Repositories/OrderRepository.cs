@@ -52,6 +52,8 @@ namespace GroupDelivery.Infrastructure.Repositories
                     .ThenInclude(g => g.Store)
                 .Include(x => x.OrderItems)
                     .ThenInclude(i => i.StoreMenuItem)
+                .Include(x => x.OrderItems)
+                    .ThenInclude(i => i.OrderItemOptions)  
                 .Where(x => x.GroupOrder.Store.OwnerUserId == merchantUserId)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
