@@ -25,6 +25,7 @@ namespace GroupDelivery.Infrastructure.Data
         public DbSet<StoreMenuItemOption> StoreMenuItemOptions { get; set; }
         public DbSet<OrderItemOption> OrderItemOptions { get; set; }
         public DbSet<DeliveryRule> DeliveryRules { get; set; }
+        public DbSet<MerchantSubscription> MerchantSubscriptions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

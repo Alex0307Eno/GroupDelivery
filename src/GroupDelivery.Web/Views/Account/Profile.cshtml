@@ -172,56 +172,95 @@
                 }
             },
 
-            template: `
-            <div v-if="loading" class="text-center py-5 text-muted">
-                載入中...
-            </div>
+        template: `
+        <div v-if="loading" class="text-center py-5 text-muted">
+        載入中...
+        </div>
 
-            <div v-else class="page-wrap">
-                <div class="profile-card">
+        <div v-else class="page-wrap">
 
-                    <div v-if="errorMessage" class="error-box">
-                        {{ errorMessage }}
-                    </div>
+        <div class="profile-card">
 
-                    <div v-if="successMessage" class="success-box">
-                        {{ successMessage }}
-                    </div>
+        <h3 style="font-weight:800;margin-bottom:1.5rem">
+        我的帳號
+        </h3>
 
-                    <div class="section-title">
-                        暱稱 <span class="required">*</span>
-                    </div>
-                    <input class="input-modern"
-                           placeholder="2~20 個字"
-                           v-model="user.nickname">
+        <div v-if="errorMessage" class="error-box">
+        {{ errorMessage }}
+        </div>
 
-                    <div class="section-title">
-                        手機號碼 <span class="required">*</span>
-                    </div>
-                    <input class="input-modern"
-                           v-model="user.phone">
+        <div v-if="successMessage" class="success-box">
+        {{ successMessage }}
+        </div>
 
-                    <div class="section-title">
-                        完整地址 <span class="required">*</span>
-                    </div>
-                    <input class="input-modern"
-                           placeholder="例如：台中市西屯區文心路二段100號"
-                           v-model="user.city">
+        <div class="section-title">
+        暱稱 <span class="required">*</span>
+        </div>
 
-                    <div class="section-title">自我介紹</div>
-                    <textarea class="input-modern"
-                              rows="3"
-                              v-model="user.bio"></textarea>
+        <input class="input-modern"
+        placeholder="2~20 個字"
+        v-model="user.nickname">
 
-                    <button class="btn-primary-clean"
-                            :disabled="saving"
-                            v-on:click="saveProfile">
-                        {{ saving ? "儲存中..." : "儲存變更" }}
-                    </button>
+        <div class="section-title">
+        手機號碼 <span class="required">*</span>
+        </div>
 
-                </div>
-            </div>
-            `
-        }).mount('#app');
+        <input class="input-modern"
+        v-model="user.phone">
+
+        <div class="section-title">
+        完整地址 <span class="required">*</span>
+        </div>
+
+        <input class="input-modern"
+        placeholder="例如：台中市西屯區文心路二段100號"
+        v-model="user.city">
+
+        <div class="section-title">
+        自我介紹
+        </div>
+
+        <textarea class="input-modern"
+        rows="3"
+        v-model="user.bio"></textarea>
+
+        <button class="btn-primary-clean"
+        :disabled="saving"
+        v-on:click="saveProfile">
+
+        {{ saving ? "儲存中..." : "儲存變更" }}
+
+        </button>
+
+        <div style="margin-top:2rem;border-top:1px solid #f1f5f9;padding-top:1.5rem">
+
+        <div class="section-title">
+        商家功能
+        </div>
+
+        <a v-if="!user.isMerchant"
+        href="/Account/UpgradeToMerchant"
+        class="btn btn-warning w-100"
+        style="border-radius:999px;font-weight:700">
+
+        我要開店
+
+        </a>
+
+        <a v-if="user.isMerchant"
+        href="/Merchant/Dashboard"
+        class="btn btn-success w-100"
+        style="border-radius:999px;font-weight:700">
+
+        進入商家後台
+
+        </a>
+
+        </div>
+
+        </div>
+
+        </div>
+        `        }).mount('#app');
     </script>
 }

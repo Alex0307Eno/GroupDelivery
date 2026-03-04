@@ -158,7 +158,9 @@ namespace GroupDelivery.Web
 
             // 菜單品項資料存取（tbStoreMenuItem）
             builder.Services.AddScoped<IStoreMenuItemRepository, StoreMenuItemRepository>();
-
+            //付款邏輯
+            builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+            builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

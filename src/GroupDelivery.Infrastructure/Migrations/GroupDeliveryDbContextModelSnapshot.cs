@@ -191,6 +191,43 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.ToTable("LoginTokenUsages");
                 });
 
+            modelBuilder.Entity("GroupDelivery.Domain.MerchantSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GatewaySubscriptionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MerchantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NextBillingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlanType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MerchantSubscriptions");
+                });
+
             modelBuilder.Entity("GroupDelivery.Domain.Order", b =>
                 {
                     b.Property<int>("OrderId")

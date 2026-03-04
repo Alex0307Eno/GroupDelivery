@@ -3,6 +3,7 @@
 }
 
 <style>
+
     body {
         background: #f5f7fb;
     }
@@ -84,126 +85,202 @@
         background: #ea580c;
         color: #fff;
     }
+
+    .countdown {
+        font-size: .8rem;
+        color: #dc2626;
+        font-weight: 600;
+    }
+
 </style>
+
 
 <div id="merchantApp" class="container py-4">
 
-    <h2 class="fw-bold mb-4">商家訂單管理</h2>
+    <h2 class="fw-bold mb-4">
+        商家訂單管理
+    </h2>
+
 
     <!-- 主模式 -->
+
     <div class="mb-3">
+
         <button class="btn filter-btn"
-                :class="mode==='active' ? 'active-main' : 'btn-outline-dark'"
+                :class="mode==='active'?'active-main':'btn-outline-dark'"
                 @@click ="mode='active'">
+
             進行中
+
         </button>
 
         <button class="btn filter-btn"
-                :class="mode==='history' ? 'active-main' : 'btn-outline-dark'"
+                :class="mode==='history'?'active-main':'btn-outline-dark'"
                 @@click ="mode='history'">
+
             歷史訂單
+
         </button>
+
     </div>
 
-    <!-- 日期 -->
-    <div class="mb-4">
+
+    <!-- 日期 (只在歷史顯示) -->
+
+    <div v-if="mode==='history'" class="mb-4">
+
         <button class="btn filter-btn"
-                :class="range==='today' ? 'active-sub' : 'btn-outline-secondary'"
+                :class="range==='today'?'active-sub':'btn-outline-secondary'"
                 @@click ="range='today'">
+
             今日
+
         </button>
 
         <button class="btn filter-btn"
-                :class="range==='week' ? 'active-sub' : 'btn-outline-secondary'"
+                :class="range==='week'?'active-sub':'btn-outline-secondary'"
                 @@click ="range='week'">
+
             本週
+
         </button>
 
         <button class="btn filter-btn"
-                :class="range==='month' ? 'active-sub' : 'btn-outline-secondary'"
+                :class="range==='month'?'active-sub':'btn-outline-secondary'"
                 @@click ="range='month'">
+
             本月
+
         </button>
 
         <button class="btn filter-btn"
-                :class="range==='all' ? 'active-sub' : 'btn-outline-secondary'"
+                :class="range==='all'?'active-sub':'btn-outline-secondary'"
                 @@click ="range='all'">
+
             全部
+
         </button>
+
     </div>
+
 
     <!-- 統計 -->
+
     <div class="row mb-4">
+
         <div class="col-md-4">
             <div class="card p-4 group-card">
-                <div class="small text-muted">營收</div>
-                <div class="fs-3 fw-bold">$ {{ totalRevenue }}</div>
+
+                <div class="small text-muted">
+                    營收
+                </div>
+
+                <div class="fs-3 fw-bold">
+                    $ {{ totalRevenue }}
+                </div>
+
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card p-4 group-card">
-                <div class="small text-muted">訂單數</div>
-                <div class="fs-3 fw-bold">{{ totalOrders }}</div>
+
+                <div class="small text-muted">
+                    訂單數
+                </div>
+
+                <div class="fs-3 fw-bold">
+                    {{ totalOrders }}
+                </div>
+
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card p-4 group-card">
-                <div class="small text-muted">團數</div>
-                <div class="fs-3 fw-bold">{{ filteredGroups.length }}</div>
+
+                <div class="small text-muted">
+                    團數
+                </div>
+
+                <div class="fs-3 fw-bold">
+                    {{ filteredGroups.length }}
+                </div>
+
             </div>
         </div>
+
     </div>
 
+
+
     <!-- 團 -->
+
     <div v-for="(group,index) in filteredGroups"
          :key="index"
          class="card group-card mb-4"
          :class="{
-        soon: isSoon(group),
-        history: mode==='history'
-     }">
+soon:isSoon(group),
+history:mode==='history'
+}">
 
         <div class="p-4 d-flex justify-content-between align-items-center"
              @@click ="toggle(index)"
              style="cursor:pointer">
 
             <div>
+
                 <div class="fw-bold">
+
                     {{ group[0].groupOrder.store.storeName }}
+
                 </div>
 
                 <div class="small text-muted">
+
                     截止：{{ format(group[0].groupOrder.deadline) }}
+
+                    <span class="countdown">
+
+                        {{ countdown(group[0].groupOrder.deadline) }}
+
+                    </span>
+
                 </div>
+
             </div>
 
             <div class="fw-bold fs-4">
+
                 $ {{ groupTotal(group) }}
+
             </div>
+
         </div>
+
 
         <div v-if="groupStates[index]"
              class="border-top p-4 bg-light">
 
-            <!-- 顧客排序：金額由高到低 -->
             <div v-for="order in sortedOrders(group)"
                  class="order-card">
 
                 <div class="d-flex justify-content-between">
 
                     <div>
+
                         <div class="fw-bold">
 
                             {{ order.user.nickname || order.user.displayName }}
 
-                            <span class="source-badge"
-                                  :class="order.source === 0
-          ? 'source-online'
-          : 'source-phone'">
+                            <span v-if="isNew(order)" class="new-badge">
+                                NEW
+                            </span>
 
-                                {{ order.source === 0 ? '線上下單' : '電話訂單' }}
+                            <span class="source-badge"
+                                  :class="order.source===0?'source-online':'source-phone'">
+
+                                {{ order.source===0?'線上下單':'電話訂單' }}
 
                             </span>
 
@@ -216,6 +293,7 @@
                         <div class="small">
                             {{ order.user.city }}
                         </div>
+
                     </div>
 
                     <div class="fw-bold">
@@ -223,6 +301,7 @@
                     </div>
 
                 </div>
+
 
                 <div v-for="item in order.orderItems"
                      class="small mt-2">
@@ -233,19 +312,25 @@
                          class="text-muted ms-3">
 
                         <div v-for="opt in item.orderItemOptions">
+
                             • {{ opt.optionName }}
+
                             <span v-if="opt.priceAdjust>0">
                                 (+{{ opt.priceAdjust }})
                             </span>
+
                         </div>
 
                     </div>
 
                 </div>
 
+
                 <div v-if="order.note"
                      class="bg-warning-subtle p-2 rounded mt-2 small">
+
                     📝 {{ order.note }}
+
                 </div>
 
             </div>
@@ -256,146 +341,206 @@
 
 </div>
 
+
+
 @section Scripts {
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <script>
-        const { createApp } = Vue;
+
+        const {createApp}=Vue;
 
         createApp({
 
-            data() {
-                return {
-                    groups: [],
-                    groupStates: [],
-                    customOrders: [],
-                    mode: 'active',
-                    range: 'today'
-                }
-            },
+        data(){
 
-            async mounted() {
-                const res = await axios.get('/api/orders/all-orders');
+        return{
 
-                this.groups = [
-                    ...res.data.today,
-                    ...res.data.week,
-                    ...res.data.month
-                ];
-                this.customOrders = res.data.custom || [];
-                this.groupStates = this.groups.map(() => false);
-            },
+        groups:[],
+        groupStates:[],
+        mode:'active',
+        range:'today',
+        lastOrderCount:0,
+        sound:new Audio('/sound/new-order.mp3')
 
-            computed: {
+        }
 
-                       filteredGroups() {
-
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-            return this.groups.filter(g => {
-
-                const deadline = new Date(g[0].groupOrder.deadline);
-                const deadlineDay = new Date(
-                    deadline.getFullYear(),
-                    deadline.getMonth(),
-                    deadline.getDate()
-                );
-
-                // 先處理 mode
-                if (this.mode === 'active' && deadline < now)
-                    return false;
-
-                if (this.mode === 'history' && deadline >= now)
-                    return false;
-
-                // 再處理 range
-                if (this.range === 'today')
-                    return deadlineDay.getTime() === today.getTime();
-
-                if (this.range === 'week') {
-                    const diff = today - deadlineDay;
-                    return diff <= 7 * 24 * 60 * 60 * 1000 && diff >= 0;
-                }
-
-                if (this.range === 'month')
-                    return deadline.getMonth() === now.getMonth() &&
-                           deadline.getFullYear() === now.getFullYear();
-
-                return true;
-            });
         },
 
-                        totalRevenue() {
-            const groupRevenue = this.filteredGroups.reduce(
-                (sum, g) => sum + this.groupTotal(g), 0);
+        async mounted(){
 
-            const customRevenue = this.customOrders.reduce(
-                (sum, o) => sum + o.totalAmount, 0);
+        await this.loadOrders();
 
-            return groupRevenue + customRevenue;
+        setInterval(this.loadOrders,10000);
+
         },
 
-        totalOrders() {
-            const groupCount = this.filteredGroups.reduce(
-                (sum, g) => sum + g.length, 0);
+        methods:{
 
-            const customCount = this.customOrders.length;
 
-            return groupCount + customCount;
+                        async loadOrders(){
+
+            const res = await axios.get('/api/orders/all-orders');
+
+            // 只用 month，因為 month 已經包含 week / today
+            this.groups = res.data.month || [];
+
+            this.groupStates = this.groups.map(() => false);
+
         },
 
-                onlineCount() {
-                    return this.filteredGroups
-                        .flat()
-                        .filter(o => o.source === 0)
-                        .length;
-                },
 
-                phoneCount() {
-                    return this.filteredGroups
-                        .flat()
-                        .filter(o => o.source === 1)
-                        .length;
-                }
 
-            },
+        groupTotal(group){
 
-            methods: {
+        return group.reduce((s,o)=>s+o.totalAmount,0);
 
-                groupTotal(group) {
-                    return group.reduce((sum, o) => sum + o.totalAmount, 0);
-                },
+        },
 
-                sortedOrders(group) {
-                    return [...group].sort((a, b) => b.totalAmount - a.totalAmount);
-                },
 
-                toggle(index) {
-                    this.groupStates[index] = !this.groupStates[index];
-                },
 
-                format(d) {
-                    return new Date(d).toLocaleString();
-                },
+        sortedOrders(group){
 
-                isSoon(group) {
-                    const deadline = new Date(group[0].groupOrder.deadline);
-                    const now = new Date();
-                    const diff = (deadline - now) / 60000;
-                    return diff > 0 && diff <= 60;
-                },
+        return [...group].sort((a,b)=>b.totalAmount-a.totalAmount);
 
-                isNew(order) {
-                    const created = new Date(order.createdAt);
-                    const now = new Date();
-                    const diff = (now - created) / 60000;
-                    return diff <= 30;
-                }
+        },
 
-            }
+
+
+        toggle(index){
+
+        this.groupStates[index]=!this.groupStates[index];
+
+        },
+
+
+
+        format(d){
+
+        return new Date(d).toLocaleString();
+
+        },
+
+
+
+        isSoon(group){
+
+        const deadline=new Date(group[0].groupOrder.deadline);
+        const now=new Date();
+
+        const diff=(deadline-now)/60000;
+
+        return diff>0 && diff<=60;
+
+        },
+
+
+
+        countdown(d){
+
+        const now=new Date();
+        const deadline=new Date(d);
+
+        const diff=Math.floor((deadline-now)/60000);
+
+        if(diff<=0) return "已截止";
+
+        return "剩 "+diff+" 分鐘";
+
+        },
+
+
+
+        isNew(order){
+
+        const created=new Date(order.createdAt);
+        const now=new Date();
+
+        const diff=(now-created)/60000;
+
+        return diff<=30;
+
+        }
+
+        },
+
+
+
+        computed:{
+
+
+        filteredGroups(){
+
+        const now=new Date();
+
+        const startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+        const endToday=new Date(startToday);
+        endToday.setDate(endToday.getDate()+1);
+
+        const startWeek=new Date(startToday);
+        startWeek.setDate(startWeek.getDate()-startWeek.getDay());
+
+        const endWeek=new Date(startWeek);
+        endWeek.setDate(endWeek.getDate()+7);
+
+        const startMonth=new Date(now.getFullYear(),now.getMonth(),1);
+        const endMonth=new Date(now.getFullYear(),now.getMonth()+1,1);
+
+        return this.groups.filter(g=>{
+
+        const deadline=new Date(g[0].groupOrder.deadline);
+
+        if(this.mode==='active')
+        return deadline>=now;
+
+        if(this.mode==='history'){
+
+        if(this.range==='today')
+        return deadline>=startToday && deadline<endToday;
+
+        if(this.range==='week')
+        return deadline>=startWeek && deadline<endWeek;
+
+        if(this.range==='month')
+        return deadline>=startMonth && deadline<endMonth;
+
+        if(this.range==='all')
+        return deadline<now;
+
+        }
+
+        return true;
+
+        });
+
+        },
+
+
+
+        totalRevenue(){
+
+        return this.filteredGroups
+        .flat()
+        .reduce((s,o)=>s+o.totalAmount,0);
+
+        },
+
+
+
+        totalOrders(){
+
+        return this.filteredGroups
+        .flat()
+        .length;
+
+        }
+
+        }
 
         }).mount('#merchantApp');
+
     </script>
+
 }

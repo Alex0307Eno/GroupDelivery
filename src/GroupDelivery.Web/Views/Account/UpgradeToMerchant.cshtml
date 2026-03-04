@@ -1,143 +1,335 @@
 ﻿@{
-    ViewData["Title"] = "升級為商家";
+    ViewData["Title"] = "我要開店";
 }
 
-<div id="app" class="container py-5"></div>
+<style>
 
-@section Scripts {
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    body {
+        background: #f8fafc;
+    }
 
-    <script>
-                const { createApp } = Vue;
+    .page {
+        max-width: 1100px;
+        margin: auto;
+        padding: 4rem 1rem;
+    }
 
-                createApp({
-                    data() {
-                        return {
-                            form: {
-                                storeName: "",
-                                storePhone: "",
-                                storeAddress: ""
-                            },
-                            submitting: false,
-                            error: null
-                        };
-                    },
-                    methods: {
-                        validate() {
-                            if (!this.form.storeName) {
-                                alert("請輸入店家名稱");
-                                return false;
-                            }
-                            if (!this.form.storePhone) {
-                                alert("請輸入店家電話");
-                                return false;
-                            }
-                            if (!this.form.storeAddress) {
-                                alert("請輸入店家地址");
-                                return false;
-                            }
-                            return true;
-                        },
-                        async submit() {
-                            if (!this.validate()) {
-                                return;
-                            }
+    /* hero */
 
-                            this.submitting = true;
-                            this.error = null;
+    .hero {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-                            try {
-                                const res = await axios.post("/Account/UpgradeToMerchant", {
-                                    storeName: this.form.storeName,
-                                    storePhone: this.form.storePhone,
-                                    storeAddress: this.form.storeAddress
-                                });
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: #111827;
+        }
 
-                                // 如果後端回 Ok({ success: true })
-                                if (res.data && res.data.success) {
-                                    alert("已成功升級為商家");
-                                    window.location.href = "/Account/Profile";
-                                    return;
-                                }
+        .hero p {
+            margin-top: .6rem;
+            color: #6b7280;
+        }
 
-                                // 若你還在用 Redirect 版本，這邊其實也會被導走
-                                // 這段只是保險
-                                window.location.href = "/Account/Profile";
+    /* grid */
 
-                            } catch (e) {
-                                console.error(e);
-                                this.error = "升級失敗，請稍後再試";
-                            } finally {
-                                this.submitting = false;
-                            }
-                        },
-                        backToProfile() {
-                            window.location.href = "/Account/Profile";
-                        }
-                    },
-                    template: `
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
+    .pricing {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+        gap: 22px;
+    }
 
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
+    /* card */
 
-                        <h4 class="fw-bold mb-2 text-center">
-                            升級為商家
-                        </h4>
+    .plan {
+        background: #fff;
+        border-radius: 18px;
+        padding: 2rem 1.6rem;
+        border: 1px solid #e5e7eb;
+        transition: .25s;
+        cursor: pointer;
+    }
 
-                        <p class="text-muted text-center mb-4 small">
-                            升級後即可開團、管理店家資訊，讓附近的客人可以揪團向你下單。
-                        </p>
+        .plan:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(0,0,0,.06);
+        }
 
-                        <div v-if="error" class="alert alert-danger small">
-                            {{ error }}
-                        </div>
+        .plan.active {
+            border: 2px solid #f59e0b;
+        }
 
-                        <div class="mb-3">
-                            <label class="form-label">店家名稱</label>
-                            <input type="text"
-                                   class="form-control"
-                                   v-model="form.storeName"
-                                   placeholder="例如：阿樺便當、Alex 炸雞店" />
-                        </div>
+        /* recommended */
 
-                        <div class="mb-3">
-                            <label class="form-label">店家電話</label>
-                            <input type="text"
-                                   class="form-control"
-                                   v-model="form.storePhone"
-                                   placeholder="0912xxxxxx 或市話" />
-                        </div>
+        .plan.recommend {
+            border: 2px solid #16a34a;
+            transform: scale(1.05);
+        }
 
-                        <div class="mb-4">
-                            <label class="form-label">店家地址</label>
-                            <textarea class="form-control"
-                                      rows="2"
-                                      v-model="form.storeAddress"
-                                      placeholder="請輸入完整地址"></textarea>
-                        </div>
+    .badge {
+        display: inline-block;
+        font-size: .75rem;
+        background: #16a34a;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 999px;
+        margin-bottom: 10px;
+    }
 
-                        <button class="btn btn-warning w-100 fw-bold mb-2"
-                                :disabled="submitting"
-                                v-on:click="submit">
-                            {{ submitting ? "送出中…" : "確認升級為商家" }}
-                        </button>
+    /* text */
 
-                        <button type="button"
-                                class="btn btn-outline-secondary w-100"
-                                :disabled="submitting"
-                                v-on:click="backToProfile">
-                            先回個人資料頁
-                        </button>
+    .plan-name {
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
 
-                    </div>
+    /* price */
+
+    .price-wrap {
+        margin: 10px 0;
+    }
+
+    .origin {
+        text-decoration: line-through;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+
+    .price {
+        font-size: 2rem;
+        font-weight: 900;
+    }
+
+        .price span {
+            font-size: .8rem;
+            color: #6b7280;
+        }
+
+    .discount {
+        color: #ef4444;
+        font-size: .85rem;
+        font-weight: 700;
+    }
+
+    .trial {
+        margin-top: 6px;
+        font-size: .8rem;
+        color: #16a34a;
+        font-weight: 700;
+    }
+
+    /* feature */
+
+    .feature {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 10px;
+    }
+
+        .feature li {
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: .92rem;
+        }
+
+    /* CTA */
+
+    .cta {
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .btn-start {
+        background: #111827;
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 14px 26px;
+        font-weight: 800;
+        font-size: 1rem;
+        transition: .2s;
+    }
+
+        .btn-start:hover {
+            background: #000;
+        }
+
+        .btn-start:disabled {
+            opacity: .5;
+        }
+
+</style>
+
+<div id="app" class="page">
+
+    <div class="hero">
+
+        <h1>開始你的店家揪團</h1>
+
+        <p>
+            免費試用 30 天，讓附近客人一起揪團向你下單
+        </p>
+
+    </div>
+
+    <div class="pricing">
+
+        <div v-for="p in plans"
+             :key="p.id"
+             class="plan"
+             :class="{active:selectedPlan===p.id,recommend:p.recommend}"
+             v-on:click="select(p.id)">
+
+            <div v-if="p.recommend" class="badge">
+                最多商家選擇
+            </div>
+
+            <div class="plan-name">
+                {{p.name}}
+            </div>
+
+            <div class="price-wrap">
+
+                <div class="origin">
+                    ${{p.original}}
+                </div>
+
+                <div class="price">
+                    ${{p.price}} <span>/月</span>
+                </div>
+
+                <div class="discount">
+                    -{{discount(p)}}% 折扣
                 </div>
 
             </div>
+
+            <div class="trial">
+                免費試用 30 天
+            </div>
+
+            <ul class="feature">
+                <li v-for="f in p.features">{{f}}</li>
+            </ul>
+
         </div>
-                    `
-                }).mount("#app");
+
+    </div>
+
+    <div class="cta">
+
+        <button class="btn-start"
+                :disabled="!selectedPlan"
+                v-on:click="next">
+
+            下一步：填店家資料
+
+        </button>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+
+        const {createApp}=Vue;
+
+        createApp({
+
+        data(){
+
+        return{
+
+        selectedPlan:null,
+
+        plans:[
+
+        {
+        id:"299",
+        name:"入門方案",
+        original:499,
+        price:299,
+        features:[
+        "電子菜單",
+        "揪團開單",
+        "訂單管理"
+        ]
+        },
+
+        {
+        id:"499",
+        name:"成長方案",
+        original:699,
+        price:499,
+        features:[
+        "電子菜單可使用圖片",
+        "入門全部功能",
+        "店家頁展示"
+        ]
+        },
+
+        {
+        id:"699",
+        name:"專業方案",
+        original:999,
+        price:699,
+        features:[
+        "客製化訂單",
+        "499全部功能",
+        "進階訂單管理"
+        ]
+        },
+
+        {
+        id:"999",
+        name:"推薦方案",
+        original:1299,
+        price:999,
+        recommend:true,
+        features:[
+        "商家推薦曝光",
+        "699全部功能",
+        "更多流量導入"
+        ]
+        }
+
+        ]
+
+        };
+
+        },
+
+        methods:{
+
+        select(plan){
+
+        this.selectedPlan=plan;
+
+        },
+
+        discount(plan){
+
+        return Math.round(
+        (1-plan.price/plan.original)*100
+        );
+
+        },
+
+        next(){
+
+        window.location="/Account/UpgradeToMerchantForm?plan="+this.selectedPlan;
+
+        }
+
+        }
+
+        }).mount("#app");
+
     </script>
+
 }
