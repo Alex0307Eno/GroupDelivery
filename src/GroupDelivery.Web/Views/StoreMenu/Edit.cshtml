@@ -205,6 +205,7 @@
             </p>
 
             <div style="display:flex;gap:30px;align-items:center;">
+
                 <div class="image-preview" id="previewBox">
                     @if (!string.IsNullOrEmpty(Model.ImageUrl))
                     {
@@ -218,8 +219,14 @@
                             onclick="document.getElementById('fileInput').click()">
                         更換圖片
                     </button>
-                    <input type="file" id="fileInput" name="newImage" hidden />
+
+                    <input type="file"
+                           id="fileInput"
+                           name="ImageUrl"
+                           accept="image/*"
+                           hidden />
                 </div>
+
             </div>
         </div>
 

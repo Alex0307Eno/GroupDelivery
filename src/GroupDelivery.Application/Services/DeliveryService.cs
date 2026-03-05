@@ -52,5 +52,17 @@ namespace GroupDelivery.Application.Services
 
             return rule.DeliveryFeeIfNotMet;
         }
+
+        public async Task<List<DeliveryRuleDto>> GetRulesByStoreAsync(int storeId)
+        {
+            var rules = await _repository.GetByStoreIdAsync(storeId);
+
+            return rules.Select(x => new DeliveryRuleDto
+            {
+                MaxDistanceKm = x.MaxDistanceKm,
+                MinimumOrderAmount = x.MinimumOrderAmount,
+                DeliveryFeeIfNotMet = x.DeliveryFeeIfNotMet
+            }).ToList();
+        }
     }
 }

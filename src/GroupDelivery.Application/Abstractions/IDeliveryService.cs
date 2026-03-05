@@ -13,5 +13,7 @@ namespace GroupDelivery.Application.Abstractions
         Task DeleteRuleAsync(int id);
 
         decimal? CalculateFee(decimal distanceKm, decimal orderAmount, List<DeliveryRule> rules);
+        Task<List<DeliveryRuleDto>> GetRulesByStoreAsync(int storeId);
+
     }
 }

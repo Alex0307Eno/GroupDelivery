@@ -4,6 +4,7 @@ using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -67,20 +68,21 @@ namespace GroupDelivery.Web.Controllers.Api
         [HttpGet("stores/{storeId}/delivery-threshold")]
         public async Task<IActionResult> GetDeliveryThreshold(int storeId)
         {
-            var rules = await _deliveryRuleService.GetByStoreIdAsync(storeId);
+            var rules = await _deliveryRuleService.GetRulesByStoreAsync(storeId);
 
             if (rules == null || !rules.Any())
-                return Ok(new { targetAmount = 0 });
+                return Ok(new List<object>());
 
-            // 取最大距離那筆門檻（最保守）
-            var maxRule = rules
-                .OrderByDescending(x => x.MaxDistanceKm)
-                .First();
+            var result = rules
+                .OrderBy(x => x.MaxDistanceKm)
+                .Select(x => new
+                {
+                    maxDistanceKm = x.MaxDistanceKm,
+                    minimumOrderAmount = x.MinimumOrderAmount,
+                    deliveryFeeIfNotMet = x.DeliveryFeeIfNotMet
+                });
 
-            return Ok(new
-            {
-                targetAmount = maxRule.MinimumOrderAmount
-            });
+            return Ok(result);
         }
     }
 }
