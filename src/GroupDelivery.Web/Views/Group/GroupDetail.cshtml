@@ -1,4 +1,4 @@
-@model int
+@model GroupDelivery.Domain.GroupOrder
 @{
     ViewData["Title"] = "揪IN｜團購詳情";
 }
@@ -179,7 +179,7 @@
     createApp({
         data() {
             return {
-                groupOrderId: @Model,
+                groupOrderId: '@Model.PublicId',
                 deadline: null,
                 now: new Date(),
                 orderMode: '',

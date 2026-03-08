@@ -66,7 +66,7 @@ namespace GroupDelivery.Application.Services
             return entity.GroupOrderId;
         }
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
-        public async Task<GroupDetailDto> GetGroupDetailAsync(int groupId)
+        public async Task<GroupDetailDto> GetGroupDetailAsync(Guid groupId)
         {
             var group = await _groupOrderRepository.GetDetailAsync(groupId);
             if (group == null)
@@ -74,6 +74,7 @@ namespace GroupDelivery.Application.Services
 
             return new GroupDetailDto
             {
+                PublicId = group.PublicId,
                 GroupId = group.GroupOrderId,
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
@@ -120,6 +121,7 @@ namespace GroupDelivery.Application.Services
 
             var group = new GroupOrder
             {
+                PublicId = Guid.NewGuid(),
                 StoreId = request.StoreId,
                 CreatorUserId = userId,
                 OwnerUserId = store.OwnerUserId, 
@@ -359,6 +361,31 @@ namespace GroupDelivery.Application.Services
             order.TakeMode = takeMode;
 
             await _orderRepository.UpdateAsync(order);
+        }
+
+        public async Task CloseGroupAsync(int userId, int groupId)
+        {
+            var group = await _groupOrderRepository.GetByIdAsync(groupId);
+
+            if (group == null)
+                throw new Exception("揪團不存在");
+
+            if (group.Status != GroupOrderStatus.Open)
+                throw new Exception("揪團已結束");
+
+            // 判斷是否成團
+            if (group.CurrentAmount >= group.TargetAmount)
+            {
+                group.Status = GroupOrderStatus.Success;
+            }
+            else
+            {
+                group.Status = GroupOrderStatus.Open;
+            }
+
+            group.Deadline = DateTime.Now;
+
+            await _groupOrderRepository.UpdateAsync(group);
         }
         private bool IsStoreOpenNow(Store store, DateTime now)
         {

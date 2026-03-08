@@ -53,12 +53,11 @@ namespace GroupDelivery.Application.Services
                 GroupOrderId = group.GroupOrderId,
                 ContactPhone = user.Phone,
                 ContactName = user.DisplayName,
+                Note = request.Note,
                 CreatedAt = DateTime.Now,
                 Source = OrderSource.Online,
-                OrderItems = new List<OrderItem>(),
-
+                OrderItems = new List<OrderItem>()
             };
-
             decimal totalAmount = 0;
 
             foreach (var item in request.Items)

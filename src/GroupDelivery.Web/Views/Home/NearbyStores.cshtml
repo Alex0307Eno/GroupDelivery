@@ -88,7 +88,12 @@
             上面是正在開團的店，下方是還沒有人動手開團的店。
         </div>
     </div>
-
+    <div class="mb-4">
+        <input type="text"
+               class="form-control"
+               placeholder="搜尋店家名稱..."
+               v-model="searchText">
+    </div>
     <!-- 篩選 -->
     <div class="mb-4">
         <button class="btn btn-sm"
@@ -226,23 +231,26 @@
         data() {
             return {
                 stores: [],
-                filterMode: 'all'
+                filterMode: 'all',
+                searchText: ''
             };
         },
 
         computed: {
-            activeStores() {
-                return this.stores
-                    .filter(s => s.hasActiveGroup)
-                    .filter(s => this.filterMode === 'all' || s.isOpenNow)
-                    .sort((a, b) => a.minutesLeft - b.minutesLeft);
-            },
+                activeStores() {
+        return this.stores
+            .filter(s => s.hasActiveGroup)
+            .filter(s => this.filterMode === 'all' || s.isOpenNow)
+            .filter(s => this.matchSearch(s))
+            .sort((a, b) => a.minutesLeft - b.minutesLeft);
+    },
 
-            idleStores() {
-                return this.stores
-                    .filter(s => !s.hasActiveGroup)
-                    .filter(s => this.filterMode === 'all' || s.isOpenNow);
-            }
+                idleStores() {
+        return this.stores
+            .filter(s => !s.hasActiveGroup)
+            .filter(s => this.filterMode === 'all' || s.isOpenNow)
+            .filter(s => this.matchSearch(s));
+    }
         },
 
         methods: {
@@ -284,7 +292,42 @@
                         var list = res.data || [];
                         this.stores = list.map(s => this.enrichStore(s));
                     });
+            },
+                    matchSearch(store) {
+
+        if (!this.searchText) {
+            return true;
+        }
+
+        const keyword = this.searchText.toLowerCase();
+
+        // 搜尋店名
+        if (store.storeName &&
+            store.storeName.toLowerCase().includes(keyword)) {
+            return true;
+        }
+
+        // 搜尋地址
+        if (store.address &&
+            store.address.toLowerCase().includes(keyword)) {
+            return true;
+        }
+
+        // 搜尋餐點
+        if (store.menuItems) {
+
+            for (let item of store.menuItems) {
+
+                if (item.name &&
+                    item.name.toLowerCase().includes(keyword)) {
+                    return true;
+                }
             }
+
+        }
+
+        return false;
+    }
         },
 
         mounted() {

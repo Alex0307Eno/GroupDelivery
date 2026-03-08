@@ -42,14 +42,49 @@
 
     .badge-manual {
         background: #f59e0b;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: .75rem;
     }
 
     .badge-online {
         background: #16a34a;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: .75rem;
     }
 
     .item-row {
         font-size: .9rem;
+    }
+
+    .option-row {
+        font-size: .8rem;
+        color: #6b7280;
+        margin-left: 14px;
+    }
+
+    .note-box {
+        background: #fff1f2;
+        border: 1px solid #fecaca;
+        border-left: 4px solid #dc2626;
+        border-radius: 10px;
+        padding: 8px 10px;
+        margin-top: 10px;
+    }
+
+    .note-title {
+        font-size: .75rem;
+        font-weight: 700;
+        color: #b91c1c;
+    }
+
+    .note-content {
+        font-size: .9rem;
+        color: #7f1d1d;
+        font-weight: 600;
     }
 </style>
 
@@ -82,18 +117,18 @@
 
                     <div class="text-end">
                         <div class="order-total">
-                            $@order.TotalAmount
+                            $@order.TotalAmount.ToString("0.##")
                         </div>
 
                         @if (order.Source == OrderSource.Manual)
                         {
-                            <span class="badge badge-manual">
+                            <span class="badge-manual">
                                 電話訂單
                             </span>
                         }
                         else
                         {
-                            <span class="badge badge-online">
+                            <span class="badge-online">
                                 線上下單
                             </span>
                         }
@@ -106,14 +141,35 @@
                     {
                         @foreach (var item in order.OrderItems)
                         {
-                            <div class="d-flex justify-content-between item-row mb-1">
-                                <div>
-                                    @item.StoreMenuItem?.Name
+                            <div class="item-row mb-1">
+
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        @item.StoreMenuItem?.Name
+                                    </div>
+
+                                    <div>
+                                        x @item.Quantity
+                                    </div>
                                 </div>
 
-                                <div>
-                                    x @item.Quantity
-                                </div>
+                                @if (item.OrderItemOptions != null && item.OrderItemOptions.Count > 0)
+                                {
+                                    foreach (var opt in item.OrderItemOptions)
+                                    {
+                                        <div class="option-row">
+                                            • @opt.OptionName
+
+                                            @if (opt.PriceAdjust > 0)
+                                            {
+                                                <span>
+                                                    (+@opt.PriceAdjust.ToString("0.##"))
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                }
+
                             </div>
                         }
                     }
@@ -121,6 +177,21 @@
                     {
                         <div class="text-muted">
                             電話訂單無細項
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(order.Note))
+                    {
+                        <div class="note-box">
+
+                            <div class="note-title">
+                                訂單備註
+                            </div>
+
+                            <div class="note-content">
+                                @order.Note
+                            </div>
+
                         </div>
                     }
 

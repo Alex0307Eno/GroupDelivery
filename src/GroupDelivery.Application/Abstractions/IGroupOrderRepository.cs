@@ -17,7 +17,7 @@ namespace GroupDelivery.Application.Abstractions
 
         // 取得團單完整明細資料
         // 通常會包含關聯資料（例如團內訂單、商店資訊）
-        Task<GroupOrder> GetDetailAsync(int groupId);
+        Task<GroupOrder> GetDetailAsync(Guid groupId);
 
         // 新增一筆團單
         // 僅負責資料持久化，不處理任何商業邏輯

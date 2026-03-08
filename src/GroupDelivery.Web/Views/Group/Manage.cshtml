@@ -156,11 +156,17 @@
                 <div class="row g-3">
 
                     <div class="col-md-4">
-                        <form method="post" action="/group/@group.GroupOrderId/close">
-                            <button class="btn btn-primary w-100">
-                                提前結束揪團
-                            </button>
-                        </form>
+                        @if (group.Status == GroupOrderStatus.Open)
+                        {
+                            <form method="post" action="/group/@group.GroupOrderId/close"
+                                  onsubmit="return confirm('確定要提前結束揪團嗎？');">
+
+                                <button class="btn btn-primary w-100">
+                                    提前結束揪團
+                                </button>
+
+                            </form>
+                        }
                     </div>
 
                     <div class="col-md-4">

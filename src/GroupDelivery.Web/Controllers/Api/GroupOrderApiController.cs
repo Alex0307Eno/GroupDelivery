@@ -1,6 +1,7 @@
 using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ public class GroupOrderApiController : ControllerBase
 
     // GET api/groups/5
     [HttpGet("{id}")]
-    public async Task<IActionResult> Get(int id)
+    public async Task<IActionResult> Get(Guid id)
     {
         var result = await _groupOrderService.GetGroupDetailAsync(id);
 
@@ -44,6 +45,17 @@ public class GroupOrderApiController : ControllerBase
 
         var userId = int.Parse(claim.Value);
 
+        var group = await _groupOrderService.GetByIdAsync(id);
+
+        if (group == null)
+            return NotFound("揪團不存在");
+
+        if (group.Deadline <= DateTime.Now)
+            return BadRequest("揪團已截止");
+
+        if (group.Status != GroupOrderStatus.Open)
+            return BadRequest("揪團已結束");
+
         await _groupOrderService.JoinGroupAsync(userId, id);
 
         return Ok();
@@ -62,5 +74,18 @@ public class GroupOrderApiController : ControllerBase
     {
         await _groupOrderService.SetTakeModeAsync(groupOrderId, takeMode);
         return Ok();
+    }
+    [HttpPost("/group/{id}/close")]
+    public async Task<IActionResult> CloseGroup(int id)
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim == null)
+            return Unauthorized();
+
+        var userId = int.Parse(claim.Value);
+
+        await _groupOrderService.CloseGroupAsync(userId, id);
+
+        return RedirectToAction("MerchantOrders", "Order", new { id = id });
     }
 }

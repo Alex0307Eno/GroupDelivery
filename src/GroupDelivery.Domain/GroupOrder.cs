@@ -12,6 +12,8 @@ namespace GroupDelivery.Domain
     {
         [Key]
         public int GroupOrderId { get; set; }
+        public Guid PublicId { get; set; }
+
         // 關聯：此團單屬於哪個店家
         public int OwnerUserId { get; set; }
 

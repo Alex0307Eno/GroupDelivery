@@ -278,7 +278,7 @@
                 </div>
             </div>
             <!-- 取餐方式 -->
-            <div class="summary-box mb-3">
+            @* <div class="summary-box mb-3">
                 <div class="fw-bold mb-3">取餐方式</div>
 
                 <div class="take-mode-wrapper">
@@ -312,7 +312,7 @@
                 <div v-if="takeMode === null" class="text-danger small mt-3">
                     請選擇取餐方式
                 </div>
-            </div>
+            </div> *@
             <!-- 給商家的備註 -->
             <div class="note-box mt-3">
                 <label class="summary-label mb-1">
@@ -467,7 +467,7 @@
                 note: '',
                 currentItem: null,
                 orderSource: 0,
-                takeMode: null // 0=Pickup,1=Delivery,2=DineIn
+                takeMode: 1 // 0=Pickup,1=Delivery,2=DineIn
             };
         },
 
@@ -566,10 +566,10 @@
 
                 if (this.submitting) return;
 
-                if (this.takeMode === null) {
-                    alert("請選擇取餐方式");
-                    return;
-                }
+                // if (this.takeMode === null) {
+                //     alert("請選擇取餐方式");
+                //     return;
+                // }
 
                 const selected = [];
 

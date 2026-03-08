@@ -1,28 +1,31 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Data;
 using GroupDelivery.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace GroupDelivery.Web.Controllers
 {
     public class GroupController : Controller
     {
+        private readonly GroupDeliveryDbContext _db;
         private readonly IGroupService _groupService;
         private readonly IGroupOrderService _groupOrderService;
         private readonly IOrderService _orderService;
         private readonly IStoreService _storeService;
-        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService, IOrderService orderService, IStoreService storeService)
+        public GroupController(IGroupService groupService, IGroupOrderService groupOrderService, IOrderService orderService, IStoreService storeService,GroupDeliveryDbContext db )
         {
             _groupService = groupService;
             _groupOrderService = groupOrderService;
             _orderService = orderService;
             _storeService = storeService;
+            _db = db;
         }
         [HttpGet]
         public async Task<IActionResult> Create(int storeId)
@@ -93,9 +96,17 @@ namespace GroupDelivery.Web.Controllers
             }
         }
         // 團購詳情頁面
-        public IActionResult GroupDetail(int id)
+        public async Task<IActionResult> GroupDetail(Guid id)
         {
-            return View(id);
+            var group = await _db.GroupOrders
+                .Include(x => x.Store)
+                .Include(x => x.Orders)
+                .FirstOrDefaultAsync(x => x.PublicId == id);
+
+            if (group == null)
+                return NotFound();
+
+            return View(group);
         }
         [HttpPost("/group/{id}/join")]
         [ValidateAntiForgeryToken]

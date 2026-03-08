@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Domain;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace GroupDelivery.Application.Abstractions
         // 取得指定團單的完整顯示資料
         // 會整合多個資料來源並轉換為 DTO
         // 供團單詳情頁使用，避免 Controller 直接操作 Domain Model
-        Task<GroupDetailDto> GetGroupDetailAsync(int groupId);
+        Task<GroupDetailDto> GetGroupDetailAsync(Guid groupId);
         //取得我的揪團列表
         Task<List<GroupOrder>> GetMyGroupOrdersAsync(int userId);
         // 加入指定的團單
@@ -33,6 +34,8 @@ namespace GroupDelivery.Application.Abstractions
         Task UpdateAsync(GroupOrder groupOrder);
         Task SetTakeModeAsync(int orderId, TakeMode takeMode);
         Task<int> CreateAsync(CreateUserGroupRequest request, int userId);
+        Task CloseGroupAsync(int userId, int groupId);
+
 
     }
 

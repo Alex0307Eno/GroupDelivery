@@ -11,6 +11,7 @@ namespace GroupDelivery.Domain
         public int GroupOrderId { get; set; }
 
         public List<OrderItemRequest> Items { get; set; }
+        public string Note { get; set; }
     }
 
     public class OrderItemRequest
