@@ -66,16 +66,15 @@ namespace GroupDelivery.Application.Services
             return entity.GroupOrderId;
         }
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
-        public async Task<GroupDetailDto> GetGroupDetailAsync(Guid groupId)
+        public async Task<GroupDetailDto> GetGroupDetailAsync(Guid publicId)
         {
-            var group = await _groupOrderRepository.GetDetailAsync(groupId);
+            var group = await _groupOrderRepository.GetDetailAsync(publicId);
             if (group == null)
                 return null;
 
             return new GroupDetailDto
             {
                 PublicId = group.PublicId,
-                GroupId = group.GroupOrderId,
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,

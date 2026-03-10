@@ -57,12 +57,12 @@ namespace GroupDelivery.Infrastructure.Repositories
         #endregion
 
         #region 取得指定團單的詳細資料，供團單詳情頁顯示
-        public async Task<GroupOrder> GetDetailAsync(Guid groupId)
+        public async Task<GroupOrder> GetDetailAsync(Guid publicId)
         {
             return await _db.GroupOrders
                 .Include(g => g.Store)
                 .Include(g => g.GroupOrderItems) // 如果要算人數
-                .FirstOrDefaultAsync(g => g.PublicId == groupId);
+                .FirstOrDefaultAsync(g => g.PublicId == publicId);
         }
         #endregion
 
