@@ -8,7 +8,7 @@ namespace GroupDelivery.Domain
 {
     public class CreateCategoryDto
     {
-        public int StoreId { get; set; }
+        public Guid StorePublicId { get; set; }
         public string Name { get; set; }
     }
 

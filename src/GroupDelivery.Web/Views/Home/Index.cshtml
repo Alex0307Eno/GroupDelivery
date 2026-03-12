@@ -116,7 +116,7 @@
     <div v-else class="row g-4">
 
         <div v-for="group in filteredGroups"
-             :key="group.groupOrderId"
+             :key="group.groupOrderPublicId"
              class="col-lg-4 col-md-6">
 
             <div class="card card-group">
@@ -269,7 +269,7 @@
                 return;
             }
 
-            window.location.href = '/Group/GroupDetail/' + group.publicId;
+            window.location.href = '/Group/GroupDetail/' + group.groupOrderPublicId;
         }
 
     },

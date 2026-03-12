@@ -39,29 +39,24 @@ namespace GroupDelivery.Web.Controllers
         }
         [Authorize(Roles = "Merchant")]
         [HttpPost]
-        public async Task<IActionResult> CreateGroup(int? storeId)
+        public async Task<IActionResult> CreateGroup(Guid? storePublicId)
         {
             var userId = GetUserId();
 
-           
+            if (!User.IsInRole("Merchant"))
+                return BadRequest();
 
-            // === 商家自己開團 ===
-            if (User.IsInRole("Merchant"))
+            var myStores = await _storeService.GetMyStoresAsync(userId);
+
+            var vm = new CreateGroupRequest
             {
-                var myStores = await _storeService.GetMyStoresAsync(userId);
+                AvailableStores = myStores,
+                SelectedStorePublicId = storePublicId,
+                IsLockedStore = storePublicId.HasValue
+            };
 
-                var vm = new CreateGroupRequest
-                {
-                    AvailableStores = myStores,
-                    IsLockedStore = false
-                };
-
-                return View(vm);
-            }
-
-            return BadRequest();
+            return View(vm);
         }
-
 
         // =========================
         // 列表：我的商店
@@ -100,8 +95,10 @@ namespace GroupDelivery.Web.Controllers
             // 2️⃣ 處理封面圖片（Web 邊界責任）
             if (request.CoverImage != null && request.CoverImage.Length > 0)
             {
+                Guid storePublicId = await _storeService.CreateAsync(userId, request);
+
                 var coverUrl = await SaveStoreImage(
-                    storeId,
+                    storePublicId,
                     request.CoverImage,
                     "cover");
 
@@ -117,7 +114,7 @@ namespace GroupDelivery.Web.Controllers
         // 編輯頁
         // =========================
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             var userId = GetUserId();
             var store = await _storeService.GetMyStoreAsync(id, userId);
@@ -127,7 +124,7 @@ namespace GroupDelivery.Web.Controllers
 
             var model = new StoreUpdateRequest
             {
-                StoreId = store.StoreId,
+                StorePublicId = store.StorePublicId,
                 StoreName = store.StoreName,
                 Address = store.Address,
                 Landline = store.Landline,
@@ -160,26 +157,25 @@ namespace GroupDelivery.Web.Controllers
 
             var userId = GetUserId();
 
-            // 1️⃣ 更新基本資料
+            // 更新基本資料
             await _storeService.UpdateAsync(userId, request);
 
-            // 2️⃣ 如果有上傳新封面
+            // 如果有新封面
             if (request.NewCoverImage != null && request.NewCoverImage.Length > 0)
             {
                 var coverUrl = await SaveStoreImage(
-                    request.StoreId,
+                    request.StorePublicId,
                     request.NewCoverImage,
                     "cover");
 
                 await _storeService.UpdateCoverImageAsync(
-                    request.StoreId,
+                    request.StorePublicId,
                     userId,
                     coverUrl);
             }
 
             return RedirectToAction(nameof(MyStores));
         }
-
         // =========================
         // 刪除
         // =========================
@@ -203,7 +199,7 @@ namespace GroupDelivery.Web.Controllers
             );
         }
         private async Task<string> SaveStoreImage(
-    int storeId,
+    Guid storePublicId,
     IFormFile file,
     string prefix)
         {
@@ -211,7 +207,7 @@ namespace GroupDelivery.Web.Controllers
                 _env.WebRootPath,
                 "uploads",
                 "stores",
-                storeId.ToString());
+                storePublicId.ToString());
 
             Directory.CreateDirectory(folder);
 
@@ -224,7 +220,7 @@ namespace GroupDelivery.Web.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            return $"/uploads/stores/{storeId}/{fileName}";
+            return $"/uploads/stores/{storePublicId}/{fileName}";
         }
 
 

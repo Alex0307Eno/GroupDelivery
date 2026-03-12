@@ -9,9 +9,8 @@ namespace GroupDelivery.Application.Abstractions
     {
         Task<List<StoreMenuItem>> GetMenuAsync(int storeId);
 
-        Task ToggleActiveAsync(int userId, int id);
-        
-        Task BatchCreateAsync(int userId, int storeId, List<MenuItemDto> items);
+        Task ToggleActiveAsync(int userId, Guid menuPublicId);
+        Task BatchCreateAsync(int userId, Guid storePublicId, List<MenuItemDto> items);
 
         // 改成 async 版本，名稱跟實作對齊
         Task UpdateAsync(int userId, MenuItemEditDto dto);
@@ -19,7 +18,7 @@ namespace GroupDelivery.Application.Abstractions
         Task<MenuItemEditDto> GetForEditAsync(int userId, int id);
 
         // 刪除也要 async，不要用 void
-        Task DeleteAsync(int userId, int id);
-        Task<StoreMenuItem> GetByIdAsync(int id);
+        Task<bool> DeleteAsync(int userId, Guid menuItemPublicId);
+        Task<StoreMenuItem> GetByIdAsync(Guid id);
     }
 }

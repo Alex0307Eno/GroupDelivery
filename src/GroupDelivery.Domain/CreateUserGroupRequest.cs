@@ -6,7 +6,7 @@ namespace GroupDelivery.Domain
     public class CreateUserGroupRequest
     {
         [Required]
-        public int StoreId { get; set; }
+        public int StorePublicId { get; set; }
 
         // 成團目標金額
         [Required]

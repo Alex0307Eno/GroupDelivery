@@ -72,11 +72,11 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<DateTime>("Deadline")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("GroupOrderPublicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("OwnerUserId")
                         .HasColumnType("int");
-
-                    b.Property<Guid>("PublicId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Remark")
                         .HasMaxLength(500)
@@ -93,6 +93,9 @@ namespace GroupDelivery.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GroupOrderId");
+
+                    b.HasIndex("GroupOrderPublicId")
+                        .IsUnique();
 
                     b.HasIndex("OwnerUserId");
 
@@ -257,6 +260,9 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("OrderPublicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Source")
                         .HasColumnType("int");
 
@@ -272,6 +278,9 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasKey("OrderId");
 
                     b.HasIndex("GroupOrderId");
+
+                    b.HasIndex("OrderPublicId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -396,7 +405,13 @@ namespace GroupDelivery.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid>("StorePublicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("StoreId");
+
+                    b.HasIndex("StorePublicId")
+                        .IsUnique();
 
                     b.ToTable("tbStore");
                 });
@@ -463,12 +478,18 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("StoreMenuItemPublicId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("StoreMenuItemId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("StoreMenuItemPublicId")
+                        .IsUnique();
 
                     b.ToTable("StoreMenuItems");
                 });

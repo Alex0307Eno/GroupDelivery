@@ -12,6 +12,11 @@ namespace GroupDelivery.Application.Abstractions
         Task AddAsync(StoreMenuCategory entity);
         Task<List<StoreMenuCategory>> GetByStoreIdAsync(int storeId);
         Task SaveChangesAsync();
+        Task<StoreMenuCategory> GetByIdAsync(int categoryId);
+
+        Task<bool> HasMenuItemsAsync(int categoryId);
+
+        Task DeleteAsync(StoreMenuCategory category);
     }
 
 }

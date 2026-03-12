@@ -18,7 +18,7 @@ namespace GroupDelivery.Domain
         public string StoreName { get; set; }
         // 可選商店列表
         public List<Store> AvailableStores { get; set; }
-
+        public Guid? SelectedStorePublicId { get; set; }
 
         // 備註
         public string Remark { get; set; }

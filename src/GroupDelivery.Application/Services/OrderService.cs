@@ -70,7 +70,7 @@ namespace GroupDelivery.Application.Services
 
                 var orderItem = new OrderItem
                 {
-                    StoreMenuItemId = menu.StoreMenuItemId,
+                    StoreMenuItemPublicId = menu.StoreMenuItemPublicId,
                     Quantity = item.Quantity,
                     UnitPrice = menu.Price, // 先放原價
                     OrderItemOptions = new List<OrderItemOption>()

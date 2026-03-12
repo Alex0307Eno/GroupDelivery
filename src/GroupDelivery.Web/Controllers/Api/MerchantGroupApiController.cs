@@ -50,20 +50,48 @@ namespace GroupDelivery.Web.Controllers.Api
             }
         }
 
+        [Authorize]
+        [HttpGet("stores/{storePublicId:guid}")]
+
+        public async Task<IActionResult> GetMyStore(Guid storePublicId)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(claim.Value);
+
+            var store = await _storeService
+                .GetMyStoreAsync(storePublicId, userId);
+
+            if (store == null)
+                return NotFound();
+
+            return Ok(new
+            {
+                storePublicId = store.StorePublicId,
+                storeName = store.StoreName,
+                hasActiveGroupOrders = store.HasActiveGroupOrders
+            });
+        }
         [HttpGet("stores")]
         public async Task<IActionResult> GetMyStores()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(claim.Value);
+
             var stores = await _storeService.GetMyStoresAsync(userId);
 
-            var result = stores.Select(s => new
+            return Ok(stores.Select(x => new
             {
-                storeId = s.StoreId,
-                storeName = s.StoreName,
-                hasActiveGroupOrders = s.HasActiveGroupOrders
-            });
-
-            return Ok(result);
+                storeId = x.StoreId,
+                storeName = x.StoreName
+            }));
         }
         [HttpGet("stores/{storeId}/delivery-threshold")]
         public async Task<IActionResult> GetDeliveryThreshold(int storeId)

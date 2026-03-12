@@ -1,6 +1,6 @@
 ﻿@{
     ViewData["Title"] = "揪IN｜選餐加入";
-    var groupId = ViewData["GroupId"]?.ToString() ?? "0";
+    var groupId = ViewData["GroupPublicId"]?.ToString() ?? "";
 }
 
 <style>
@@ -612,7 +612,7 @@
                 this.submitting = true;
 
                 axios.post('/api/orders', {
-                    groupOrderId: parseInt(this.groupId),
+                    groupOrderPublicId: this.groupId,
                     items: selected,
                     note: this.note || '',
                     source: this.orderSource,

@@ -1,4 +1,5 @@
 ﻿using GroupDelivery.Domain;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace GroupDelivery.Application.Abstractions
         void Update(StoreMenuItem item);
 
         void Remove(StoreMenuItem item);
-
+        Task<StoreMenuItem> GetByPublicIdAsync(Guid publicId);
         Task<StoreMenuItem> GetWithOptionsAsync(int id);
         Task<List<StoreMenuItem>> GetByStoreIdWithOptionsAsync(int storeId);
         Task SaveChangesAsync();

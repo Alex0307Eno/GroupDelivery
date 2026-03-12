@@ -18,7 +18,7 @@ namespace GroupDelivery.Domain
 
     public class GroupMenuItemDto
     {
-        public int StoreMenuItemId { get; set; }
+        public Guid StoreMenuItemPublicId { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }

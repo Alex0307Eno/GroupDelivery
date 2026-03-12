@@ -31,12 +31,17 @@ namespace GroupDelivery.Infrastructure.Repositories
         #endregion
 
         #region 取得所有進行中的開團資訊
-        public async Task<List<GroupOrder>> GetAllActiveAsync()
+        public async Task<HashSet<int>> GetActiveStoreIdsAsync(List<int> storeIds)
         {
-            return await _db.GroupOrders
-                .Include(g => g.Store)
-                .Where(g => g.Status == GroupOrderStatus.Open)
+            var ids = await _db.GroupOrders
+                .Where(g =>
+                    g.Status == GroupOrderStatus.Open &&
+                    storeIds.Contains(g.StoreId))
+                .Select(g => g.StoreId)
+                .Distinct()
                 .ToListAsync();
+
+            return ids.ToHashSet();
         }
         #endregion
 
@@ -62,7 +67,7 @@ namespace GroupDelivery.Infrastructure.Repositories
             return await _db.GroupOrders
                 .Include(g => g.Store)
                 .Include(g => g.GroupOrderItems) // 如果要算人數
-                .FirstOrDefaultAsync(g => g.PublicId == publicId);
+                .FirstOrDefaultAsync(g => g.GroupOrderPublicId == publicId);
         }
         #endregion
 
@@ -150,8 +155,14 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-       
+        public async Task<bool> AnyActiveByStoreAsync(int storeId)
+        {
+            return await _db.GroupOrders
+                .AnyAsync(x =>
+                    x.StoreId == storeId &&
+                    x.Status == GroupOrderStatus.Open);
+        }
 
-       
+
     }
 }

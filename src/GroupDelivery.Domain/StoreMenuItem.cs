@@ -9,6 +9,7 @@ namespace GroupDelivery.Domain
     public class StoreMenuItem
     {
         public int StoreMenuItemId { get; set; }
+        public Guid StoreMenuItemPublicId { get; set; }
 
         public int StoreId { get; set; }
 

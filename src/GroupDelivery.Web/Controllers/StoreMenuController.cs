@@ -1,6 +1,7 @@
 ﻿using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
+using GroupDelivery.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,21 +20,23 @@ namespace GroupDelivery.Web.Controllers
     public class StoreMenuController : Controller
     {
         private readonly IStoreMenuService _storeMenuService;
+        private readonly IStoreService _storeService;
         private readonly IWebHostEnvironment _environment;
         private readonly IStoreMenuCategoryService _storeMenuCategoryService;
 
-        public StoreMenuController(IStoreMenuService storeMenuService, IWebHostEnvironment environment, IStoreMenuCategoryService storeMenuCategoryService)
+        public StoreMenuController(IStoreMenuService storeMenuService, IStoreService storeService, IWebHostEnvironment environment, IStoreMenuCategoryService storeMenuCategoryService)
         {
             _storeMenuService = storeMenuService;
+            _storeService = storeService;
             _environment = environment;
             _storeMenuCategoryService = storeMenuCategoryService;
         }
 
-        
+
 
 
         [HttpGet("edit/{id}")]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             var item = await _storeMenuService.GetByIdAsync(id);
 
@@ -51,21 +54,22 @@ namespace GroupDelivery.Web.Controllers
                 IsActive = item.IsActive,
                 ImageUrl = item.ImageUrl,
 
-                OptionGroups = item.OptionGroups.Select(g => new StoreMenuItemOptionGroupDto
-                {
-                    StoreMenuItemOptionGroupId = g.StoreMenuItemOptionGroupId,
-                    GroupName = g.GroupName,
-                    Options = g.Options.Select(o => new StoreMenuItemOptionDto
+                OptionGroups = item.OptionGroups?
+                    .Select(g => new StoreMenuItemOptionGroupDto
                     {
-                        StoreMenuItemOptionId = o.StoreMenuItemOptionId,
-                        OptionName = o.OptionName,
-                        PriceAdjust = o.PriceAdjust
-                    }).ToList()
-                }).ToList()
-        
+                        StoreMenuItemOptionGroupId = g.StoreMenuItemOptionGroupId,
+                        GroupName = g.GroupName,
+                        Options = g.Options.Select(o => new StoreMenuItemOptionDto
+                        {
+                            StoreMenuItemOptionId = o.StoreMenuItemOptionId,
+                            OptionName = o.OptionName,
+                            PriceAdjust = o.PriceAdjust
+                        }).ToList()
+                    }).ToList() ?? new List<StoreMenuItemOptionGroupDto>()
             };
 
-            var categories = await _storeMenuCategoryService.GetByStoreIdAsync(item.StoreId);
+            var categories = await _storeMenuCategoryService
+                .GetByStoreIdAsync(item.StoreId);
 
             ViewBag.Categories = categories;
 
@@ -73,24 +77,24 @@ namespace GroupDelivery.Web.Controllers
         }
 
         [HttpPost("edit/{id}")]
-        public async Task<IActionResult> Edit(MenuItemEditDto dto, IFormFile ImageUrl)
+        public async Task<IActionResult> Edit(MenuItemEditDto dto, IFormFile imageFile)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            if (ImageUrl != null && ImageUrl.Length > 0)
+            if (imageFile != null && imageFile.Length > 0)
             {
                 var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "menu");
 
                 if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
 
-                var newFileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageUrl.FileName);
+                var newFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
 
                 var fullPath = Path.Combine(uploadPath, newFileName);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
-                    await ImageUrl.CopyToAsync(stream);
+                    await imageFile.CopyToAsync(stream);
                 }
 
                 dto.ImageUrl = "/uploads/menu/" + newFileName;
@@ -98,39 +102,51 @@ namespace GroupDelivery.Web.Controllers
 
             await _storeMenuService.UpdateAsync(userId, dto);
 
-            return RedirectToAction("Manage", new { storeId = dto.StoreId });
+            return RedirectToAction("Manage", new { storePublicId = dto.StoreId });
         }
 
 
-        [HttpGet("Manage/{storeId}")]
-        public async Task<IActionResult> Manage(int storeId)
+        [HttpGet("Manage/{storePublicId:guid}")]
+        public async Task<IActionResult> Manage(Guid storePublicId)
         {
-            ViewBag.StoreId = storeId; 
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            var items = await _storeMenuService.GetMenuAsync(storeId);
+            if (claim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(claim.Value);
+
+            var store = await _storeService.GetMyStoreAsync(storePublicId, userId);
+
+            if (store == null)
+                return NotFound();
+
+            ViewBag.StoreId = store.StoreId;
+            ViewBag.StorePublicId = store.StorePublicId;
+
+            var items = await _storeMenuService.GetMenuAsync(store.StoreId);
 
             return View(items);
         }
 
-        
-        [HttpGet("BatchCreate/{storeId}")]
-        public IActionResult BatchCreate(int storeId)
+        [Authorize(Roles = "Merchant")]
+        [HttpGet("BatchCreate/{storePublicId:guid}")]
+        public IActionResult BatchCreate(Guid storePublicId)
         {
-            if (storeId <= 0)
+            if (storePublicId == Guid.Empty)
             {
                 return NotFound();
             }
 
-            
-            return View(model: storeId);
+            return View(model: storePublicId);
         }
 
-
-
         
+
+
         public class ToggleMenuRequest
         {
-            public int Id { get; set; }
+            public Guid PublicId { get; set; }
         }
 
     }

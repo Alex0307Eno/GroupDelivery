@@ -17,37 +17,35 @@ namespace GroupDelivery.Application.Services
             _menuRepository = menuRepository;
             _storeRepository = storeRepository;
         }
-
+        public async Task<StoreMenuItem> GetByIdAsync(Guid menuItemPublicId)
+        {
+            return await _menuRepository.GetByPublicIdAsync(menuItemPublicId);
+        }
         public async Task<List<StoreMenuItem>> GetMenuAsync(int storeId)
         {
             return await _menuRepository.GetByStoreIdWithOptionsAsync(storeId);
         }
 
-        public async Task ToggleActiveAsync(int userId, int id)
+        public async Task ToggleActiveAsync(int userId, Guid menuPublicId)
         {
-            var item = await _menuRepository.GetByIdAsync(id);
+            var item = await _menuRepository.GetByPublicIdAsync(menuPublicId);
 
             if (item == null)
-                throw new Exception("找不到品項");
+                throw new Exception("菜單不存在");
 
             var store = await _storeRepository.GetByIdAsync(item.StoreId);
 
-            if (store == null)
-                throw new Exception("店家不存在");
-
             if (store.OwnerUserId != userId)
-                throw new Exception("無權限操作此店家");
+                throw new Exception("無權限");
 
             item.IsActive = !item.IsActive;
-
-            _menuRepository.Update(item);
 
             await _menuRepository.SaveChangesAsync();
         }
 
-        public async Task BatchCreateAsync(int userId, int storeId, List<MenuItemDto> items)
+        public async Task BatchCreateAsync(int userId, Guid storePublicId, List<MenuItemDto> items)
         {
-            var store = await _storeRepository.GetByIdAsync(storeId);
+            var store = await _storeRepository.GetByGuIdAsync(storePublicId);
 
             if (store == null)
                 throw new Exception("店家不存在");
@@ -65,7 +63,8 @@ namespace GroupDelivery.Application.Services
 
                 var menuItem = new StoreMenuItem
                 {
-                    StoreId = storeId,
+                    StoreMenuItemPublicId = Guid.NewGuid(),
+                    StoreId = store.StoreId,
                     CategoryId = dto.CategoryId,
                     Name = dto.Name,
                     Price = dto.Price,
@@ -76,7 +75,6 @@ namespace GroupDelivery.Application.Services
                     OptionGroups = new List<StoreMenuItemOptionGroup>()
                 };
 
-                // 建立選項群組
                 if (dto.OptionGroups != null && dto.OptionGroups.Count > 0)
                 {
                     foreach (var groupDto in dto.OptionGroups)
@@ -90,7 +88,6 @@ namespace GroupDelivery.Application.Services
                             Options = new List<StoreMenuItemOption>()
                         };
 
-                        // 建立選項
                         if (groupDto.Options != null && groupDto.Options.Count > 0)
                         {
                             foreach (var optDto in groupDto.Options)
@@ -278,25 +275,26 @@ namespace GroupDelivery.Application.Services
             return dto;
         }
 
-        public async Task DeleteAsync(int userId, int id)
+        public async Task<bool> DeleteAsync(int userId, Guid menuItemPublicId)
         {
-            if (id <= 0)
-                throw new Exception("菜單品項 Id 錯誤");
+            var item = await _menuRepository.GetByPublicIdAsync(menuItemPublicId);
 
-            var menuItem = await _menuRepository.GetWithOptionsAsync(id);
-            if (menuItem == null)
-                throw new Exception("菜單品項不存在");
+            if (item == null)
+                return false;
 
-            var store = await _storeRepository.GetByIdAsync(menuItem.StoreId);
+            var store = await _storeRepository.GetByIdAsync(item.StoreId);
+
             if (store == null)
-                throw new Exception("店家不存在");
+                return false;
 
             if (store.OwnerUserId != userId)
-                throw new Exception("無權限操作此店家");
+                return false;
 
-            _menuRepository.Remove(menuItem);
+             _menuRepository.Remove(item);
 
             await _menuRepository.SaveChangesAsync();
+
+            return true;
         }
         public async Task<StoreMenuItem> GetByIdAsync(int id)
         {

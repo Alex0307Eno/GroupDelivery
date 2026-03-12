@@ -1,7 +1,8 @@
-﻿using GroupDelivery.Domain;
+﻿using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
-using GroupDelivery.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,7 +35,11 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .ToListAsync();
         }
         #endregion
-
+        public async Task<Store> GetByGuIdAsync(Guid publicId)
+        {
+            return await _db.Stores
+                .FirstOrDefaultAsync(x => x.StorePublicId == publicId);
+        }
         #region 取得指定使用者的第一間店家資料
         public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
         {
@@ -43,14 +48,24 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .OrderBy(x => x.StoreId)
                 .FirstOrDefaultAsync();
         }
+        public async Task<Store> GetByPublicIdAndOwnerAsync(Guid publicId, int ownerUserId)
+        {
+            return await _db.Stores
+                .FirstOrDefaultAsync(x =>
+                    x.StorePublicId == publicId &&
+                    x.OwnerUserId == ownerUserId);
+        }
         #endregion
 
         #region 商家CRUD
-        public async Task<int> CreateAsync(Store store)
+        public async Task<Guid> CreateAsync(Store store)
         {
+            store.StorePublicId = Guid.NewGuid();
+
             await _db.Stores.AddAsync(store);
             await _db.SaveChangesAsync();
-            return store.StoreId;
+
+            return store.StorePublicId;
         }
 
         public async Task UpdateAsync(Store store)
@@ -73,6 +88,11 @@ namespace GroupDelivery.Infrastructure.Repositories
         public async Task<List<Store>> GetAllAsync()
         {
             return await _db.Stores.ToListAsync();
+        }
+        public async Task<Store> GetByPublicIdAsync(Guid storePublicId)
+        {
+            return await _db.Stores
+                .FirstOrDefaultAsync(x => x.StorePublicId == storePublicId);
         }
     }
 }

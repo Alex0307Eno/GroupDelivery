@@ -29,25 +29,7 @@ namespace GroupDelivery.Web.Controllers.Api
             return Ok(result);
         }
 
-        [HttpGet("/api/store/groups")]
-        public async Task<IActionResult> StoreGroups()
-        {
-            var groups = await _db.GroupOrders
-                .Include(x => x.Store)
-                .Where(x => x.Status == GroupOrderStatus.Open)
-                .Select(x => new
-                {
-                    groupOrderId = x.GroupOrderId,
-                    remark = x.Remark,
-                    deadline = x.Deadline,
-                    currentPeople = x.CurrentAmount,
-                    targetPeople = x.TargetAmount,
-                    storeName = x.Store.StoreName
-                })
-                .ToListAsync();
-
-            return Ok(groups);
-        }
+        
         
     }
 }

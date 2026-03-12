@@ -9,7 +9,8 @@ namespace GroupDelivery.Application.Abstractions
     {
         // 取得目前仍應顯示在前台的有效團單
         // 一般只包含「揪團中」狀態，排除已截止、取消、歷史團
-        Task<List<GroupOrder>> GetAllActiveAsync();
+        Task<HashSet<int>> GetActiveStoreIdsAsync(List<int> storeIds);
+
 
         // 依團單 Id 取得單筆團單基本資料
         // 不保證包含關聯資料（Items、Store 等）
@@ -17,7 +18,7 @@ namespace GroupDelivery.Application.Abstractions
 
         // 取得團單完整明細資料
         // 通常會包含關聯資料（例如團內訂單、商店資訊）
-        Task<GroupOrder> GetDetailAsync(Guid groupId);
+        Task<GroupOrder> GetDetailAsync(Guid publicId);
 
         // 新增一筆團單
         // 僅負責資料持久化，不處理任何商業邏輯
@@ -41,5 +42,6 @@ namespace GroupDelivery.Application.Abstractions
 
         Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync();
 
+        Task<bool> AnyActiveByStoreAsync(int storeId);
     }
 }

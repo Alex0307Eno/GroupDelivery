@@ -24,7 +24,23 @@ namespace GroupDelivery.Infrastructure.Repositories
             _db.StoreMenuCategories.Add(entity);
             await Task.CompletedTask;
         }
+        public async Task<StoreMenuCategory> GetByIdAsync(int categoryId)
+        {
+            return await _db.StoreMenuCategories
+                .FirstOrDefaultAsync(x => x.StoreMenuCategoryId == categoryId);
+        }
 
+        public async Task<bool> HasMenuItemsAsync(int categoryId)
+        {
+            return await _db.StoreMenuItems
+                .AnyAsync(x => x.CategoryId == categoryId);
+        }
+
+        public async Task DeleteAsync(StoreMenuCategory category)
+        {
+            _db.StoreMenuCategories.Remove(category);
+            await _db.SaveChangesAsync();
+        }
         public async Task<List<StoreMenuCategory>> GetByStoreIdAsync(int storeId)
         {
             return await _db.StoreMenuCategories

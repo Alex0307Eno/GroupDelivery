@@ -19,7 +19,7 @@ namespace GroupDelivery.Application.Services
         }
 
         #region 建立商家第一間商店
-        public async Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto)
+        public async Task<Guid> CreateStoreAsync(int userId, MerchantInfoDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.StoreName))
                 throw new Exception("店名不可為空");

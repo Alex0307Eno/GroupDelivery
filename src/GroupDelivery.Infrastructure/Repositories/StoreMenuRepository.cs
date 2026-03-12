@@ -2,6 +2,7 @@
 using GroupDelivery.Domain;
 using GroupDelivery.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,13 @@ namespace GroupDelivery.Infrastructure.Repositories
             // 這裡只負責追蹤實體，實際寫入交給 SaveChangesAsync
             await _db.StoreMenuItems.AddAsync(item);
         }
-
+        public async Task<StoreMenuItem> GetByPublicIdAsync(Guid publicId)
+        {
+            return await _db.StoreMenuItems
+                .Include(x => x.OptionGroups)
+                .ThenInclude(x => x.Options)
+                .FirstOrDefaultAsync(x => x.StoreMenuItemPublicId == publicId);
+        }
         public async Task<List<StoreMenuItem>> GetByStoreIdAsync(int storeId)
         {
             return await _db.StoreMenuItems

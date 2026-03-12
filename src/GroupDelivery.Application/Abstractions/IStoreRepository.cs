@@ -12,17 +12,20 @@ namespace GroupDelivery.Application.Abstractions
 
         // 取得使用者的第一間商店
         Task<Store> GetFirstByOwnerAsync(int ownerUserId);
+        Task<Store> GetByPublicIdAndOwnerAsync(Guid publicId, int ownerUserId); 
 
         // 取得使用者的所有商店
         Task<List<Store>> GetByOwnerAsync(int ownerUserId);
 
         // CRUD
-        Task<int> CreateAsync(Store store);
+        Task<Guid> CreateAsync(Store store);
         Task UpdateAsync(Store store);
         Task DeleteAsync(Store store);
 
         Task<Store> GetByIdAsync(int storeId);
+        Task<Store> GetByGuIdAsync(Guid StoreMenuItemPublicId);
         Task<List<Store>> GetAllAsync();
+        Task<Store> GetByPublicIdAsync(Guid storePublicId);
 
 
 

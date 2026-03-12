@@ -179,7 +179,7 @@
     createApp({
         data() {
             return {
-                groupOrderId: '@Model.PublicId',
+                groupOrderId: '@Model.GroupOrderPublicId',
                 deadline: null,
                 now: new Date(),
                 orderMode: '',
@@ -234,16 +234,16 @@
                 return new Date(t).toLocaleString();
             },
 
-            goMenu() {
-                if (!this.orderMode) {
-                    alert("請選擇訂購方式");
-                    return;
-                }
+                goMenu() {
+        if (!this.orderMode) {
+            alert("請選擇訂購方式");
+            return;
+        }
 
-                window.location.href =
-                    '/Group/Menu/' + this.groupOrderId +
-                    '?source=' + this.orderMode;
-            }
+        window.location.href =
+            '/Group/Menu/' + this.groupOrderId +
+            '?source=' + this.orderMode;
+    }
         },
 
         mounted() {

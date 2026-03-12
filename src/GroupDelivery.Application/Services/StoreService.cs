@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace GroupDelivery.Infrastructure.Services
 {
@@ -27,36 +28,45 @@ namespace GroupDelivery.Infrastructure.Services
         {
             return await _storeRepo.GetByIdAsync(storeId);
         }
-
-
         public async Task<List<Store>> GetMyStoresAsync(int userId)
         {
+            return await GetMyStoresAsync(null, userId);
+        }
+
+        public async Task<List<Store>> GetMyStoresAsync(Guid? storePublicId, int userId)
+        {
             var stores = await _storeRepo.GetByOwnerAsync(userId);
-            var activeGroupOrders = await _groupOrderRepository.GetAllActiveAsync();
-            var activeStoreIds = activeGroupOrders
+
+            if (storePublicId.HasValue)
+            {
+                stores = stores
+                    .Where(x => x.StorePublicId == storePublicId.Value)
+                    .ToList();
+            }
+
+            var storeIds = stores
                 .Select(x => x.StoreId)
-                .Distinct()
-                .ToHashSet();
+                .ToList();
+
+            var activeStoreIds =
+                await _groupOrderRepository.GetActiveStoreIdsAsync(storeIds);
 
             foreach (var store in stores)
             {
-                store.HasActiveGroupOrders = activeStoreIds.Contains(store.StoreId);
+                store.HasActiveGroupOrders =
+                    activeStoreIds.Contains(store.StoreId);
             }
 
             return stores;
         }
 
-        public async Task<Store> GetMyStoreAsync(int storeId, int userId)
-        {
-            return await _storeRepo.GetByIdAndOwnerAsync(storeId, userId);
-        }
-
-        public async Task<int> CreateAsync(int userId, StoreInitRequest request)
+        public async Task<Guid> CreateAsync(int userId, StoreInitRequest request)
         {
             var (lat, lng) = await _geocodingService.GetLatLngAsync(request.Address);
 
             var store = new Store
             {
+                StorePublicId = Guid.NewGuid(),
                 OwnerUserId = userId,
                 StoreName = request.StoreName,
                 Landline = request.Landline,
@@ -83,7 +93,8 @@ namespace GroupDelivery.Infrastructure.Services
         }
         public async Task UpdateAsync(int userId, StoreUpdateRequest request)
         {
-            var store = await _storeRepo.GetByIdAndOwnerAsync(request.StoreId, userId);
+            var store = await _storeRepo.GetByPublicIdAndOwnerAsync(request.StorePublicId, userId);
+
             if (store == null)
                 throw new Exception("Store not found");
 
@@ -123,14 +134,15 @@ namespace GroupDelivery.Infrastructure.Services
             await _storeRepo.DeleteAsync(store);
         }
 
-        public async Task UpdateCoverImageAsync(int storeId, int ownerUserId, string url)
+        public async Task UpdateCoverImageAsync(Guid storePublicId, int ownerUserId, string url)
         {
-            var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, ownerUserId);
+            var store = await _storeRepo.GetByPublicIdAndOwnerAsync(storePublicId, ownerUserId);
             if (store == null)
                 throw new Exception("Store not found");
 
             store.CoverImageUrl = url;
             store.ModifiedAt = DateTime.UtcNow;
+
             await _storeRepo.UpdateAsync(store);
         }
 
@@ -192,6 +204,10 @@ namespace GroupDelivery.Infrastructure.Services
 
             return result;
         }
+        public async Task<Store> GetByPublicIdAsync(Guid storePublicId)
+        {
+            return await _storeRepo.GetByPublicIdAsync(storePublicId);
+        }
         public async Task TogglePauseAsync(int userId, int storeId)
         {
             var store = await _storeRepo.GetByIdAndOwnerAsync(storeId, userId);
@@ -201,6 +217,20 @@ namespace GroupDelivery.Infrastructure.Services
             store.IsPausedToday = !store.IsPausedToday;
 
             await _storeRepo.UpdateAsync(store);
+        }
+        public async Task<Store> GetMyStoreAsync(Guid storePublicId, int userId)
+        {
+            var store = await _storeRepo
+                .GetByPublicIdAndOwnerAsync(storePublicId, userId);
+
+            if (store == null)
+                return null;
+
+            store.HasActiveGroupOrders =
+                await _groupOrderRepository
+                    .AnyActiveByStoreAsync(store.StoreId);
+
+            return store;
         }
         private bool IsStoreOpenNow(Store store, DateTime now)
         {

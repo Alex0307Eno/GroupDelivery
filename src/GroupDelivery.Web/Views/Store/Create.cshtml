@@ -267,4 +267,9 @@
         };
         reader.readAsDataURL(event.target.files[0]);
     }
+            document.querySelector("form").addEventListener("submit", function () {
+        const btn = document.querySelector(".submit-btn");
+        btn.disabled = true;
+        btn.innerText = "建立中...";
+    });
 </script>

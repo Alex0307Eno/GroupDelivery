@@ -29,7 +29,7 @@ namespace GroupDelivery.Application.Services
         }
         public async Task<int> CreateAsync(CreateUserGroupRequest request, int userId)
         {
-            var store = await _storeRepo.GetByIdAsync(request.StoreId);
+            var store = await _storeRepo.GetByIdAsync(request.StorePublicId);
             if (store == null)
                 throw new Exception("店家不存在");
 
@@ -39,7 +39,7 @@ namespace GroupDelivery.Application.Services
                 throw new Exception("截止時間必須至少晚於現在 30 分鐘");
 
             var rules = await _deliveryRuleRepository
-                .GetByStoreIdAsync(request.StoreId);
+                .GetByStoreIdAsync(request.StorePublicId);
 
             if (rules == null || !rules.Any())
                 throw new Exception("未設定外送門檻");
@@ -48,7 +48,7 @@ namespace GroupDelivery.Application.Services
 
             var entity = new GroupOrder
             {
-                StoreId = request.StoreId,
+                StoreId = request.StorePublicId,
                 CreatorUserId = userId,
                 OwnerUserId = store.OwnerUserId,
 
@@ -74,7 +74,7 @@ namespace GroupDelivery.Application.Services
 
             return new GroupDetailDto
             {
-                PublicId = group.PublicId,
+                GroupOrderPublicId = group.GroupOrderPublicId,
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,
@@ -120,7 +120,7 @@ namespace GroupDelivery.Application.Services
 
             var group = new GroupOrder
             {
-                PublicId = Guid.NewGuid(),
+                GroupOrderPublicId = Guid.NewGuid(),
                 StoreId = request.StoreId,
                 CreatorUserId = userId,
                 OwnerUserId = store.OwnerUserId, 
@@ -208,7 +208,7 @@ namespace GroupDelivery.Application.Services
 
             return new GroupDetailDto
             {
-                GroupOrderId = group.GroupOrderId,
+                GroupOrderPublicId = group.GroupOrderPublicId,
                 Deadline = group.Deadline,
                 CurrentAmount = group.CurrentAmount,
                 TargetAmount = group.TargetAmount
@@ -235,7 +235,7 @@ namespace GroupDelivery.Application.Services
             {
                 var dto = new GroupSummaryDto();
 
-                dto.GroupOrderId = x.GroupOrderId;
+                dto.GroupOrderPublicId = x.GroupOrderPublicId;
                 dto.TargetAmount = x.TargetAmount;
                 dto.CurrentAmount = x.CurrentAmount;
                 dto.Deadline = x.Deadline;
@@ -243,7 +243,7 @@ namespace GroupDelivery.Application.Services
 
                 dto.Store = new StoreSummaryDto
                 {
-                    StoreId = x.StoreId,
+                    PublicId = x.Store.StorePublicId,
                     StoreName = x.Store.StoreName,
                     CoverImageUrl = x.Store.CoverImageUrl,
                     Latitude = x.Store.Latitude,
@@ -304,7 +304,7 @@ namespace GroupDelivery.Application.Services
                     CategoryName = g.Key.CategoryName,
                     Items = g.Select(m => new GroupMenuItemDto
                     {
-                        StoreMenuItemId = m.StoreMenuItemId,
+                        StoreMenuItemPublicId = m.StoreMenuItemPublicId,
                         Name = m.Name,
                         Price = m.Price,
                         Description = m.Description,

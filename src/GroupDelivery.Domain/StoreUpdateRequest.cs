@@ -8,7 +8,7 @@ namespace GroupDelivery.Domain
     public class StoreUpdateRequest
     {
         [Required]
-        public int StoreId { get; set; }
+        public Guid StorePublicId { get; set; }
 
         [Required]
         [StringLength(100)]

@@ -8,7 +8,7 @@ namespace GroupDelivery.Domain
 {
     public class StoreSummaryDto
     {
-        public int StoreId { get; set; }
+        public Guid  PublicId { get; set; }
         public string StoreName { get; set; }
         public string CoverImageUrl { get; set; }
 
@@ -20,6 +20,7 @@ namespace GroupDelivery.Domain
     public class GroupSummaryDto
     {
         public int GroupOrderId { get; set; }
+        public Guid GroupOrderPublicId { get; set; }
 
         public decimal TargetAmount { get; set; }
         public decimal CurrentAmount { get; set; }

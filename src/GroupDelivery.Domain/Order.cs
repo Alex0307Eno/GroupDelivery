@@ -9,7 +9,7 @@ namespace GroupDelivery.Domain
     public class Order
     {
         public int OrderId { get; set; }
-
+        public Guid OrderPublicId { get; set; }
         public int UserId { get; set; }
 
         public int GroupOrderId { get; set; }

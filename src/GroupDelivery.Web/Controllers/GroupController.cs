@@ -36,7 +36,7 @@ namespace GroupDelivery.Web.Controllers
 
             var vm = new CreateUserGroupRequest
             {
-                StoreId = store.StoreId,
+                StorePublicId = store.StoreId,
                 TargetAmount = 0,
                 Deadline = DateTime.Now.AddHours(2)
             };
@@ -101,7 +101,7 @@ namespace GroupDelivery.Web.Controllers
             var group = await _db.GroupOrders
                 .Include(x => x.Store)
                 .Include(x => x.Orders)
-                .FirstOrDefaultAsync(x => x.PublicId == id);
+                .FirstOrDefaultAsync(x => x.GroupOrderPublicId == id);
 
             if (group == null)
                 return NotFound();
@@ -123,9 +123,9 @@ namespace GroupDelivery.Web.Controllers
             return Redirect($"/group/{id}");
         }
         [HttpGet]
-        public IActionResult Menu(int id)
+        public IActionResult Menu(Guid id)
         {
-            ViewData["GroupId"] = id;
+            ViewData["GroupPublicId"] = id;
             return View();
         }
     }

@@ -9,6 +9,7 @@ namespace GroupDelivery.Domain
     {
         [Key]
         public int StoreId { get; set; }
+        public Guid StorePublicId { get; set; }
 
         public int OwnerUserId { get; set; }
 

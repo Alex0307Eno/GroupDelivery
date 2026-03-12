@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "菜單管理";
-    var storeId = (int)ViewBag.StoreId;
+    var storePublicId = (Guid)ViewBag.StorePublicId;
 }
 
 <style>
@@ -133,7 +133,7 @@
     <div class="header-row">
         <h3 class="fw-bold mb-0">菜單管理</h3>
 
-        <a href="/StoreMenu/BatchCreate/@storeId"
+        <a href="/StoreMenu/BatchCreate/@storePublicId"
            class="btn btn-primary">
             + 新增品項
         </a>
@@ -148,7 +148,7 @@
             </div>
 
             <a class="btn btn-success"
-               href="/StoreMenu/BatchCreate/@storeId">
+               href="/StoreMenu/BatchCreate/@storePublicId">
                 新增第一個品項
             </a>
         </div>
@@ -246,19 +246,19 @@
                         <div class="action-buttons">
 
                             <a class="btn btn-outline-primary btn-sm"
-                               href="/StoreMenu/edit/@item.StoreMenuItemId">
+                               href="/StoreMenu/edit/@item.StoreMenuItemPublicId">
                                 編輯
                             </a>
 
                             <button type="button"
                                     class="btn btn-outline-warning btn-sm toggle-menu-btn"
-                                    data-id="@item.StoreMenuItemId">
+                                    data-id="@item.StoreMenuItemPublicId">
                                 @(item.IsActive ? "下架" : "上架")
                             </button>
 
                             <button type="button"
                                     class="btn btn-outline-danger btn-sm delete-menu-btn"
-                                    data-id="@item.StoreMenuItemId">
+                                    data-id="@item.StoreMenuItemPublicId">
                                 刪除
                             </button>
 
@@ -274,7 +274,7 @@
 
 </div>
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll(".toggle-menu-btn").forEach(function (btn) {
 
@@ -286,7 +286,7 @@
                 fetch("/api/storemenu/toggle", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: parseInt(id) })
+                    body: JSON.stringify({ publicId: id })
                 })
                 .then(function (res) {
                     if (!res.ok) throw new Error();
@@ -297,10 +297,8 @@
                     var isActive = badge.classList.contains("status-on");
                     var newActive = !isActive;
 
-                    // 更新按鈕文字
                     btn.textContent = newActive ? "下架" : "上架";
 
-                    // 更新 badge
                     if (newActive) {
                         badge.textContent = "上架中";
                         badge.classList.remove("status-off");
@@ -311,13 +309,46 @@
                         badge.classList.add("status-off");
                     }
 
-                    // 更新按鈕樣式
                     btn.classList.remove("btn-outline-warning", "btn-outline-success");
                     btn.classList.add(newActive ? "btn-outline-warning" : "btn-outline-success");
 
                 })
                 .catch(function () {
                     alert("切換失敗，請稍後再試");
+                });
+
+            });
+
+        });
+
+        document.querySelectorAll(".delete-menu-btn").forEach(function (btn) {
+
+            btn.addEventListener("click", function () {
+
+                var id = btn.dataset.id;
+                if (!id) return;
+
+                if (!confirm("確定要刪除此品項嗎？")) return;
+
+                fetch("/api/storemenu/delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return res.text().then(function (msg) {
+                            throw new Error(msg || "刪除失敗");
+                        });
+                    }
+
+                    var card = btn.closest(".menu-card");
+                    if (card) {
+                        card.remove();
+                    }
+                })
+                .catch(function (err) {
+                    alert(err.message || "刪除失敗，請稍後再試");
                 });
 
             });

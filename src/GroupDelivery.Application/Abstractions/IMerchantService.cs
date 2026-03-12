@@ -17,7 +17,7 @@ namespace GroupDelivery.Application.Abstractions
         // 建立商家所屬的第一間商店
         // 通常在升級為商家後呼叫
         // 回傳新建立的商店 Id
-        Task<int> CreateStoreAsync(int userId, MerchantInfoDto dto);
+        Task<Guid> CreateStoreAsync(int userId, MerchantInfoDto dto);
     }
 
 

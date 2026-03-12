@@ -207,12 +207,12 @@
 
     <form asp-action="Edit"
           asp-controller="Store"
-          asp-route-id="@Model.StoreId"
+          asp-route-id="@Model.StorePublicId"
           method="post"
           enctype="multipart/form-data">
 
         @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="StoreId" />
+        <input type="hidden" asp-for="StorePublicId" />
 
         <!-- 基本資訊 -->
         <div class="module-card">

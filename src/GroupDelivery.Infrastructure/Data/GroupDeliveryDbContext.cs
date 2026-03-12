@@ -72,7 +72,24 @@ namespace GroupDelivery.Infrastructure.Data
 
             modelBuilder.Entity<StoreMenuItemOptionGroup>()
                 .HasKey(x => x.StoreMenuItemOptionGroupId);
+           
+        
+            modelBuilder.Entity<Store>()
+                .HasIndex(x => x.StorePublicId)
+                .IsUnique();
 
+            modelBuilder.Entity<GroupOrder>()
+                .HasIndex(x => x.GroupOrderPublicId)
+                .IsUnique();
+
+            modelBuilder.Entity<StoreMenuItem>()
+                .HasIndex(x => x.StoreMenuItemPublicId)
+                .IsUnique();
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(x => x.OrderPublicId)
+                .IsUnique();
+        
         }
     }
 }

@@ -42,7 +42,22 @@ namespace GroupDelivery.Application.Services
             await _categoryRepository.AddAsync(category);
             await _categoryRepository.SaveChangesAsync();
         }
+        public async Task<bool> DeleteAsync(int userId, int categoryId)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
 
+            if (category == null)
+                return false;
+
+            var hasMenu = await _categoryRepository.HasMenuItemsAsync(categoryId);
+
+            if (hasMenu)
+                return false;
+
+            await _categoryRepository.DeleteAsync(category);
+
+            return true;
+        }
         public async Task<List<StoreMenuCategory>> GetByStoreIdAsync(int storeId)
         {
             return await _categoryRepository.GetByStoreIdAsync(storeId);
