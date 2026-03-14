@@ -158,14 +158,10 @@
                     <div class="col-md-4">
                         @if (group.Status == GroupOrderStatus.Open)
                         {
-                            <form method="post" action="/group/@group.GroupOrderId/close"
-                                  onsubmit="return confirm('確定要提前結束揪團嗎？');">
-
-                                <button class="btn btn-primary w-100">
-                                    提前結束揪團
-                                </button>
-
-                            </form>
+                            <button class="btn btn-primary w-100"
+                                    onclick="closeGroup('@group.GroupOrderPublicId')">
+                                提前結束揪團
+                            </button>
                         }
                     </div>
 
@@ -254,7 +250,7 @@
                                         @if (group.Status == GroupOrderStatus.Open)
                                         {
                                             <button class="btn btn-sm btn-outline-danger"
-                                                    onclick="deleteOrder(@order.OrderId)">
+                                                    onclick="deleteOrder('@order.OrderPublicId')">
                                                 刪除
                                             </button>
                                         }
@@ -298,7 +294,7 @@
                 </button>
 
                 <button class="btn btn-primary"
-                        onclick="submitManualOrder(@group.GroupOrderId)">
+                        onclick="submitManualOrder('@group.GroupOrderPublicId')">
                     確認送出
                 </button>
             </div>
@@ -330,7 +326,7 @@
                     返回
                 </button>
 
-                <form method="post" action="/group/@group.GroupOrderId/cancel">
+                <form method="post" action="/group/@group.GroupOrderPublicId/cancel">
                     <button class="btn btn-danger">
                         確認取消
                     </button>
@@ -355,7 +351,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                groupOrderId: groupId,
+                groupOrderPublicId: groupId,
                 amount: parseFloat(amount)
             })
         })
@@ -366,11 +362,11 @@
         .catch(() => alert("操作失敗"));
     }
 
-    function deleteOrder(orderId) {
+    function deleteOrder(orderPublicId) {
 
         if (!confirm("確定刪除這筆訂單？")) return;
 
-        fetch("/api/orders/" + orderId, {
+        fetch("/api/orders/" + orderPublicId, {
             method: "DELETE"
         })
         .then(res => {
@@ -378,5 +374,16 @@
             location.reload();
         })
         .catch(() => alert("刪除失敗"));
+    }
+        async function closeGroup(id) {
+
+        if (!confirm("確定要提前結束揪團嗎？"))
+            return;
+
+        await fetch(`/api/groups/close/${id}`, {
+            method: "POST"
+        });
+
+        location.reload();
     }
 </script>

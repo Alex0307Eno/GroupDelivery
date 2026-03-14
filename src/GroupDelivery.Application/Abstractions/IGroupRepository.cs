@@ -13,7 +13,7 @@ namespace GroupDelivery.Application.Abstractions
         Task<List<GroupOrder>> GetByOwnerAsync(int ownerUserId);
 
         // 單筆團單
-        Task<GroupOrder> GetByIdAsync(int groupId);
+        Task<GroupOrder> GetByIdAsync(Guid groupId);
 
         // 更新團單
         Task UpdateAsync(GroupOrder group);

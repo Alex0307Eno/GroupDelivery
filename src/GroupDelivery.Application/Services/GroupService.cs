@@ -74,7 +74,7 @@ namespace GroupDelivery.Application.Services
             return await _groupRepository.GetByOwnerAsync(userId);
         }
 
-        public async Task CloseAsync(int groupId, int userId)
+        public async Task CloseAsync(Guid groupId, int userId)
         {
             var group = await _groupRepository.GetByIdAsync(groupId);
             if (group == null)
@@ -93,7 +93,7 @@ namespace GroupDelivery.Application.Services
 
             await _groupRepository.UpdateAsync(group);
         }
-        public async Task CancelAsync(int groupId, int userId)
+        public async Task CancelAsync(Guid groupId, int userId)
         {
             var group = await _groupRepository.GetByIdAsync(groupId);
             if (group == null)
@@ -111,11 +111,11 @@ namespace GroupDelivery.Application.Services
             await _groupRepository.UpdateAsync(group);
         }
 
-        public async Task<GroupOrder> GetByIdAsync(int groupId)
+        public async Task<GroupOrder> GetByIdAsync(Guid groupId)
         {
             return await _groupRepository.GetByIdAsync(groupId);
         }
-        public async Task JoinGroupAsync(int userId, int groupId)
+        public async Task JoinGroupAsync(int userId, Guid groupId)
         {
             var group = await _groupRepository.GetByIdAsync(groupId);
 

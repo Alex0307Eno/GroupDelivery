@@ -41,7 +41,7 @@
         }
 
         .store-card.closed {
-            opacity: .5;
+            opacity: .6;
         }
 
         .store-card.urgent {
@@ -74,6 +74,18 @@
         font-size: .8rem;
     }
 
+    .toolbar-box {
+        background: #ffffff;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 10px 30px rgba(15,23,42,.06);
+    }
+
+    .location-tip {
+        font-size: .85rem;
+        color: #6b7280;
+    }
+
     .btn.disabled {
         pointer-events: none;
         opacity: .6;
@@ -88,30 +100,66 @@
             上面是正在開團的店，下方是還沒有人動手開團的店。
         </div>
     </div>
-    <div class="mb-4">
-        <input type="text"
-               class="form-control"
-               placeholder="搜尋店家名稱..."
-               v-model="searchText">
-    </div>
-    <!-- 篩選 -->
-    <div class="mb-4">
-        <button class="btn btn-sm"
-                :class="filterMode === 'all' ? 'btn-dark' : 'btn-outline-dark'"
-                @@click="filterMode = 'all'">
-            全部店家
-        </button>
 
-        <button class="btn btn-sm ms-2"
-                :class="filterMode === 'open' ? 'btn-dark' : 'btn-outline-dark'"
-                @@click="filterMode = 'open'">
-            只看營業中
-        </button>
+    <div class="toolbar-box mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label fw-bold">搜尋</label>
+                <input type="text"
+                       class="form-control"
+                       placeholder="搜尋店家名稱、地址、餐點..."
+                       v-model="searchText">
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold">縣市</label>
+                <select class="form-select" v-model="selectedCity" @@change="reloadStores">
+                    <option value="">全部縣市</option>
+                    <option v-for="city in cities" :key="city" :value="city">
+                        {{ city }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold">營業狀態</label>
+                <div>
+                    <button class="btn btn-sm"
+                            :class="filterMode === 'all' ? 'btn-dark' : 'btn-outline-dark'"
+                            @@click="filterMode = 'all'">
+                        全部店家
+                    </button>
+
+                    <button class="btn btn-sm ms-2"
+                            :class="filterMode === 'open' ? 'btn-dark' : 'btn-outline-dark'"
+                            @@click="filterMode = 'open'">
+                        只看營業中
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <button class="btn btn-outline-primary w-100" @@click="detectLocation">
+                    重新定位
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-3 location-tip">
+            <span v-if="locationLoaded">
+                已取得定位
+                <span v-if="userLat && userLng">
+                    （{{ userLat.toFixed(6) }}, {{ userLng.toFixed(6) }}）
+                </span>
+            </span>
+            <span v-else>
+                尚未取得定位，將以系統預設資料顯示
+            </span>
+        </div>
     </div>
 
-    <!-- 正在開團 -->
     <div class="mb-5">
-        <div class="section-title">🔥 正在開團</div>
+        <div class="section-title">正在開團</div>
         <div class="section-sub">越接近截止越排前面</div>
 
         <div v-if="activeStores.length === 0" class="text-muted small">
@@ -131,22 +179,23 @@
                     </div>
 
                     <div class="store-body">
-
                         <div class="store-hours mb-2">
                             <span v-if="s.isOpenNow" class="text-success fw-bold">
-                                🟢 營業中
+                                營業中
                             </span>
                             <span v-else class="text-danger fw-bold">
-                                🔴 已打烊
+                                已打烊
                             </span>
                             <span class="text-muted ms-2">
-                                {{ s.businessHours }}
+                                {{ s.businessHours || '尚未提供營業時間' }}
                             </span>
                         </div>
 
                         <div class="store-name">{{ s.storeName }}</div>
+
                         <div class="store-meta">
-                            {{ s.address }} · {{ s.distance }} 公尺
+                            {{ s.address || '未提供地址' }}
+                            <span v-if="s.distanceText"> · {{ s.distanceText }}</span>
                         </div>
 
                         <div v-if="s.isUrgent"
@@ -158,17 +207,19 @@
                            class="btn btn-success w-100 mt-3">
                             查看正在開團
                         </a>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 尚未開團 -->
     <div>
-        <div class="section-title">🌱 尚未開團</div>
+        <div class="section-title">尚未開團</div>
         <div class="section-sub">你可以成為發起人</div>
+
+        <div v-if="idleStores.length === 0" class="text-muted small">
+            目前沒有符合條件的店家
+        </div>
 
         <div class="row g-4">
             <div class="col-lg-4 col-md-6"
@@ -183,22 +234,23 @@
                     </div>
 
                     <div class="store-body">
-
                         <div class="store-hours mb-2">
                             <span v-if="s.isOpenNow" class="text-success fw-bold">
-                                🟢 營業中
+                                營業中
                             </span>
                             <span v-else class="text-danger fw-bold">
-                                🔴 已打烊
+                                已打烊
                             </span>
                             <span class="text-muted ms-2">
-                                {{ s.businessHours }}
+                                {{ s.businessHours || '尚未提供營業時間' }}
                             </span>
                         </div>
 
                         <div class="store-name">{{ s.storeName }}</div>
+
                         <div class="store-meta">
-                            {{ s.address }} · {{ s.distance }} 公尺
+                            {{ s.address || '未提供地址' }}
+                            <span v-if="s.distanceText"> · {{ s.distanceText }}</span>
                         </div>
 
                         <a v-if="s.isOpenNow"
@@ -212,7 +264,6 @@
                                 disabled>
                             已打烊，無法開團
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -232,31 +283,84 @@
             return {
                 stores: [],
                 filterMode: 'all',
-                searchText: ''
+                searchText: '',
+                selectedCity: '',
+                userLat: null,
+                userLng: null,
+                locationLoaded: false,
+                cities: [
+                    '台北市',
+                    '新北市',
+                    '桃園市',
+                    '新竹市',
+                    '新竹縣',
+                    '台中市',
+                    '彰化縣',
+                    '南投縣',
+                    '雲林縣',
+                    '嘉義市',
+                    '嘉義縣',
+                    '台南市',
+                    '高雄市',
+                    '屏東縣',
+                    '宜蘭縣',
+                    '花蓮縣',
+                    '台東縣',
+                    '基隆市'
+                ]
             };
         },
 
         computed: {
-                activeStores() {
-        return this.stores
-            .filter(s => s.hasActiveGroup)
-            .filter(s => this.filterMode === 'all' || s.isOpenNow)
-            .filter(s => this.matchSearch(s))
-            .sort((a, b) => a.minutesLeft - b.minutesLeft);
-    },
+            activeStores() {
+                return this.stores
+                    .filter(function (s) { return s.hasActiveGroup; })
+                    .filter(this.filterByOpenMode)
+                    .filter(this.matchSearch)
+                    .sort(function (a, b) {
+                        return a.minutesLeft - b.minutesLeft;
+                    });
+            },
 
-                idleStores() {
-        return this.stores
-            .filter(s => !s.hasActiveGroup)
-            .filter(s => this.filterMode === 'all' || s.isOpenNow)
-            .filter(s => this.matchSearch(s));
-    }
+            idleStores() {
+                return this.stores
+                    .filter(function (s) { return !s.hasActiveGroup; })
+                    .filter(this.filterByOpenMode)
+                    .filter(this.matchSearch)
+                    .sort(function (a, b) {
+                        return a.distanceValue - b.distanceValue;
+                    });
+            }
         },
 
         methods: {
-            enrichStore(store) {
+            filterByOpenMode(store) {
+                return this.filterMode === 'all' || store.isOpenNow;
+            },
 
+            formatDistance(distanceInMeters) {
+                if (distanceInMeters === null || distanceInMeters === undefined) {
+                    return '';
+                }
+
+                if (distanceInMeters < 1000) {
+                    return Math.round(distanceInMeters) + ' 公尺';
+                }
+
+                return (distanceInMeters / 1000).toFixed(1) + ' 公里';
+            },
+
+            enrichStore(store) {
                 store.isOpenNow = store.isOpenNow === true;
+                store.hasActiveGroup = store.hasActiveGroup === true;
+
+                if (store.distance === null || store.distance === undefined) {
+                    store.distanceValue = 999999;
+                    store.distanceText = '';
+                } else {
+                    store.distanceValue = Number(store.distance);
+                    store.distanceText = this.formatDistance(store.distanceValue);
+                }
 
                 if (!store.hasActiveGroup) {
                     store.isUrgent = false;
@@ -271,13 +375,13 @@
                         : null;
 
                     var minutesLeft = 9999;
+
                     if (deadline && !isNaN(deadline.getTime())) {
                         minutesLeft = Math.floor((deadline - now) / 60000);
                     }
 
                     store.minutesLeft = Math.max(minutesLeft, 0);
                     store.isUrgent = minutesLeft > 0 && minutesLeft <= 15;
-
                 } catch (e) {
                     store.isUrgent = false;
                     store.minutesLeft = 9999;
@@ -286,53 +390,93 @@
                 return store;
             },
 
-            fetchStores() {
-                axios.get('/api/stores/nearby')
-                    .then(res => {
-                        var list = res.data || [];
-                        this.stores = list.map(s => this.enrichStore(s));
+            fetchStores(lat, lng) {
+                var vm = this;
+
+                axios.get('/api/stores/nearby', {
+                    params: {
+                        lat: lat,
+                        lng: lng,
+                        city: vm.selectedCity
+                    }
+                }).then(function (res) {
+                    var list = res.data || [];
+                    vm.stores = list.map(function (s) {
+                        return vm.enrichStore(s);
                     });
+                }).catch(function (err) {
+                    console.error(err);
+                    vm.stores = [];
+                });
             },
-                    matchSearch(store) {
 
-        if (!this.searchText) {
-            return true;
-        }
+            reloadStores() {
+                this.fetchStores(this.userLat, this.userLng);
+            },
 
-        const keyword = this.searchText.toLowerCase();
+            detectLocation() {
+                var vm = this;
 
-        // 搜尋店名
-        if (store.storeName &&
-            store.storeName.toLowerCase().includes(keyword)) {
-            return true;
-        }
+                if (!navigator.geolocation) {
+                    vm.locationLoaded = false;
+                    vm.fetchStores(null, null);
+                    return;
+                }
 
-        // 搜尋地址
-        if (store.address &&
-            store.address.toLowerCase().includes(keyword)) {
-            return true;
-        }
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        vm.userLat = position.coords.latitude;
+                        vm.userLng = position.coords.longitude;
+                        vm.locationLoaded = true;
+                        vm.fetchStores(vm.userLat, vm.userLng);
+                    },
+                    function () {
+                        vm.userLat = null;
+                        vm.userLng = null;
+                        vm.locationLoaded = false;
+                        vm.fetchStores(null, null);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 8000,
+                        maximumAge: 300000
+                    }
+                );
+            },
 
-        // 搜尋餐點
-        if (store.menuItems) {
-
-            for (let item of store.menuItems) {
-
-                if (item.name &&
-                    item.name.toLowerCase().includes(keyword)) {
+            matchSearch(store) {
+                if (!this.searchText) {
                     return true;
                 }
+
+                var keyword = this.searchText.toLowerCase();
+
+                if (store.storeName &&
+                    store.storeName.toLowerCase().indexOf(keyword) > -1) {
+                    return true;
+                }
+
+                if (store.address &&
+                    store.address.toLowerCase().indexOf(keyword) > -1) {
+                    return true;
+                }
+
+                if (store.menuItems && store.menuItems.length > 0) {
+                    for (var i = 0; i < store.menuItems.length; i++) {
+                        var item = store.menuItems[i];
+                        if (item.name &&
+                            item.name.toLowerCase().indexOf(keyword) > -1) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
-
-        }
-
-        return false;
-    }
         },
 
         mounted() {
-            this.fetchStores();
+            this.detectLocation();
         }
-
     }).mount('#app');
 </script>

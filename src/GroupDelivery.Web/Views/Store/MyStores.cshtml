@@ -1,4 +1,8 @@
-﻿@model IEnumerable<Store>
+﻿@model IEnumerable<GroupDelivery.Domain.StoreListItemViewModel>
+
+@{
+    var dayNames = new[] { "日", "一", "二", "三", "四", "五", "六" };
+}
 
 <style>
     :root {
@@ -9,110 +13,242 @@
         --border: #eef2f7;
         --danger: #ef4444;
         --success: #10b981;
+        --warning-bg: #fff7ed;
+        --warning-text: #c2410c;
+        --warning-border: #fed7aa;
+        --info-bg: #eff6ff;
+        --info-text: #1d4ed8;
+        --info-border: #bfdbfe;
+        --dark: #111827;
     }
 
     body {
-        background: var(--bg);
+        background: linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
     }
 
     .wrap {
-        max-width: 1000px;
+        max-width: 1100px;
         margin: 0 auto;
         padding: 3rem 1rem;
     }
 
-    .header {
+    .page-hero {
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #111827, #1f2937);
+        color: white;
+        border-radius: 24px;
+        padding: 2rem 2rem;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, .16);
+    }
+
+    .page-hero-title {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0 0 .5rem 0;
+        letter-spacing: -.02em;
+    }
+
+    .page-hero-sub {
+        color: rgba(255,255,255,.8);
+        margin: 0;
+        font-size: .95rem;
+    }
+
+    .hero-actions {
+        margin-top: 1.2rem;
+    }
+
+    .header-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.2rem;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
-        .header h1 {
-            font-weight: 900;
-            font-size: 1.9rem;
-            margin: 0;
-        }
+    .header-title {
+        font-weight: 900;
+        font-size: 1.35rem;
+        margin: 0;
+        color: #111827;
+    }
 
     .store-card {
         background: var(--card);
-        border-radius: 18px;
-        margin-bottom: 1.3rem;
+        border-radius: 20px;
+        margin-bottom: 1.4rem;
         border: 1px solid var(--border);
         overflow: hidden;
         transition: .25s ease;
+        box-shadow: 0 12px 30px rgba(15,23,42,.05);
     }
 
         .store-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 15px 40px rgba(0,0,0,.05);
+            box-shadow: 0 18px 42px rgba(15,23,42,.10);
         }
 
         .store-card.paused {
-            opacity: .65;
+            opacity: .88;
         }
 
-    .status-bar {
-        padding: .5rem 1rem;
-        font-size: .75rem;
-        font-weight: 700;
+    .top-status-row {
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        padding: .9rem 1rem 0 1rem;
     }
 
-    .status-paused {
-        background: rgba(239,68,68,.08);
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .35rem .8rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 800;
+    }
+
+    .pill-success {
+        background: rgba(16,185,129,.12);
+        color: var(--success);
+    }
+
+    .pill-danger {
+        background: rgba(239,68,68,.12);
         color: var(--danger);
+    }
+
+    .pill-warning {
+        background: #fff7ed;
+        color: #c2410c;
+    }
+
+    .pill-info {
+        background: #eff6ff;
+        color: #1d4ed8;
     }
 
     .store-content {
         display: flex;
         gap: 1.2rem;
-        padding: 1.2rem 1.4rem;
+        padding: 1.1rem 1.4rem 1.4rem 1.4rem;
     }
 
     .store-cover {
-        width: 160px;
-        height: 110px;
-        border-radius: 12px;
+        width: 180px;
+        height: 128px;
+        border-radius: 14px;
         object-fit: cover;
         flex-shrink: 0;
+        background: #f3f4f6;
     }
 
     .store-main {
         flex: 1;
+        min-width: 0;
     }
 
     .store-name {
-        font-weight: 800;
-        font-size: 1.1rem;
-        margin-bottom: .3rem;
+        font-weight: 900;
+        font-size: 1.15rem;
+        margin-bottom: .35rem;
+        color: #111827;
     }
 
     .meta {
-        font-size: .8rem;
+        font-size: .84rem;
         color: var(--muted);
-        margin-bottom: .2rem;
+        margin-bottom: .3rem;
+        line-height: 1.6;
     }
 
     .time {
-        font-size: .75rem;
-        margin-top: .4rem;
+        font-size: .8rem;
+        margin-top: .45rem;
         color: #374151;
+    }
+
+    .setup-warning {
+        background: var(--warning-bg);
+        border: 1px solid var(--warning-border);
+        color: var(--warning-text);
+        font-size: .8rem;
+        padding: .65rem .8rem;
+        border-radius: 12px;
+        margin: .8rem 0;
+        display: flex;
+        gap: .8rem;
+        flex-wrap: wrap;
+        line-height: 1.6;
+    }
+
+    .warn-item a {
+        font-weight: 800;
+        margin-left: .35rem;
+        color: #ea580c;
+        text-decoration: none;
+    }
+
+        .warn-item a:hover {
+            text-decoration: underline;
+        }
+
+    .store-health {
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        margin-top: .8rem;
+        margin-bottom: .9rem;
+    }
+
+    .health-chip {
+        border-radius: 999px;
+        padding: .32rem .7rem;
+        font-size: .74rem;
+        font-weight: 800;
+        border: 1px solid transparent;
+    }
+
+    .health-ok {
+        background: rgba(16,185,129,.12);
+        color: #047857;
+        border-color: rgba(16,185,129,.18);
+    }
+
+    .health-miss {
+        background: rgba(239,68,68,.10);
+        color: #b91c1c;
+        border-color: rgba(239,68,68,.18);
+    }
+
+    .health-pending {
+        background: rgba(59,130,246,.10);
+        color: #1d4ed8;
+        border-color: rgba(59,130,246,.18);
     }
 
     .actions {
         display: flex;
         gap: .6rem;
         margin-top: .9rem;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .btn-lite {
-        font-size: .75rem;
-        font-weight: 700;
-        padding: .35rem .8rem;
+        font-size: .78rem;
+        font-weight: 800;
+        padding: .45rem .9rem;
         border-radius: 999px;
         border: none;
         cursor: pointer;
         background: #f3f4f6;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-edit {
@@ -123,31 +259,42 @@
         color: var(--success);
     }
 
-    .btn-pause {
-        color: var(--danger);
-    }
-
-    .btn-resume {
-        color: var(--success);
+    .btn-setting {
+        color: #2563eb;
     }
 
     .btn-delete {
         color: var(--danger);
     }
 
+    .btn-open-group {
+        background: linear-gradient(135deg, #111827, #1f2937);
+        color: white;
+    }
+
     .btn-lite:hover {
         background: #e5e7eb;
+    }
+
+    .btn-open-group:hover {
+        color: white;
+        opacity: .95;
     }
 
     .toggle-wrap {
         display: flex;
         align-items: center;
         gap: .6rem;
+        padding: .35rem .7rem;
+        background: #f8fafc;
+        border-radius: 999px;
+        border: 1px solid #eef2f7;
     }
 
     .toggle-label {
         font-size: .75rem;
-        font-weight: 700;
+        font-weight: 800;
+        color: #374151;
     }
 
     .switch {
@@ -166,10 +313,7 @@
     .slider {
         position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background-color: #ef4444;
         transition: .3s;
         border-radius: 34px;
@@ -194,65 +338,123 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
+
+    .empty-box {
+        text-align: center;
+        color: #6b7280;
+        padding: 4rem 1rem;
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #eef2f7;
+        box-shadow: 0 12px 30px rgba(15,23,42,.04);
+    }
+
+    @@media (max-width: 768px) {
+        .store-content
+
+    {
+        flex-direction: column;
+    }
+
+    .store-cover {
+        width: 100%;
+        height: 180px;
+    }
+
+    .page-hero {
+        padding: 1.5rem 1.2rem;
+    }
+
+    .page-hero-title {
+        font-size: 1.6rem;
+    }
+
+    }
 </style>
 
 <div class="wrap">
 
-    <div class="header">
-        <h1>我的商店</h1>
-        <a class="btn btn-success rounded-pill px-4"
-           href="/Store/Create">
-            ＋ 新增商店
-        </a>
+    <div class="page-hero">
+        <div class="page-hero-title">我的商店</div>
+        <p class="page-hero-sub">
+            先把菜單與外送規則補齊，再來開團。不然你店開著，客人進來卻什麼都點不了，這種體驗很像開門營業但門後面是牆。
+        </p>
+
+        <div class="hero-actions">
+            <a class="btn btn-success rounded-pill px-4 fw-bold"
+               href="/Store/Create">
+                ＋ 新增商店
+            </a>
+        </div>
+    </div>
+
+    <div class="header-row">
+        <h2 class="header-title">商店列表</h2>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center text-muted py-5">
+        <div class="empty-box">
             尚未建立商店
         </div>
     }
     else
     {
-        @foreach (var store in Model)
+        foreach (var store in Model)
         {
             <div class="store-card @(store.IsPausedToday ? "paused" : "")">
 
-                @if (store.IsPausedToday)
-                {
-                    <div class="status-bar status-paused">
-                        今天不接單
-                    </div>
-                }
+                <div class="top-status-row">
+
+                    @if (store.CanOpenGroup)
+                    {
+                        <span class="pill pill-success">可正常接單</span>
+                    }
+                    else
+                    {
+                        <span class="pill pill-warning">尚未完成開團條件</span>
+                    }
+
+                    @if (store.IsPausedToday)
+                    {
+                        <span class="pill pill-danger">今天不接單</span>
+                    }
+
+                    @if (store.IsClosedToday)
+                    {
+                        <span class="pill pill-danger">今天公休</span>
+                    }
+
+                </div>
 
                 <div class="store-content">
 
                     <img class="store-cover"
                          src="@(string.IsNullOrEmpty(store.CoverImageUrl)
-                                                  ? "/img/store-placeholder.jpg"
-                                                  : store.CoverImageUrl)" />
+                                                      ? "/img/store-placeholder.jpg"
+                                                      : store.CoverImageUrl)" />
 
             <div class="store-main">
 
                         <div class="store-name">@store.StoreName</div>
 
-                        <div class="meta">📍 @store.Address</div>
+                        <div class="meta">地址：@store.Address</div>
 
                 @if (!string.IsNullOrEmpty(store.Mobile))
                         {
-                            <div class="meta">📱 @store.Mobile</div>
+                            <div class="meta">手機：@store.Mobile</div>
                         }
 
                         @if (!string.IsNullOrEmpty(store.Landline))
                         {
-                            <div class="meta">☎ @store.Landline</div>
+                            <div class="meta">市話：@store.Landline</div>
                         }
 
                         <div class="time">
-                            🕒
+                            營業時間：
                             @store.OpenTime.ToString(@"hh\:mm") -
                             @store.CloseTime.ToString(@"hh\:mm")
-                            @if (store.OpenTime2 != null)
+                            @if (store.OpenTime2 != null && store.CloseTime2 != null)
                             {
                                 <span>
                                     ／ @store.OpenTime2.Value.ToString(@"hh\:mm") -
@@ -260,28 +462,54 @@
                                 </span>
                             }
                         </div>
-                        @{
-                            var closedDays = string.IsNullOrEmpty(store.ClosedDays)
-                            ? new List<int>()
-                            : store.ClosedDays.Split(',').Select(int.Parse).ToList();
 
-                            var dayNames = new[] { "日", "一", "二", "三", "四", "五", "六" };
-                            var today = (int)DateTime.Now.DayOfWeek;
-                            var isClosedToday = closedDays.Contains(today);
-                        }
-
-                        @if (closedDays.Any())
+                        @if (store.ClosedDayList != null && store.ClosedDayList.Any())
                         {
-                            <div class="meta" style="@(isClosedToday ? "color:#ef4444;font-weight:700;" : "")">
+                            <div class="meta" style="@(store.IsClosedToday ? "color:#ef4444;font-weight:700;" : "")">
                                 休息日：
-                                @string.Join("、", closedDays.Select(d => "星期" + dayNames[d]))
-
-                                @if (isClosedToday)
+                                @string.Join("、", store.ClosedDayList.Select(d => "星期" + dayNames[d]))
+                                @if (store.IsClosedToday)
                                 {
                                     <span>（今天公休）</span>
                                 }
                             </div>
                         }
+
+                        <div class="store-health">
+                            <span class="health-chip @(store.HasMenu ? "health-ok" : "health-miss")">
+                                @(store.HasMenu ? "菜單已完成" : "缺少菜單")
+                            </span>
+
+                            <span class="health-chip @(store.HasDeliveryRule ? "health-ok" : "health-miss")">
+                                @(store.HasDeliveryRule ? "外送規則已完成" : "缺少外送規則")
+                            </span>
+
+                            <span class="health-chip @(store.CanOpenGroup ? "health-ok" : "health-pending")">
+                                @(store.CanOpenGroup ? "可開團" : "尚不可開團")
+                            </span>
+                        </div>
+
+                        @if (store.HasPendingSetup)
+                        {
+                            <div class="setup-warning">
+                                @if (!store.HasMenu)
+                                {
+                                    <span class="warn-item">
+                                        尚未設定菜單
+                                        <a href="/StoreMenu/Manage/@store.StorePublicId">立即設定</a>
+                                    </span>
+                                }
+
+                                @if (!store.HasDeliveryRule)
+                                {
+                                    <span class="warn-item">
+                                        尚未設定外送規則
+                                        <a href="/DeliveryRule/Index/@store.StorePublicId">立即設定</a>
+                                    </span>
+                                }
+                            </div>
+                        }
+
                         <div class="actions">
 
                             <form method="post"
@@ -300,24 +528,35 @@
                                     <span class="slider"></span>
                                 </label>
                             </form>
+
                             <a class="btn-lite btn-edit"
                                href="/Store/Edit/@store.StorePublicId">
-                                編輯
+                                編輯商店
                             </a>
 
                             <a class="btn-lite btn-menu"
                                href="/StoreMenu/Manage/@store.StorePublicId">
-                                菜單
+                                管理菜單
                             </a>
-                            <a class="btn-lite"
+
+                            <a class="btn-lite btn-setting"
                                href="/DeliveryRule/Index/@store.StorePublicId">
                                 外送設定
                             </a>
+
+                            @if (store.CanOpenGroup)
+                            {
+                                <a class="btn-lite btn-open-group"
+                                   href="/Group/CreateGroup/@store.StorePublicId">
+                                    立即開團
+                                </a>
+                            }
+
                             <form method="post"
                                   action="/Store/Delete/@store.StoreId"
                                   onsubmit="return confirm('確定刪除？');">
                                 @Html.AntiForgeryToken()
-                                <button class="btn-lite btn-delete">
+                                <button type="submit" class="btn-lite btn-delete">
                                     刪除
                                 </button>
                             </form>

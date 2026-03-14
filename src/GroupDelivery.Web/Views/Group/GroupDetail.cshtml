@@ -5,168 +5,572 @@
 
 <style>
     body {
-        background: #f4f6fb;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        background: radial-gradient(circle at top left, rgba(99,102,241,.16), transparent 30%), radial-gradient(circle at top right, rgba(16,185,129,.12), transparent 28%), linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #0f172a;
+        min-height: 100vh;
     }
 
-    .group-container {
-        max-width: 720px;
+    .group-shell {
+        position: relative;
+        max-width: 780px;
         margin: 0 auto;
     }
 
-    .card-soft {
-        background: white;
-        border-radius: 1.2rem;
-        padding: 1.5rem;
-        box-shadow: 0 10px 25px rgba(0,0,0,.05);
+    .hero-glow {
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(79,70,229,.18) 0%, rgba(79,70,229,0) 70%);
+        filter: blur(10px);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .group-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,.82);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,.7);
+        border-radius: 24px;
+        padding: 1.35rem;
+        box-shadow: 0 20px 40px rgba(15,23,42,.08);
         margin-bottom: 1rem;
+        transition: transform .25s ease, box-shadow .25s ease;
     }
 
-    .hero-title {
-        font-size: 1.6rem;
-        font-weight: 800;
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 48px rgba(15,23,42,.12);
+        }
+
+    .hero-card {
+        overflow: hidden;
+        position: relative;
+        padding: 1.6rem;
+        background: linear-gradient(135deg, rgba(79,70,229,.92), rgba(14,165,233,.88));
+        color: #fff;
     }
 
-    .countdown {
-        font-size: 2.2rem;
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            right: -30px;
+            top: -30px;
+            width: 160px;
+            height: 160px;
+            background: rgba(255,255,255,.12);
+            border-radius: 50%;
+        }
+
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            bottom: -45px;
+            left: -25px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255,255,255,.10);
+            border-radius: 50%;
+        }
+
+    .hero-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .store-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .38rem .8rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,.16);
+        font-size: .78rem;
+        font-weight: 700;
+        margin-bottom: .8rem;
+    }
+
+    .store-name {
+        font-size: 1.75rem;
         font-weight: 900;
-        margin-top: 1rem;
+        line-height: 1.2;
+        margin-bottom: .5rem;
+        letter-spacing: -.02em;
     }
 
-    .progress-bg {
-        height: 12px;
-        background: #e5e7eb;
+    .store-info {
+        font-size: .95rem;
+        opacity: .92;
+        line-height: 1.75;
+    }
+
+    .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .info-title {
+        font-size: .86rem;
+        color: #64748b;
+        font-weight: 700;
+        margin-bottom: .55rem;
+    }
+
+    .countdown-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .deadline-time {
+        color: #64748b;
+        font-size: .95rem;
+        font-weight: 600;
+    }
+
+    .countdown-text {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -.03em;
+        color: #111827;
+        animation: pulseSoft 1.6s ease-in-out infinite;
+    }
+
+    .countdown-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .45rem .85rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #fee2e2, #fde68a);
+        color: #7c2d12;
+        font-weight: 800;
+        font-size: .82rem;
+        box-shadow: 0 8px 18px rgba(245,158,11,.18);
+    }
+
+    .progress-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .85rem;
+        gap: .8rem;
+        flex-wrap: wrap;
+    }
+
+    .progress-amount {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .progress-shell {
+        position: relative;
+        height: 16px;
+        background: #e2e8f0;
         border-radius: 999px;
         overflow: hidden;
     }
 
     .progress-fill {
         height: 100%;
-        transition: width .4s ease, background .4s ease;
+        border-radius: 999px;
+        position: relative;
+        transition: width .6s ease, background .4s ease;
+        overflow: hidden;
+    }
+
+        .progress-fill::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( 120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 35%, rgba(255,255,255,0) 70% );
+            animation: shine 2.2s linear infinite;
+        }
+
+    .progress-meta {
+        margin-top: .8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .6rem;
+    }
+
+    .progress-status {
+        font-size: .92rem;
+        color: #475569;
+        font-weight: 700;
+    }
+
+    .progress-badge {
+        padding: .38rem .75rem;
+        border-radius: 999px;
+        font-size: .8rem;
+        font-weight: 800;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(37,99,235,.18);
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 900;
+        margin-bottom: .9rem;
+        color: #0f172a;
+    }
+
+    .option-grid {
+        display: grid;
+        gap: .9rem;
     }
 
     .option-card {
-        border-radius: 999px;
-        padding: .9rem 1.2rem;
-        border: 2px solid #e5e7eb;
+        position: relative;
+        border-radius: 20px;
+        padding: 1rem 1rem;
+        border: 1.5px solid #e2e8f0;
+        background: linear-gradient(180deg, #ffffff, #f8fbff);
         cursor: pointer;
-        text-align: center;
-        transition: .2s ease;
-        font-weight: 600;
+        transition: all .25s ease;
+        overflow: hidden;
     }
 
-    .option-active {
-        border-color: #111827;
-        background: #111827;
-        color: white;
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #c7d2fe;
+            box-shadow: 0 16px 28px rgba(99,102,241,.10);
+        }
+
+        .option-card.active {
+            border-color: transparent;
+            background: linear-gradient(135deg, #111827, #374151);
+            color: #fff;
+            box-shadow: 0 18px 34px rgba(17,24,39,.22);
+        }
+
+            .option-card.active .option-desc {
+                color: rgba(255,255,255,.82);
+            }
+
+            .option-card.active .option-icon {
+                background: rgba(255,255,255,.14);
+            }
+
+    .option-row {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
     }
 
-    .primary-btn {
-        background: #111827;
-        border: none;
-        border-radius: 999px;
-        padding: 1rem;
-        font-weight: 700;
-        color: white;
+    .option-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .option-title {
+        font-size: 1rem;
+        font-weight: 900;
+        margin-bottom: .15rem;
+    }
+
+    .option-desc {
+        color: #64748b;
+        font-size: .88rem;
+        line-height: 1.5;
     }
 
     .phone-box {
-        background: #111827;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
         color: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
+        border-radius: 24px;
+        padding: 1.3rem;
         margin-top: 1rem;
+        box-shadow: 0 18px 36px rgba(15,23,42,.22);
+        animation: fadeUp .35s ease;
     }
 
-        .phone-box a {
+    .phone-title {
+        font-size: 1rem;
+        font-weight: 900;
+        margin-bottom: .8rem;
+    }
+
+    .phone-link {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,.08);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 800;
+        margin-top: .7rem;
+        transition: background .2s ease, transform .2s ease;
+    }
+
+        .phone-link:hover {
+            background: rgba(255,255,255,.14);
+            transform: translateY(-1px);
             color: #fff;
-            font-weight: 700;
-            text-decoration: none;
         }
+
+    .menu-entry-btn {
+        width: 100%;
+        border: none;
+        border-radius: 18px;
+        padding: 1rem 1.2rem;
+        font-weight: 900;
+        font-size: 1rem;
+        color: #fff;
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        box-shadow: 0 18px 34px rgba(79,70,229,.24);
+        transition: transform .2s ease, box-shadow .2s ease;
+        animation: fadeUp .35s ease;
+    }
+
+        .menu-entry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 38px rgba(79,70,229,.28);
+        }
+
+    .menu-note {
+        margin-top: .75rem;
+        color: #64748b;
+        font-size: .88rem;
+        text-align: center;
+    }
+
+    .empty-menu-hint {
+        margin-top: .8rem;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-size: .9rem;
+        font-weight: 700;
+        border: 1px solid #fed7aa;
+    }
+
+    @@keyframes pulseSoft {
+        0%, 100%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    }
+
+    @@keyframes shine {
+        0%
+
+    {
+        transform: translateX(-120%);
+    }
+
+    100% {
+        transform: translateX(120%);
+    }
+
+    }
+
+    @@keyframes fadeUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .group-shell
+
+    {
+        max-width: 100%;
+    }
+
+    .store-name {
+        font-size: 1.45rem;
+    }
+
+    .countdown-text {
+        font-size: 1.55rem;
+    }
+
+    .mini-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glass-card,
+    .hero-card {
+        border-radius: 20px;
+    }
+
+    }
 </style>
 
-<div id="app" class="container py-5">
-    <div class="group-container">
+<div id="app" class="container py-4 py-md-5">
+    <div class="group-shell">
+        <div class="hero-glow"></div>
 
-        <!-- 商家資訊 -->
-        <div class="card-soft">
-            <div class="hero-title">
-                {{ store.name || '正在揪團' }}
-            </div>
-            <div class="text-muted small mt-2">
-                地址：{{ store.address || '未提供' }}
-            </div>
-            <div class="text-muted small">
-                市話：{{ store.landline || '未提供' }}
-            </div>
-            <div class="text-muted small">
-                手機：{{ store.mobile || '未提供' }}
-            </div>
-        </div>
+        <div class="group-content">
 
-        <!-- 倒數 -->
-        <div class="card-soft">
-            <div class="text-muted small">
-                截止時間：{{ formatTime(deadline) }}
-            </div>
-            <div class="countdown">
-                {{ remainText }}
-            </div>
-        </div>
+            <div class="glass-card hero-card">
+                <div class="hero-inner">
+                    <div class="store-badge">揪團進行中</div>
 
-        <!-- 成團進度 -->
-        <div class="card-soft">
-            <div class="d-flex justify-content-between fw-semibold mb-2">
-                <div>成團進度</div>
-                <div>${{ currentAmount }} / ${{ targetAmount }}</div>
-            </div>
+                    <div class="store-name">
+                        {{ store.name || '正在揪團' }}
+                    </div>
 
-            <div class="progress-bg">
-                <div class="progress-fill"
-                     :style="{ width: percent + '%', background: progressColor }">
+                    <div class="store-info">
+                        <div>{{ store.address || '未提供地址資訊' }}</div>
+                        <div v-if="store.landline">市話：{{ store.landline }}</div>
+                        <div v-if="store.mobile">手機：{{ store.mobile }}</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 訂購方式 -->
-        <div class="card-soft">
-            <div class="fw-semibold mb-3">選擇訂購方式</div>
+            <div class="mini-grid">
+                <div class="glass-card">
+                    <div class="info-title">成團進度</div>
 
-            <div class="d-grid gap-3">
-                <div class="option-card"
-                     :class="orderMode === 'menu' ? 'option-active' : ''"
-                     @@click="orderMode = 'menu'">
-                    使用電子菜單
+                    <div class="progress-head">
+                        <div class="progress-amount">
+                            ${{ currentAmount }} / ${{ targetAmount }}
+                        </div>
+
+                        <div class="progress-badge"
+                             :style="{ background: progressColor }">
+                            {{ percent }}%
+                        </div>
+                    </div>
+
+                    <div class="progress-shell">
+                        <div class="progress-fill"
+                             :style="{ width: percent + '%', background: progressColor }">
+                        </div>
+                    </div>
+
+                    <div class="progress-meta">
+                        <div class="progress-status">
+                            {{ progressText }}
+                        </div>
+                        <div class="text-muted small">
+                            目標金額 ${{ targetAmount }}
+                        </div>
+                    </div>
                 </div>
 
-                <div class="option-card"
-                     :class="orderMode === 'phone' ? 'option-active' : ''"
-                     @@click="orderMode = 'phone'">
-                    電話點餐
+                <div class="glass-card">
+                    <div class="info-title">倒數狀態</div>
+
+                    <div class="countdown-wrap">
+                        <div>
+                            <div class="deadline-time">
+                                截止時間 {{ formatTime(deadline) }}
+                            </div>
+                            <div class="countdown-text">
+                                {{ remainText }}
+                            </div>
+                        </div>
+
+                        <div class="countdown-chip">
+                            剩餘時間
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 電話模式 -->
-        <div v-if="orderMode === 'phone'" class="phone-box">
-            <div class="mb-2">請直接聯絡商家下單</div>
+            <div class="glass-card">
+                <div class="section-title">選擇訂購方式</div>
 
-            <div v-if="store.mobile">
-                📱 <a :href="'tel:' + store.mobile">{{ store.mobile }}</a>
+                <div class="option-grid">
+                    <div v-if="hasMenu"
+                         class="option-card"
+                         :class="{ active: orderMode === 'menu' }"
+                         @@click="orderMode = 'menu'">
+                        <div class="option-row">
+                            <div class="option-icon">🍽️</div>
+                            <div>
+                                <div class="option-title">使用電子菜單</div>
+                                <div class="option-desc">直接選品項、加選項、快速加入這一團</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="option-card"
+                         :class="{ active: orderMode === 'phone' }"
+                         @@click="orderMode = 'phone'">
+                        <div class="option-row">
+                            <div class="option-icon">📞</div>
+                            <div>
+                                <div class="option-title">電話點餐</div>
+                                <div class="option-desc">直接聯絡店家下單，適合臨時需求或特殊備註</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="!hasMenu" class="empty-menu-hint">
+                    此店家目前未提供電子菜單，請直接電話訂餐。
+                </div>
             </div>
 
-            <div v-if="store.landline">
-                ☎ <a :href="'tel:' + store.landline">{{ store.landline }}</a>
+            <div v-if="orderMode === 'phone'" class="phone-box">
+                <div class="phone-title">請直接聯絡商家下單</div>
+
+                <a v-if="store.mobile" class="phone-link" :href="'tel:' + store.mobile">
+                    <span>📱</span>
+                    <span>{{ store.mobile }}</span>
+                </a>
+
+                <a v-if="store.landline" class="phone-link" :href="'tel:' + store.landline">
+                    <span>☎</span>
+                    <span>{{ store.landline }}</span>
+                </a>
             </div>
+
+            <button v-if="orderMode === 'menu' && hasMenu"
+                    class="menu-entry-btn mt-3"
+                    @@click="goMenu">
+                前往電子菜單
+            </button>
+
+            <div v-if="orderMode === 'menu' && hasMenu" class="menu-note">
+                進入後可直接選擇餐點與加購項目
+            </div>
+
         </div>
-
-        <!-- 電子菜單按鈕 -->
-        <button v-if="orderMode === 'menu'"
-                class="primary-btn w-100 mt-3"
-                @@click="goMenu">
-            前往電子菜單
-        </button>
-
     </div>
 </div>
 
@@ -182,16 +586,18 @@
                 groupOrderId: '@Model.GroupOrderPublicId',
                 deadline: null,
                 now: new Date(),
-                orderMode: '',
                 store: {},
                 currentAmount: 0,
-                targetAmount: 0
+                targetAmount: 0,
+                orderMode: '',
+                hasMenu: false
             };
         },
 
         computed: {
             remainSeconds() {
                 if (!this.deadline) return 0;
+
                 var diff = new Date(this.deadline) - this.now;
                 return Math.max(Math.floor(diff / 1000), 0);
             },
@@ -201,7 +607,11 @@
                 var h = Math.floor(total / 3600);
                 var m = Math.floor((total % 3600) / 60);
                 var s = total % 60;
-                return h + " 小時 " + m + " 分 " + s + " 秒";
+
+                if (h > 0)
+                    return h + " 小時 " + m + " 分 " + s + " 秒";
+
+                return m + " 分 " + s + " 秒";
             },
 
             percent() {
@@ -210,15 +620,21 @@
             },
 
             progressColor() {
-                if (this.percent >= 100) return "#16a34a";
-                if (this.percent >= 80) return "#2563eb";
-                if (this.percent >= 40) return "#f59e0b";
-                return "#9ca3af";
+                if (this.percent >= 100) return "linear-gradient(135deg, #16a34a, #22c55e)";
+                if (this.percent >= 80) return "linear-gradient(135deg, #2563eb, #38bdf8)";
+                if (this.percent >= 40) return "linear-gradient(135deg, #f59e0b, #f97316)";
+                return "linear-gradient(135deg, #94a3b8, #64748b)";
+            },
+
+            progressText() {
+                if (this.percent >= 100) return "已達成目標，這團很有機會成";
+                if (this.percent >= 80) return "快成團了，再差一點";
+                if (this.percent >= 40) return "進度穩定累積中";
+                return "剛起步，還需要更多人加入";
             }
         },
 
         methods: {
-
             fetchGroup() {
                 axios.get('/api/groups/' + this.groupOrderId)
                     .then(res => {
@@ -226,6 +642,16 @@
                         this.store = res.data.store || {};
                         this.currentAmount = res.data.currentAmount || 0;
                         this.targetAmount = res.data.targetAmount || 0;
+                        this.hasMenu = res.data.hasMenu || false;
+
+                        if (this.hasMenu) {
+                            this.orderMode = 'menu';
+                        } else {
+                            this.orderMode = 'phone';
+                        }
+                    })
+                    .catch(() => {
+                        alert("載入揪團資料失敗");
                     });
             },
 
@@ -234,24 +660,24 @@
                 return new Date(t).toLocaleString();
             },
 
-                goMenu() {
-        if (!this.orderMode) {
-            alert("請選擇訂購方式");
-            return;
-        }
+            goMenu() {
+                if (!this.hasMenu) {
+                    alert("此店家目前沒有電子菜單");
+                    return;
+                }
 
-        window.location.href =
-            '/Group/Menu/' + this.groupOrderId +
-            '?source=' + this.orderMode;
-    }
+                window.location.href =
+                    '/Group/Menu/' + this.groupOrderId +
+                    '?source=' + this.orderMode;
+            }
         },
 
         mounted() {
             this.fetchGroup();
+
             setInterval(() => {
                 this.now = new Date();
             }, 1000);
         }
-
     }).mount('#app');
 </script>

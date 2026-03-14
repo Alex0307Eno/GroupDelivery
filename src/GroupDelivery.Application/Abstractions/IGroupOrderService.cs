@@ -29,12 +29,12 @@ namespace GroupDelivery.Application.Abstractions
 
         Task JoinGroupAsync(int userId, int groupId);
         Task<List<GroupSummaryDto>> GetOpenGroupsAsync(double? lat, double? lng);
-        Task<GroupMenuDto> GetMenuAsync(int groupOrderId);
+        Task<GroupMenuDto> GetMenuAsync(Guid groupOrderPublicId);
         Task<GroupOrder> GetByIdAsync(int id);
         Task UpdateAsync(GroupOrder groupOrder);
         Task SetTakeModeAsync(int userId, int orderId, TakeMode takeMode);
         Task<int> CreateAsync(CreateUserGroupRequest request, int userId);
-        Task CloseGroupAsync(int userId, int groupId);
+        Task CloseGroupAsync(int userId, Guid groupOrderPublicId);
 
 
     }

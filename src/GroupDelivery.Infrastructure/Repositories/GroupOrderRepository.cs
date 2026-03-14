@@ -29,6 +29,12 @@ namespace GroupDelivery.Infrastructure.Repositories
                 .FirstOrDefaultAsync(g => g.GroupOrderId == id);
         }
         #endregion
+        public async Task<GroupOrder> GetByPublicIdAsync(Guid publicId)
+        {
+            return await _db.GroupOrders
+                .Include(g => g.Store)
+                .FirstOrDefaultAsync(g => g.GroupOrderPublicId == publicId);
+        }
 
         #region 取得所有進行中的開團資訊
         public async Task<HashSet<int>> GetActiveStoreIdsAsync(List<int> storeIds)

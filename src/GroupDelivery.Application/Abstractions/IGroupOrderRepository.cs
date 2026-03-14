@@ -43,5 +43,6 @@ namespace GroupDelivery.Application.Abstractions
         Task<List<GroupOrder>> GetOpenGroupsWithStoreAsync();
 
         Task<bool> AnyActiveByStoreAsync(int storeId);
+        Task<GroupOrder> GetByPublicIdAsync(Guid publicId);
     }
 }

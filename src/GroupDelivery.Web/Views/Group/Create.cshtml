@@ -248,7 +248,7 @@
 
         this.submitting=true;
 
-        axios.post('/api/groups',this.form)
+        axios.post('/api/group/creategroup',this.form)
         .then(res=>{
 
         const groupId=res.data.groupOrderId;

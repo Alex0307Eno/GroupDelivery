@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "隱私權政策";
+}
+
+<style>
+
+    .policy-hero {
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        color: white;
+        padding: 60px 20px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+        .policy-hero h1 {
+            font-size: 36px;
+            font-weight: 900;
+        }
+
+        .policy-hero p {
+            opacity: .9;
+        }
+
+    .policy-card {
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,.05);
+    }
+
+        .policy-card h3 {
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+    .policy-icon {
+        font-size: 28px;
+        margin-right: 8px;
+    }
+
+    .policy-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+        gap: 20px;
+    }
+
+</style>
+
+<div class="container py-5" style="max-width:1000px">
+
+    <div class="policy-hero">
+
+        <h1>隱私權政策</h1>
+
+        <p>
+            揪IN 重視您的個人資料保護，本頁說明資料如何被使用與保護
+        </p>
+
+    </div>
+
+    <div class="policy-grid">
+
+        <div class="policy-card">
+
+            <h3>🔐 蒐集哪些資料</h3>
+
+            <ul>
+                <li>帳號資訊（Email、登入資料）</li>
+                <li>訂單資訊</li>
+                <li>聯絡方式</li>
+                <li>位置資訊（用於顯示附近揪團）</li>
+            </ul>
+
+        </div>
+
+        <div class="policy-card">
+
+            <h3>📊 資料使用目的</h3>
+
+            <ul>
+                <li>提供訂單服務</li>
+                <li>顯示附近揪團</li>
+                <li>通知訂單狀態</li>
+                <li>改善平台體驗</li>
+            </ul>
+
+        </div>
+
+        <div class="policy-card">
+
+            <h3>🛡️ 資料保護</h3>
+
+            <p>
+                我們採取合理的技術與安全措施
+                保護您的個人資料避免未授權存取。
+            </p>
+
+        </div>
+
+        <div class="policy-card">
+
+            <h3>🔗 第三方服務</h3>
+
+            <p>
+                平台可能使用第三方服務，例如金流或登入服務，
+                相關資料處理依各服務的隱私政策。
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="policy-card mt-4">
+
+        <h3>📅 政策更新</h3>
+
+        <p>
+            本隱私政策可能隨服務更新調整，
+            更新內容將公布於本頁。
+        </p>
+
+    </div>
+
+</div>

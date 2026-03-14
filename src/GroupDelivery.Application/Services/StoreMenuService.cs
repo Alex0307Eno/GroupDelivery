@@ -21,11 +21,18 @@ namespace GroupDelivery.Application.Services
         {
             return await _menuRepository.GetByPublicIdAsync(menuItemPublicId);
         }
+        #region 顧客下單畫面
         public async Task<List<StoreMenuItem>> GetMenuAsync(int storeId)
         {
-            return await _menuRepository.GetByStoreIdWithOptionsAsync(storeId);
+            return await _menuRepository.GetByStoreIdWithOptionsAsync(storeId,false);
         }
-
+        #endregion
+        #region 商家電子菜單
+        public async Task<List<StoreMenuItem>> GetMerchantMenuAsync(int storeId)
+        {
+            return await _menuRepository.GetByStoreIdWithOptionsAsync(storeId, true);
+        }
+        #endregion
         public async Task ToggleActiveAsync(int userId, Guid menuPublicId)
         {
             var item = await _menuRepository.GetByPublicIdAsync(menuPublicId);

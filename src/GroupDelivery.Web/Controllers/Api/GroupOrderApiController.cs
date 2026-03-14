@@ -1,4 +1,5 @@
 using GroupDelivery.Application.Abstractions;
+using GroupDelivery.Application.Services;
 using GroupDelivery.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,15 +15,16 @@ namespace GroupDelivery.Web.Controllers.Api
     public class GroupOrderApiController : ControllerBase
     {
         private readonly IGroupOrderService _groupOrderService;
+        private readonly IGroupService _groupService;
 
-        public GroupOrderApiController(IGroupOrderService groupOrderService)
+        public GroupOrderApiController(IGroupOrderService groupOrderService, IGroupService groupService)
         {
             _groupOrderService = groupOrderService;
+            _groupService = groupService;
         }
 
-        #region API Endpoints
 
-        // 依團單公開識別碼取得團單詳情
+        #region 依團單公開識別碼取得團單詳情
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -33,18 +35,19 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok(result);
         }
+        #endregion
 
-        // 取得開團清單，可依座標回傳距離排序
+        #region 取得開團清單，可依座標回傳距離排序
         [HttpGet]
         public async Task<IActionResult> Get(double? lat, double? lng)
         {
             var result = await _groupOrderService.GetOpenGroupsAsync(lat, lng);
             return Ok(result);
         }
-
-        // 加入團單，必須登入才可操作
+        #endregion
+        #region 加入團單，必須登入才可操作
         [Authorize]
-        [HttpPost("{id}/join")]
+        [HttpPost("join/{id}")]
         public async Task<IActionResult> Join(int id)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -68,19 +71,21 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok();
         }
-
-        // 取得指定團單菜單資料
-        [HttpGet("{id}/menu")]
-        public async Task<IActionResult> GetMenu(int id)
+        #endregion
+        #region 取得指定團單菜單資料
+        [HttpGet("menu/{publicId}")]
+        public async Task<IActionResult> GetMenu(Guid publicId)
         {
-            var dto = await _groupOrderService.GetMenuAsync(id);
+            var dto = await _groupOrderService.GetMenuAsync(publicId);
+
             if (dto == null)
                 return NotFound();
 
             return Ok(dto);
         }
+        #endregion
 
-        // 設定訂單取餐方式，必須登入且由訂單擁有者操作
+        #region 設定訂單取餐方式，必須登入且由訂單擁有者操作
         [Authorize]
         [HttpPost("take-mode")]
         public async Task<IActionResult> SetTakeMode(int groupOrderId, TakeMode takeMode)
@@ -93,11 +98,12 @@ namespace GroupDelivery.Web.Controllers.Api
             await _groupOrderService.SetTakeModeAsync(userId, groupOrderId, takeMode);
             return Ok();
         }
+        #endregion
 
-        // 關閉團單，必須登入，由 Service 驗證是否為團主
+        #region 關閉團單，必須登入，由 Service 驗證是否為團主
         [Authorize]
-        [HttpPost("{id}/close")]
-        public async Task<IActionResult> CloseGroup(int id)
+        [HttpPost("close/{id}")]
+        public async Task<IActionResult> CloseGroup(Guid id)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
@@ -107,9 +113,25 @@ namespace GroupDelivery.Web.Controllers.Api
 
             await _groupOrderService.CloseGroupAsync(userId, id);
 
-            return RedirectToAction("MerchantOrders", "Order", new { id = id });
+            return Ok();
         }
+        #endregion
 
+        #region
+        [HttpPost("cancel/{publicId}")]
+        public async Task<IActionResult> Cancel(Guid publicId)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(claim.Value);
+
+            await _groupService.CancelAsync(publicId, userId);
+
+            return Ok();
+        }
         #endregion
     }
 }

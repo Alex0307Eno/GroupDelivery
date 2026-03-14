@@ -14,15 +14,17 @@ namespace GroupDelivery.Application.Services
         private readonly IGroupOrderRepository _groupOrderRepository;
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IStoreMenuRepository _storeMenuRepo;
         private readonly IStoreMenuService _menuService;
         private readonly IOrderRepository _orderRepository;
         private readonly IDeliveryRuleRepository _deliveryRuleRepository;
 
-        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository, IStoreMenuService menuService, IOrderRepository orderRepository, IDeliveryRuleRepository deliveryRuleRepository)
+        public GroupOrderService(IGroupOrderRepository groupOrderRepository, IUserRepository userRepository, IStoreRepository storeRepository,IStoreMenuRepository storeMenuRepository, IStoreMenuService menuService, IOrderRepository orderRepository, IDeliveryRuleRepository deliveryRuleRepository)
         {
             _groupOrderRepository = groupOrderRepository; ;
             _userRepo = userRepository;
             _storeRepo = storeRepository;
+            _storeMenuRepo = storeMenuRepository;
             _menuService = menuService;
             _orderRepository = orderRepository;
             _deliveryRuleRepository = deliveryRuleRepository;
@@ -71,16 +73,15 @@ namespace GroupDelivery.Application.Services
             var group = await _groupOrderRepository.GetDetailAsync(publicId);
             if (group == null)
                 return null;
-
+            var hasMenu = await _storeMenuRepo.AnyActiveByStoreIdAsync(group.StoreId);
             return new GroupDetailDto
             {
                 GroupOrderPublicId = group.GroupOrderPublicId,
                 TargetAmount = group.TargetAmount,
                 CurrentAmount = group.CurrentAmount,
                 Deadline = group.Deadline,
-                JoinCount = group.GroupOrderItems != null
-                    ? group.GroupOrderItems.Count
-                    : 0,
+                JoinCount = group.GroupOrderItems?.Count ?? 0,
+                HasMenu = hasMenu,
 
                 Store = group.Store == null ? null : new StoreDto
                 {
@@ -279,23 +280,24 @@ namespace GroupDelivery.Application.Services
 
             return result;
         }
-        public async Task<GroupMenuDto> GetMenuAsync(int groupOrderId)
+        public async Task<GroupMenuDto> GetMenuAsync(Guid groupOrderPublicId)
         {
-            var group = await _groupOrderRepository.GetByIdAsync(groupOrderId);
+            var group = await _groupOrderRepository.GetByPublicIdAsync(groupOrderPublicId);
+
             if (group == null)
                 return null;
 
             var store = await _storeRepo.GetByIdAsync(group.StoreId);
+
             if (store == null)
                 return null;
 
-            // 這裡已經是包含 OptionGroups / Options 的版本 (第 2 步有改)
             var menuItems = await _menuService.GetMenuAsync(store.StoreId);
 
             var grouped = menuItems
                 .GroupBy(m => new
                 {
-                    CategoryId = m.CategoryId.HasValue ? m.CategoryId.Value : 0,
+                    CategoryId = m.CategoryId ?? 0,
                     CategoryName = m.Category != null ? m.Category.Name : "其他"
                 })
                 .Select(g => new GroupMenuCategoryDto
@@ -310,7 +312,6 @@ namespace GroupDelivery.Application.Services
                         Description = m.Description,
                         ImageUrl = m.ImageUrl,
 
-                        // 這一段是重點：把客製化轉成 DTO
                         OptionGroups = m.OptionGroups != null
                             ? m.OptionGroups.Select(og => new GroupMenuOptionGroupDto
                             {
@@ -330,7 +331,7 @@ namespace GroupDelivery.Application.Services
                 .OrderBy(c => c.CategoryId)
                 .ToList();
 
-            var dto = new GroupMenuDto
+            return new GroupMenuDto
             {
                 GroupOrderId = group.GroupOrderId,
                 StoreId = store.StoreId,
@@ -338,8 +339,6 @@ namespace GroupDelivery.Application.Services
                 StoreAddress = store.Address,
                 Categories = grouped
             };
-
-            return dto;
         }
         public async Task<GroupOrder> GetByIdAsync(int id)
         {
@@ -368,32 +367,32 @@ namespace GroupDelivery.Application.Services
         }
 
         // 手動關團，僅允許團主操作
-        public async Task CloseGroupAsync(int userId, int groupId)
+        public async Task CloseGroupAsync(int userId, Guid groupPublicId)
         {
-            var group = await _groupOrderRepository.GetByIdAsync(groupId);
+            var groupOrder = await _groupOrderRepository.GetByPublicIdAsync(groupPublicId);
 
-            if (group == null)
+            if (groupOrder == null)
                 throw new Exception("揪團不存在");
 
-            if (group.OwnerUserId != userId)
+            if (groupOrder.OwnerUserId != userId)
                 throw new Exception("無權限操作此揪團");
 
-            if (group.Status != GroupOrderStatus.Open)
+            if (groupOrder.Status != GroupOrderStatus.Open)
                 throw new Exception("揪團已結束");
 
             // 判斷是否成團
-            if (group.CurrentAmount >= group.TargetAmount)
+            if (groupOrder.CurrentAmount >= groupOrder.TargetAmount)
             {
-                group.Status = GroupOrderStatus.Success;
+                groupOrder.Status = GroupOrderStatus.Success;
             }
             else
             {
-                group.Status = GroupOrderStatus.Open;
+                groupOrder.Status = GroupOrderStatus.Open;
             }
 
-            group.Deadline = DateTime.Now;
+            groupOrder.Deadline = DateTime.Now;
 
-            await _groupOrderRepository.UpdateAsync(group);
+            await _groupOrderRepository.UpdateAsync(groupOrder);
         }
         #endregion
 

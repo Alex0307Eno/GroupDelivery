@@ -30,11 +30,11 @@ namespace GroupDelivery.Infrastructure.Repositories
 
         #endregion
         #region 取得指定群單的詳細資料，包含店家資訊
-        public async Task<GroupOrder> GetByIdAsync(int groupId)
+        public async Task<GroupOrder> GetByIdAsync(Guid groupId)
         {
             return await _db.GroupOrders
                 .Include(g => g.Store)
-                .FirstOrDefaultAsync(g => g.GroupOrderId == groupId);
+                .FirstOrDefaultAsync(g => g.GroupOrderPublicId == groupId);
         }
         #endregion
         #region 建立一筆新的群單資料

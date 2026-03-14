@@ -9,6 +9,6 @@ namespace GroupDelivery.Application.Abstractions
 {
     public interface IStoreMenuItemRepository
     {
-        Task<List<StoreMenuItem>> GetByIdsAsync(List<int> ids);
+        Task<List<StoreMenuItem>> GetByIdsAsync(List<Guid> ids);
     }
 }

@@ -13,5 +13,8 @@ namespace GroupDelivery.Application.Abstractions
         Task DeleteAsync(int id);
 
         Task SaveChangesAsync();
+
+        Task<bool> AnyByStoreIdAsync(int storeId);
+
     }
 }

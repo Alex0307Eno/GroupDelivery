@@ -17,6 +17,18 @@ namespace GroupDelivery.Web.Controllers
         {
             return View();
         }
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+        public IActionResult Terms()
+        {
+            return View();
+        }
+        public IActionResult Contact()
+        {
+            return View();
+        }
         //附近商家
         public IActionResult NearbyStores()
         {

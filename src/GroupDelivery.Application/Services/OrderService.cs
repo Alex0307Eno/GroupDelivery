@@ -36,37 +36,38 @@ namespace GroupDelivery.Application.Services
         public async Task CreateOrderAsync(int userId, CreateOrderRequest request)
         {
             // 1. 檢查團
-            var group = await _groupOrderRepository.GetByIdAsync(request.GroupOrderId);
-            if (group == null)
+            var groupOrder = await _groupOrderRepository.GetByPublicIdAsync(request.GroupOrderPublicId);
+            if (groupOrder == null)
                 throw new Exception("揪團不存在");
 
-            if (group.Deadline <= DateTime.Now)
+            if (groupOrder.Deadline <= DateTime.Now)
                 throw new Exception("揪團已截止");
 
-            if (group.Status != GroupOrderStatus.Open)
+            if (groupOrder.Status != GroupOrderStatus.Open)
                 throw new Exception("揪團不可下單");
 
             var firstMenuStoreId = 0;
 
             // 2. 抓菜單
-            var menuIds = request.Items.Select(x => x.StoreMenuItemId).ToList();
+            var menuIds = request.Items.Select(x => x.StoreMenuItemPublicId).ToList();
             var menuItems = await _storeMenuItemRepository.GetByIdsAsync(menuIds);
             var user = await _userRepository.GetByIdAsync(userId);
-
+            
             if (user == null)
                 throw new Exception("使用者不存在");
 
             var order = new Order
             {
+                OrderPublicId = Guid.NewGuid(),
                 UserId = userId,
-                GroupOrderId = group.GroupOrderId,
+                GroupOrderId = groupOrder.GroupOrderId,
                 ContactPhone = user.Phone,
                 ContactName = user.DisplayName,
                 Note = request.Note,
                 CreatedAt = DateTime.Now,
                 Source = OrderSource.Online,
                 OrderItems = new List<OrderItem>()
-            };
+            }; 
             decimal totalAmount = 0;
 
             foreach (var item in request.Items)
@@ -74,21 +75,22 @@ namespace GroupDelivery.Application.Services
                 if (item.Quantity <= 0)
                     throw new Exception("訂購數量錯誤");
 
-                var menu = menuItems.FirstOrDefault(x => x.StoreMenuItemId == item.StoreMenuItemId);
+                var menu = menuItems.FirstOrDefault(x => x.StoreMenuItemPublicId == item.StoreMenuItemPublicId);
+
                 if (menu == null)
                     throw new Exception("菜單項目不存在");
 
                 if (firstMenuStoreId == 0)
                     firstMenuStoreId = menu.StoreId;
 
-                if (menu.StoreId != firstMenuStoreId || menu.StoreId != group.StoreId)
+                if (menu.StoreId != firstMenuStoreId || menu.StoreId != groupOrder.StoreId)
                     throw new Exception("菜單不屬於此團單店家");
 
                 decimal optionTotal = 0;
 
                 var orderItem = new OrderItem
                 {
-                    StoreMenuItemPublicId = menu.StoreMenuItemPublicId,
+                    StoreMenuItemId = menu.StoreMenuItemId,
                     Quantity = item.Quantity,
                     UnitPrice = menu.Price,
                     OrderItemOptions = new List<OrderItemOption>()
@@ -129,22 +131,22 @@ namespace GroupDelivery.Application.Services
 
             await _orderRepository.AddAsync(order);
 
-            group.CurrentAmount += totalAmount;
+            groupOrder.CurrentAmount += totalAmount;
 
             
 
-            await _groupOrderRepository.UpdateAsync(group);
+            await _groupOrderRepository.UpdateAsync(groupOrder);
         }
         // 依團單查詢訂單
-        public async Task<List<Order>> GetOrdersByGroupAsync(int groupId)
+        public async Task<List<Order>> GetOrdersByGroupAsync(Guid groupOrderPublicId)
         {
-            return await _orderRepository.GetByGroupOrderIdAsync(groupId);
+            return await _orderRepository.GetByGroupPublicIdAsync(groupOrderPublicId);
         }
 
         // 建立人工訂單，僅允許團主操作
         public async Task CreateManualOrderAsync(int userId, CreateManualOrderRequest request)
         {
-            var group = await _groupOrderRepository.GetByIdAsync(request.GroupOrderId);
+            var group = await _groupOrderRepository.GetByPublicIdAsync(request.GroupOrderPublicId);
 
             if (group == null)
                 throw new Exception("團不存在");
@@ -157,8 +159,9 @@ namespace GroupDelivery.Application.Services
 
             var order = new Order
             {
+                OrderPublicId = Guid.NewGuid(),
                 UserId = userId,
-                GroupOrderId = request.GroupOrderId,
+                GroupOrderId = group.GroupOrderId,
                 TotalAmount = request.Amount,
                 CreatedAt = DateTime.Now,
                 Source = OrderSource.Manual

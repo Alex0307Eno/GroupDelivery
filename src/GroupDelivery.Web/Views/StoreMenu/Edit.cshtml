@@ -6,7 +6,7 @@
       enctype="multipart/form-data">
 
     <input type="hidden" asp-for="StoreMenuItemId" />
-    <input type="hidden" asp-for="StoreId" />
+    <input type="hidden" asp-for="StorePublicId" />
     <input type="hidden" asp-for="ImageUrl" />
 
     <style>
@@ -154,7 +154,38 @@
     </style>
 
     <div class="wrapper">
+        <!-- 圖片 -->
+        <div class="card">
+            <h2>商品圖片</h2>
+            <p class="desc">
+                上傳一張清楚的商品照片，有助於提高下單率。
+            </p>
 
+            <div style="display:flex;gap:30px;align-items:center;">
+
+                <div class="image-preview" id="previewBox">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" />
+                    }
+                </div>
+
+                <div>
+                    <button type="button"
+                            class="btn btn-light"
+                            onclick="document.getElementById('fileInput').click()">
+                        更換圖片
+                    </button>
+
+                    <input type="file"
+                           id="fileInput"
+                           name="ImageUrl"
+                           accept="image/*"
+                           hidden />
+                </div>
+
+            </div>
+        </div>
         <!-- 基本資訊 -->
         <div class="card">
             <h2>商品基本資訊</h2>
@@ -197,38 +228,7 @@
             </div>
         </div>
 
-        <!-- 圖片 -->
-        <div class="card">
-            <h2>商品圖片</h2>
-            <p class="desc">
-                上傳一張清楚的商品照片，有助於提高下單率。
-            </p>
-
-            <div style="display:flex;gap:30px;align-items:center;">
-
-                <div class="image-preview" id="previewBox">
-                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                    {
-                        <img src="@Model.ImageUrl" />
-                    }
-                </div>
-
-                <div>
-                    <button type="button"
-                            class="btn btn-light"
-                            onclick="document.getElementById('fileInput').click()">
-                        更換圖片
-                    </button>
-
-                    <input type="file"
-                           id="fileInput"
-                           name="ImageUrl"
-                           accept="image/*"
-                           hidden />
-                </div>
-
-            </div>
-        </div>
+        
 
         <!-- 客製化 -->
         <div class="card">
@@ -252,7 +252,7 @@
                                value="@groups[i].StoreMenuItemOptionGroupId" />
 
                         <div class="custom-group-title">
-                            群組名稱（例如：甜度）
+                            群組名稱
                         </div>
 
                         <input type="text"
@@ -283,6 +283,7 @@
 
                                 <input type="number"
                                        step="1"
+                                       min="0"
                                        name="OptionGroups[@i].Options[@j].PriceAdjust"
                                        value="@options[j].PriceAdjust"
                                        placeholder="加價金額，例如：10" />

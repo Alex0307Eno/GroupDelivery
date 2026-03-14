@@ -23,10 +23,10 @@ namespace GroupDelivery.Infrastructure.Repositories
         #region Database Access
 
         // 依菜單品項識別碼清單查詢，包含客製化選項資料
-        public async Task<List<StoreMenuItem>> GetByIdsAsync(List<int> ids)
+        public async Task<List<StoreMenuItem>> GetByIdsAsync(List<Guid> publicId)
         {
             return await _db.StoreMenuItems
-                .Where(x => ids.Contains(x.StoreMenuItemId))
+                .Where(x => publicId.Contains(x.StoreMenuItemPublicId))
                 .Include(x => x.OptionGroups)
                 .ThenInclude(g => g.Options)
                 .ToListAsync();

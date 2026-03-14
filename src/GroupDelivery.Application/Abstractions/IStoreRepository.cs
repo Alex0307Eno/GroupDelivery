@@ -26,6 +26,9 @@ namespace GroupDelivery.Application.Abstractions
         Task<Store> GetByGuIdAsync(Guid StoreMenuItemPublicId);
         Task<List<Store>> GetAllAsync();
         Task<Store> GetByPublicIdAsync(Guid storePublicId);
+        Task<List<Store>> GetByOwnerUserIdAsync(int userId);
+        Task<List<StoreNearbyDto>> GetNearbyStoresAsync(double? lat, double? lng, string city);
+
 
 
 

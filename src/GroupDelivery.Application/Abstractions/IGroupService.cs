@@ -31,12 +31,12 @@ namespace GroupDelivery.Application.Abstractions
         // 與目前人數搭配，用於顯示進度條或成團條件
         int GetTargetMemberCount(int groupId);
         //結束/取消團單
-        Task CloseAsync(int groupId, int userId);
-        Task CancelAsync(int groupId, int userId);
+        Task CloseAsync(Guid groupId, int userId);
+        Task CancelAsync(Guid groupId, int userId);
 
-        Task<GroupOrder> GetByIdAsync(int groupId);
+        Task<GroupOrder> GetByIdAsync(Guid groupId);
 
-        Task JoinGroupAsync(int userId, int groupId);
+        Task JoinGroupAsync(int userId, Guid groupId);
 
 
     }

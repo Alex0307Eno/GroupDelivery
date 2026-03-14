@@ -46,7 +46,7 @@ namespace GroupDelivery.Web.Controllers
             var dto = new MenuItemEditDto
             {
                 StoreMenuItemId = item.StoreMenuItemId,
-                StoreId = item.StoreId,
+                StorePublicId = item.Store.StorePublicId,
                 Name = item.Name,
                 Price = item.Price,
                 Description = item.Description,
@@ -102,7 +102,7 @@ namespace GroupDelivery.Web.Controllers
 
             await _storeMenuService.UpdateAsync(userId, dto);
 
-            return RedirectToAction("Manage", new { storePublicId = dto.StoreId });
+            return RedirectToAction("Manage", new { dto.StorePublicId });
         }
 
 
@@ -124,7 +124,7 @@ namespace GroupDelivery.Web.Controllers
             ViewBag.StoreId = store.StoreId;
             ViewBag.StorePublicId = store.StorePublicId;
 
-            var items = await _storeMenuService.GetMenuAsync(store.StoreId);
+            var items = await _storeMenuService.GetMerchantMenuAsync(store.StoreId);
 
             return View(items);
         }

@@ -26,6 +26,7 @@ namespace GroupDelivery.Infrastructure.Repositories
         public async Task<StoreMenuItem> GetByPublicIdAsync(Guid publicId)
         {
             return await _db.StoreMenuItems
+                .Include(x => x.Store)
                 .Include(x => x.OptionGroups)
                 .ThenInclude(x => x.Options)
                 .FirstOrDefaultAsync(x => x.StoreMenuItemPublicId == publicId);
@@ -66,14 +67,20 @@ namespace GroupDelivery.Infrastructure.Repositories
                     .ThenInclude(g => g.Options)
                 .FirstOrDefaultAsync(x => x.StoreMenuItemId == id);
         }
-        public async Task<List<StoreMenuItem>> GetByStoreIdWithOptionsAsync(int storeId)
+        public async Task<List<StoreMenuItem>> GetByStoreIdWithOptionsAsync(
+     int storeId,
+     bool includeInactive = false)
         {
-            // 管理頁或揪團頁要有完整資料，所以把 Category / OptionGroups / Options 都 Include
-            return await _db.StoreMenuItems
+            var query = _db.StoreMenuItems
                 .Include(m => m.Category)
                 .Include(m => m.OptionGroups)
                     .ThenInclude(g => g.Options)
-                .Where(m => m.StoreId == storeId && m.IsActive)
+                .Where(m => m.StoreId == storeId);
+
+            if (!includeInactive)
+                query = query.Where(m => m.IsActive);
+
+            return await query
                 .OrderBy(m => m.StoreMenuItemId)
                 .ToListAsync();
         }
@@ -81,6 +88,17 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             await _db.SaveChangesAsync();
         }
+        #region 判斷是否有菜單
+        public async Task<bool> AnyActiveByStoreIdAsync(int storeId)
+        {
+            return await _db.StoreMenuItems
+                .AnyAsync(x => x.StoreId == storeId && x.IsActive);
+        }
+        #endregion
 
+        public async Task<bool> AnyByStoreIdAsync(int storeId)
+        {
+            return await _db.StoreMenuItems.AnyAsync(x => x.StoreId == storeId);
+        }
     }
 }

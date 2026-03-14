@@ -18,7 +18,10 @@ namespace GroupDelivery.Application.Abstractions
         void Remove(StoreMenuItem item);
         Task<StoreMenuItem> GetByPublicIdAsync(Guid publicId);
         Task<StoreMenuItem> GetWithOptionsAsync(int id);
-        Task<List<StoreMenuItem>> GetByStoreIdWithOptionsAsync(int storeId);
+        Task<List<StoreMenuItem>> GetByStoreIdWithOptionsAsync(int storeId,bool includeInactive);
         Task SaveChangesAsync();
+        Task<bool> AnyActiveByStoreIdAsync(int storeId);
+        Task<bool> AnyByStoreIdAsync(int storeId);
+
     }
 }

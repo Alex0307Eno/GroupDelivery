@@ -94,5 +94,99 @@ namespace GroupDelivery.Infrastructure.Repositories
             return await _db.Stores
                 .FirstOrDefaultAsync(x => x.StorePublicId == storePublicId);
         }
+        public async Task<List<Store>> GetByOwnerUserIdAsync(int userId)
+        {
+            return await _db.Stores
+                .Where(x => x.OwnerUserId == userId)
+                .ToListAsync();
+        }
+        public async Task<List<StoreNearbyDto>> GetNearbyStoresAsync(double? lat, double? lng, string city)
+        {
+            var now = DateTime.Now;
+
+            var query = _db.Stores
+                .AsNoTracking()
+                .Where(s => s.GroupOrders.Any(g => g.Status == GroupOrderStatus.Open));
+
+            if (!string.IsNullOrWhiteSpace(city))
+            {
+                query = query.Where(x => x.City == city);
+            }
+
+            var stores = await query
+                .Select(x => new
+                {
+                    x.StoreId,
+                    x.StoreName,
+                    x.Address,
+                    x.City,
+                    x.CoverImageUrl,
+                    BusinessHours = x.OpenTime.ToString() + " - " + x.CloseTime.ToString(),
+                    IsOpenNow = !x.IsPausedToday &&
+                                            now.TimeOfDay >= x.OpenTime &&
+                                            now.TimeOfDay <= x.CloseTime,
+                    x.Latitude,
+                    x.Longitude,
+                    ActiveGroup = x.GroupOrders
+                        .Where(g => (int)g.Status == (int)GroupOrderStatus.Open && g.Deadline > now)
+                        .OrderBy(g => g.Deadline)
+                        .Select(g => new
+                        {
+                            g.Deadline
+                        })
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            var result = stores.Select(x => new StoreNearbyDto
+            {
+                StoreId = x.StoreId,
+                StoreName = x.StoreName,
+                Address = x.Address,
+                City = x.City,
+                CoverImageUrl = x.CoverImageUrl,
+                BusinessHours = x.BusinessHours,
+                IsOpenNow = x.IsOpenNow,
+                HasActiveGroup = x.ActiveGroup != null,
+                ActiveGroupDeadline = x.ActiveGroup == null
+                    ? (DateTime?)null
+                    : x.ActiveGroup.Deadline,
+                Distance = CalculateDistanceInMeters(lat, lng, x.Latitude, x.Longitude)
+            })
+            .OrderBy(x => x.Distance.HasValue ? x.Distance.Value : double.MaxValue)
+            .ToList();
+
+            return result;
+        }
+        // 計算兩點之間距離，單位為公尺
+        private double? CalculateDistanceInMeters(double? userLat, double? userLng, double? storeLat, double? storeLng)
+        {
+            if (!userLat.HasValue || !userLng.HasValue || !storeLat.HasValue || !storeLng.HasValue)
+            {
+                return null;
+            }
+
+            const double earthRadius = 6371000;
+
+            var dLat = ToRadians(storeLat.Value - userLat.Value);
+            var dLng = ToRadians(storeLng.Value - userLng.Value);
+
+            var lat1 = ToRadians(userLat.Value);
+            var lat2 = ToRadians(storeLat.Value);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1) * Math.Cos(lat2) *
+                    Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return earthRadius * c;
+        }
+
+        private double ToRadians(double degree)
+        {
+            return degree * Math.PI / 180.0;
+        }
     }
 }
+

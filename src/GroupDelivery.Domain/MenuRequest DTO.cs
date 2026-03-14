@@ -8,7 +8,7 @@ namespace GroupDelivery.Domain
 {
     public class CreateOrderRequest
     {
-        public int GroupOrderId { get; set; }
+        public Guid GroupOrderPublicId { get; set; }
 
         public List<OrderItemRequest> Items { get; set; }
         public string Note { get; set; }
@@ -16,7 +16,7 @@ namespace GroupDelivery.Domain
 
     public class OrderItemRequest
     {
-        public int StoreMenuItemId { get; set; }
+        public Guid StoreMenuItemPublicId { get; set; }
 
         public int Quantity { get; set; }
 

@@ -63,9 +63,16 @@ namespace GroupDelivery.Web.Controllers
         // =========================
         public async Task<IActionResult> MyStores()
         {
-            var userId = GetUserId();
-            var stores = await _storeService.GetMyStoresAsync(userId);
-            return View(stores);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim == null)
+                return Unauthorized();
+
+            var userId = int.Parse(claim.Value);
+
+            var model = await _storeService.GetMyStoreListAsync(userId);
+
+            return View(model);
         }
 
         // =========================
@@ -90,8 +97,7 @@ namespace GroupDelivery.Web.Controllers
 
             var userId = GetUserId();
 
-            // 1️⃣ 建立商店（純商業邏輯）
-            var storeId = await _storeService.CreateAsync(userId, request);
+            
             // 2️⃣ 處理封面圖片（Web 邊界責任）
             if (request.CoverImage != null && request.CoverImage.Length > 0)
             {
@@ -102,7 +108,7 @@ namespace GroupDelivery.Web.Controllers
                     request.CoverImage,
                     "cover");
 
-                await _storeService.UpdateCoverImageAsync(storeId, userId, coverUrl);
+                await _storeService.UpdateCoverImageAsync(storePublicId, userId, coverUrl);
             }
 
            

@@ -25,12 +25,20 @@ namespace GroupDelivery.Infrastructure.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<List<Order>> GetByGroupOrderIdAsync(int groupOrderId)
+        public async Task<List<Order>> GetByGroupPublicIdAsync(Guid groupPublicId)
         {
+            var groupOrder = await _db.GroupOrders
+                .Where(x => x.GroupOrderPublicId == groupPublicId)
+                .Select(x => new { x.GroupOrderId })
+                .FirstOrDefaultAsync();
+
+            if (groupOrder == null)
+                return new List<Order>();
+
             return await _db.Orders
                 .Include(x => x.OrderItems)
-                .Include(x => x.User) 
-                .Where(x => x.GroupOrderId == groupOrderId)
+                .Include(x => x.User)
+                .Where(x => x.GroupOrderId == groupOrder.GroupOrderId)
                 .ToListAsync();
         }
         public async Task<List<Order>> GetOrdersByUserIdAsync(int userId)
@@ -49,15 +57,21 @@ namespace GroupDelivery.Infrastructure.Repositories
         public async Task<List<Order>> GetOrdersForMerchantAsync(int merchantUserId)
         {
             return await _db.Orders
-                .Include(x => x.User)
-                .Include(x => x.GroupOrder)
+                .Include(o => o.User)
+
+                .Include(o => o.GroupOrder)
                     .ThenInclude(g => g.Store)
-                .Include(x => x.OrderItems)
+
+                .Include(o => o.OrderItems)
                     .ThenInclude(i => i.StoreMenuItem)
-                .Include(x => x.OrderItems)
-                    .ThenInclude(i => i.OrderItemOptions)  
-                .Where(x => x.GroupOrder.Store.OwnerUserId == merchantUserId)
-                .OrderByDescending(x => x.CreatedAt)
+
+                .Include(o => o.OrderItems)
+                    .ThenInclude(i => i.OrderItemOptions)
+
+                .Where(o =>
+                    o.GroupOrder != null &&
+                    o.GroupOrder.Store.OwnerUserId == merchantUserId)
+
                 .ToListAsync();
         }
         public async Task<Order> GetByIdAsync(int orderId)

@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 [Authorize]
-[Route("api/groups")]
+[Route("api/group")]
 [ApiController]
 public class GroupApiController : ControllerBase
 {
@@ -17,7 +17,8 @@ public class GroupApiController : ControllerBase
         _groupOrderService = groupOrderService;
     }
 
-    [HttpPost]
+    
+    [HttpPost("creategroup")]
     public async Task<IActionResult> Create([FromBody] CreateUserGroupRequest request)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);

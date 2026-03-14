@@ -1,53 +1,77 @@
 @{
     ViewData["Title"] = "揪IN｜不湊不送，一湊就動";
 }
+
 <style>
+
     body {
-        background: linear-gradient(180deg,#f9fafb,#eef2f7);
+        background: radial-gradient(circle at top left, rgba(34,197,94,.15), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,.15), transparent 25%), linear-gradient(180deg,#f8fafc,#eef2f7);
     }
 
-    .hero-simple {
-        padding: 4rem 1rem 3rem;
+    /* HERO */
+
+    .hero {
+        text-align: center;
+        padding: 80px 20px 60px;
     }
 
-        .hero-simple h1 {
-            font-size: 2.6rem;
-            font-weight: 800;
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 900;
             letter-spacing: -1px;
         }
 
+        .hero p {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+    /* 半徑 */
+
+    .radius-switch {
+        margin-top: 25px;
+    }
+
     .radius-btn {
-        min-width: 120px;
-        transition: .2s ease;
+        border-radius: 999px;
+        padding: 10px 22px;
+        font-weight: 700;
+        transition: .2s;
     }
 
         .radius-btn.active {
             background: #111827;
-            color: #fff;
+            color: white;
             transform: translateY(-2px);
         }
 
-    .card-group {
-        border-radius: 1rem;
+    /* 卡片 */
+
+    .group-card {
         border: none;
-        box-shadow: 0 12px 28px rgba(15,23,42,.08);
-        transition: .2s ease;
+        border-radius: 20px;
         overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0,0,0,.08);
+        transition: .25s;
     }
 
-        .card-group:hover {
+        .group-card:hover {
             transform: translateY(-6px);
-            box-shadow: 0 20px 40px rgba(15,23,42,.15);
+            box-shadow: 0 25px 50px rgba(0,0,0,.15);
         }
 
-    .cover {
-        height: 180px;
+    /* 封面 */
+
+    .group-cover {
+        height: 200px;
         background-size: cover;
         background-position: center;
         position: relative;
     }
 
-    .badge-row {
+    /* 標籤 */
+
+    .badge-wrap {
         position: absolute;
         top: 12px;
         right: 12px;
@@ -55,84 +79,115 @@
         gap: 8px;
     }
 
-    .hot-badge {
+    .badge-hot {
         background: linear-gradient(135deg,#ef4444,#dc2626);
-        color: #fff;
-        padding: 4px 10px;
+        color: white;
+        padding: 5px 12px;
+        font-size: 12px;
         border-radius: 999px;
-        font-size: .75rem;
     }
 
-    .distance-badge {
-        background: rgba(0,0,0,.7);
-        color: #fff;
-        padding: 4px 10px;
+    .badge-distance {
+        background: rgba(0,0,0,.75);
+        color: white;
+        padding: 5px 12px;
+        font-size: 12px;
         border-radius: 999px;
-        font-size: .75rem;
     }
 
-    .progress-sm {
-        height: 6px;
+    /* 進度 */
+
+    .progress-bar {
+        transition: width .4s;
+    }
+
+    .progress {
+        height: 8px;
         border-radius: 999px;
     }
+
+    /* join */
+
+    .join-btn {
+        border-radius: 999px;
+        font-weight: 700;
+        padding: 10px;
+    }
+
 </style>
 
-<div id="app" class="container py-4">
+<div id="app" class="container py-5">
 
-    <div class="hero-simple text-center">
+    <div class="hero">
+
         <h1>不湊不送，一湊就動</h1>
-        <p class="mt-3 mb-4 text-muted">
-            附近有人開團才送，順路一起吃。
+
+        <p class="mt-3">
+            附近有人開團才送，順路一起吃
         </p>
 
-        <div class="d-flex justify-content-center gap-3">
+        <div class="radius-switch d-flex justify-content-center gap-3">
 
-            <button class="btn radius-btn btn-outline-dark btn-lg"
-                    :class="{ active: radius === 3 }"
-                    @@click="setRadius(3)">
-                3km 內
+            <button class="btn btn-outline-dark radius-btn"
+                    :class="{active:radius===3}"
+                    @@click ="setRadius(3)">
+                3km
             </button>
 
-            <button class="btn radius-btn btn-outline-dark btn-lg"
-                    :class="{ active: radius === 5 }"
-                    @@click="setRadius(5)">
-                5km 內
+            <button class="btn btn-outline-dark radius-btn"
+                    :class="{active:radius===5}"
+                    @@click ="setRadius(5)">
+                5km
             </button>
 
         </div>
 
-        <div v-if="radius === 3 && hasFiveKmButNotThree"
-             class="mt-3 text-muted small">
-            3km 內沒有團，5km 內有 {{ fiveKmCount }} 團
+        <div v-if="radius===3 && hasFiveKmButNotThree"
+             class="mt-3 small text-muted">
+            3km沒有團，但5km內有 {{fiveKmCount}} 團
         </div>
 
     </div>
 
-    <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-dark"></div>
-        <p class="mt-3 text-muted">正在搜尋附近揪團...</p>
+
+    <!-- loading -->
+
+    <div v-if="loading"
+         class="text-center py-5">
+
+        <div class="spinner-border"></div>
+
+        <p class="mt-3 text-muted">
+            正在搜尋附近揪團...
+        </p>
+
     </div>
+
+
+    <!-- groups -->
 
     <div v-else class="row g-4">
 
-        <div v-for="group in filteredGroups"
-             :key="group.groupOrderPublicId"
-             class="col-lg-4 col-md-6">
+        <div class="col-lg-4 col-md-6"
+             v-for="group in filteredGroups"
+             :key="group.groupOrderPublicId">
 
-            <div class="card card-group">
+            <div class="card group-card">
 
-                <div class="cover"
-                     :style="{ backgroundImage: 'url(' + getImageUrl(group.store?.coverImageUrl) + ')' }">
+                <div class="group-cover"
+                     :style="{backgroundImage:'url('+getImageUrl(group.store?.coverImageUrl)+')'}">
 
-                    <div class="badge-row">
+                    <div class="badge-wrap">
 
-                        <div v-if="isHot(group)" class="hot-badge">
+                        <div v-if="isHot(group)" class="badge-hot">
                             🔥 快成團
                         </div>
 
-                        <div class="distance-badge"
-                             v-if="group.distance != null">
-                            {{ group.distance.toFixed(1) }} km
+                        <div v-if="group.distance!=null"
+                             class="badge-distance">
+
+                            {{group.distance.toFixed(1)}} km
+
                         </div>
 
                     </div>
@@ -142,25 +197,27 @@
                 <div class="card-body d-flex flex-column">
 
                     <h5 class="fw-bold mb-1">
-                        {{ group.remark || group.store?.storeName }}
+                        {{group.remark || group.store?.storeName}}
                     </h5>
 
                     <small class="text-muted mb-2">
-                        還差 ${{ leftAmount(group) }} 出發
+                        還差 ${{leftAmount(group)}} 出發
                     </small>
 
-                    <div class="progress progress-sm mb-3">
+                    <div class="progress mb-3">
+
                         <div class="progress-bar bg-success"
-                             :style="{ width: percent(group) + '%' }">
+                             :style="{width:percent(group)+'%'}">
                         </div>
+
                     </div>
 
                     <small class="text-muted mb-3">
-                        ⏰ {{ remainingTime(group.deadline) }}
+                        ⏰ {{remainingTime(group.deadline)}}
                     </small>
 
-                    <button class="btn btn-dark w-100"
-                            @@click="handleJoin(group)">
+                    <button class="btn btn-dark join-btn w-100"
+                            @@click ="handleJoin(group)">
                         立刻加入
                     </button>
 
@@ -170,113 +227,152 @@
 
         </div>
 
-        <div v-if="filteredGroups.length === 0"
+
+        <div v-if="filteredGroups.length===0"
              class="text-center text-muted py-5">
+
             附近目前沒有開團 😢
+
         </div>
 
     </div>
+
 </div>
+
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-    const { createApp } = Vue;
+
+    const {createApp}=Vue;
 
     createApp({
 
-    data() {
-        return {
-            groups: [],
-            loading: true,
-            radius: 3,
-            isAuthenticated: @User.Identity.IsAuthenticated.ToString().ToLower()
-        };
-    },
+    data(){
 
-    computed: {
-
-        filteredGroups() {
-            return this.groups
-                .filter(g => g.distance != null && g.distance <= this.radius)
-                .sort((a,b) => a.distance - b.distance);
-        },
-
-        fiveKmCount() {
-            return this.groups.filter(g => g.distance != null && g.distance <= 5).length;
-        },
-
-        hasFiveKmButNotThree() {
-            return this.fiveKmCount > 0 &&
-                   this.groups.filter(g => g.distance != null && g.distance <= 3).length === 0;
-        }
+    return{
+    groups:[],
+    loading:true,
+    radius:3,
+    isAuthenticated:@User.Identity.IsAuthenticated.ToString().ToLower()
+    };
 
     },
 
-    methods: {
+    computed:{
 
-        setRadius(km) {
-            this.radius = km;
-        },
+    filteredGroups(){
 
-        fetchGroups() {
-            axios.get("/api/groups")
-                .then(res => {
-                    this.groups = res.data || [];
-                    this.loading = false;
-                });
-        },
-
-        getImageUrl(path) {
-            if (!path) return '/img/store-placeholder.jpg';
-            if (path.startsWith('http')) return path;
-            return window.location.origin + path;
-        },
-
-        percent(g) {
-            if (!g.targetAmount) return 0;
-            let v = Math.round(g.currentAmount * 100 / g.targetAmount);
-            return v > 100 ? 100 : v;
-        },
-
-        leftAmount(g) {
-            return Math.max(g.targetAmount - g.currentAmount, 0);
-        },
-
-        isHot(g) {
-            return this.percent(g) >= 80;
-        },
-
-        remainingTime(deadline) {
-            const diff = new Date(deadline) - new Date();
-            if (diff <= 0) return "已截止";
-            const mins = Math.floor(diff / 60000);
-            if (mins < 60) return mins + " 分鐘後截止";
-            const hrs = Math.floor(mins / 60);
-            return hrs + " 小時後截止";
-        },
-
-        handleJoin(group) {
-
-            if (!this.isAuthenticated) {
-                var authModalEl = document.getElementById('authModal');
-                if (authModalEl && window.bootstrap) {
-                    new bootstrap.Modal(authModalEl).show();
-                } else {
-                    window.location.href = '/Account/Login';
-                }
-                return;
-            }
-
-            window.location.href = '/Group/GroupDetail/' + group.groupOrderPublicId;
-        }
+    return this.groups
+    .filter(g=>g.distance!=null && g.distance<=this.radius)
+    .sort((a,b)=>a.distance-b.distance);
 
     },
 
-    mounted() {
-        this.fetchGroups();
+    fiveKmCount(){
+
+    return this.groups
+    .filter(g=>g.distance!=null && g.distance<=5)
+    .length;
+
+    },
+
+    hasFiveKmButNotThree(){
+
+    return this.fiveKmCount>0 &&
+    this.groups.filter(g=>g.distance!=null && g.distance<=3).length===0;
+
+    }
+
+    },
+
+    methods:{
+
+    setRadius(km){
+    this.radius=km;
+    },
+
+    fetchGroups(){
+
+    axios.get("/api/groups")
+    .then(res=>{
+    this.groups=res.data||[];
+    this.loading=false;
+    });
+
+    },
+
+    getImageUrl(path){
+
+    if(!path) return '/img/store-placeholder.jpg';
+
+    if(path.startsWith('http'))
+    return path;
+
+    return window.location.origin+path;
+
+    },
+
+    percent(g){
+
+    if(!g.targetAmount) return 0;
+
+    let v=Math.round(g.currentAmount*100/g.targetAmount);
+
+    return v>100?100:v;
+
+    },
+
+    leftAmount(g){
+
+    return Math.max(g.targetAmount-g.currentAmount,0);
+
+    },
+
+    isHot(g){
+
+    return this.percent(g)>=80;
+
+    },
+
+    remainingTime(deadline){
+
+    const diff=new Date(deadline)-new Date();
+
+    if(diff<=0) return "已截止";
+
+    const mins=Math.floor(diff/60000);
+
+    if(mins<60) return mins+" 分鐘後截止";
+
+    const hrs=Math.floor(mins/60);
+
+    return hrs+" 小時後截止";
+
+    },
+
+    handleJoin(group){
+
+    if(!this.isAuthenticated){
+
+    window.location.href='/Account/Login';
+    return;
+
+    }
+
+    window.location.href='/Group/GroupDetail/'+group.groupOrderPublicId;
+
+    }
+
+    },
+
+    mounted(){
+
+    this.fetchGroups();
+
     }
 
     }).mount("#app");
+
 </script>

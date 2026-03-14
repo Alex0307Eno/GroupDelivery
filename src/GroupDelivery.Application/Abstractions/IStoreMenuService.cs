@@ -8,6 +8,7 @@ namespace GroupDelivery.Application.Abstractions
     public interface IStoreMenuService
     {
         Task<List<StoreMenuItem>> GetMenuAsync(int storeId);
+        Task<List<StoreMenuItem>> GetMerchantMenuAsync(int storeId);
 
         Task ToggleActiveAsync(int userId, Guid menuPublicId);
         Task BatchCreateAsync(int userId, Guid storePublicId, List<MenuItemDto> items);

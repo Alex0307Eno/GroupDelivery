@@ -13,7 +13,7 @@ namespace GroupDelivery.Application.Abstractions
 
         Task CreateManualOrderAsync(int userId, CreateManualOrderRequest request);
 
-        Task<List<Order>> GetOrdersByGroupAsync(int groupId);
+        Task<List<Order>> GetOrdersByGroupAsync(Guid groupOrderPublicId);
         Task<List<Order>> GetMyOrdersAsync(int userId);
         Task<List<Order>> GetOrdersForMerchantAsync(int merchantUserId);
     }

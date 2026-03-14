@@ -352,6 +352,10 @@ namespace GroupDelivery.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("City")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<TimeSpan>("CloseTime")
                         .HasColumnType("time");
 
@@ -488,6 +492,8 @@ namespace GroupDelivery.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("StoreId");
+
                     b.HasIndex("StoreMenuItemPublicId")
                         .IsUnique();
 
@@ -511,9 +517,14 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<decimal>("PriceAdjust")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("StoreMenuItemOptionGroupId")
+                        .HasColumnType("int");
+
                     b.HasKey("StoreMenuItemOptionId");
 
                     b.HasIndex("OptionGroupId");
+
+                    b.HasIndex("StoreMenuItemOptionGroupId");
 
                     b.ToTable("StoreMenuItemOptions");
                 });
@@ -532,9 +543,14 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.Property<int>("StoreMenuItemId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StoreMenuItemId1")
+                        .HasColumnType("int");
+
                     b.HasKey("StoreMenuItemOptionGroupId");
 
                     b.HasIndex("StoreMenuItemId");
+
+                    b.HasIndex("StoreMenuItemId1");
 
                     b.ToTable("StoreMenuItemOptionGroups");
                 });
@@ -604,9 +620,9 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.DeliveryRule", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
+                        .WithMany("DeliveryRules")
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Store");
@@ -617,13 +633,13 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.User", "OwnerUser")
                         .WithMany()
                         .HasForeignKey("OwnerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
+                        .WithMany("GroupOrders")
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("OwnerUser");
@@ -636,19 +652,19 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.GroupOrder", "GroupOrder")
                         .WithMany("GroupOrderItems")
                         .HasForeignKey("GroupOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
                         .WithMany("GroupOrderItems")
                         .HasForeignKey("StoreMenuItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("GroupDelivery.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("GroupOrder");
@@ -663,13 +679,13 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.GroupOrder", "GroupOrder")
                         .WithMany("Orders")
                         .HasForeignKey("GroupOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("GroupDelivery.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("GroupOrder");
@@ -682,13 +698,13 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
                         .WithMany()
                         .HasForeignKey("StoreMenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -701,7 +717,7 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.OrderItem", "OrderItem")
                         .WithMany("OrderItemOptions")
                         .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("OrderItem");
@@ -710,9 +726,9 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuCategory", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.Store", "Store")
-                        .WithMany()
+                        .WithMany("StoreMenuCategories")
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Store");
@@ -723,18 +739,30 @@ namespace GroupDelivery.Infrastructure.Migrations
                     b.HasOne("GroupDelivery.Domain.StoreMenuCategory", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("GroupDelivery.Domain.Store", "Store")
+                        .WithMany("StoreMenuItems")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOption", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.StoreMenuItemOptionGroup", "OptionGroup")
-                        .WithMany("Options")
+                        .WithMany()
                         .HasForeignKey("OptionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("GroupDelivery.Domain.StoreMenuItemOptionGroup", null)
+                        .WithMany("Options")
+                        .HasForeignKey("StoreMenuItemOptionGroupId");
 
                     b.Navigation("OptionGroup");
                 });
@@ -742,10 +770,14 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItemOptionGroup", b =>
                 {
                     b.HasOne("GroupDelivery.Domain.StoreMenuItem", "StoreMenuItem")
-                        .WithMany("OptionGroups")
+                        .WithMany()
                         .HasForeignKey("StoreMenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("GroupDelivery.Domain.StoreMenuItem", null)
+                        .WithMany("OptionGroups")
+                        .HasForeignKey("StoreMenuItemId1");
 
                     b.Navigation("StoreMenuItem");
                 });
@@ -765,6 +797,17 @@ namespace GroupDelivery.Infrastructure.Migrations
             modelBuilder.Entity("GroupDelivery.Domain.OrderItem", b =>
                 {
                     b.Navigation("OrderItemOptions");
+                });
+
+            modelBuilder.Entity("GroupDelivery.Domain.Store", b =>
+                {
+                    b.Navigation("DeliveryRules");
+
+                    b.Navigation("GroupOrders");
+
+                    b.Navigation("StoreMenuCategories");
+
+                    b.Navigation("StoreMenuItems");
                 });
 
             modelBuilder.Entity("GroupDelivery.Domain.StoreMenuItem", b =>

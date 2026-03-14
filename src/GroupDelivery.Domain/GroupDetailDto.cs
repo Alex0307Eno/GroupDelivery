@@ -22,7 +22,7 @@ namespace GroupDelivery.Domain
         /// 團單所屬店家菜單圖片列表（URL）
         public List<string> MenuImages { get; set; }
         public int JoinCount { get; set; }
-
+        public bool HasMenu { get; set; }
         public StoreDto Store { get; set; }
 
     }

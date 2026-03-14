@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,6 +10,7 @@ namespace GroupDelivery.Domain
     {
         [Key]
         public int StoreId { get; set; }
+
         public Guid StorePublicId { get; set; }
 
         public int OwnerUserId { get; set; }
@@ -19,12 +21,15 @@ namespace GroupDelivery.Domain
 
         [Required]
         [StringLength(20)]
-        public string Landline { get; set; }   // 市話
+        public string Landline { get; set; }
 
-        public string Mobile { get; set; }     // 手機
+        public string Mobile { get; set; }
 
         [StringLength(255)]
         public string Address { get; set; }
+
+        [StringLength(20)]
+        public string City { get; set; }
 
         public string Description { get; set; }
 
@@ -34,16 +39,30 @@ namespace GroupDelivery.Domain
         public TimeSpan OpenTime { get; set; }
 
         public TimeSpan CloseTime { get; set; }
+
         public TimeSpan? OpenTime2 { get; set; }
+
         public TimeSpan? CloseTime2 { get; set; }
-        public string ClosedDays { get; set; }  // 存成 "0,1,6"
+
+        public string ClosedDays { get; set; }
+
         public bool IsPausedToday { get; set; }
+
         public double? Latitude { get; set; }
+
         public double? Longitude { get; set; }
+
         public DateTime CreatedAt { get; set; }
+
         public DateTime ModifiedAt { get; set; }
 
         [NotMapped]
         public bool HasActiveGroupOrders { get; set; }
+
+        // 導覽屬性
+        public virtual ICollection<GroupOrder> GroupOrders { get; set; }
+        public virtual ICollection<StoreMenuCategory> StoreMenuCategories { get; set; }
+        public virtual ICollection<StoreMenuItem> StoreMenuItems { get; set; }
+        public virtual ICollection<DeliveryRule> DeliveryRules { get; set; }
     }
 }

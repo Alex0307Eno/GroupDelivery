@@ -45,5 +45,10 @@ namespace GroupDelivery.Infrastructure.Repositories
         {
             await _db.SaveChangesAsync();
         }
+
+        public async Task<bool> AnyByStoreIdAsync(int storeId)
+        {
+            return await _db.StoreMenuItems.AnyAsync(x => x.StoreId == storeId);
+        }
     }
 }

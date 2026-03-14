@@ -45,10 +45,10 @@ namespace GroupDelivery.Web.Controllers
         }
 
         [Authorize]
-        [HttpGet("/group/{id}/manage")]
-        public async Task<IActionResult> Manage(int id)
+        [HttpGet("/group/manage/{Publicid}")]
+        public async Task<IActionResult> Manage(Guid publicid)
         {
-            var groupOrder = await _groupService.GetByIdAsync(id);
+            var groupOrder = await _groupService.GetByIdAsync(publicid);
 
             if (groupOrder == null)
                 return NotFound();
@@ -58,7 +58,7 @@ namespace GroupDelivery.Web.Controllers
             if (groupOrder.OwnerUserId != userId)
                 return Forbid();
 
-            var orders = await _orderService.GetOrdersByGroupAsync(id);
+            var orders = await _orderService.GetOrdersByGroupAsync(publicid);
 
             var vm = new GroupManageViewModel
             {
@@ -110,7 +110,7 @@ namespace GroupDelivery.Web.Controllers
         }
         [HttpPost("/group/{id}/join")]
         [ValidateAntiForgeryToken]
-        public IActionResult Join(int id)
+        public IActionResult Join(Guid id)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)

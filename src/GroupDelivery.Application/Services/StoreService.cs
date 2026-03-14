@@ -2,6 +2,7 @@
 using GroupDelivery.Domain;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Formats.Asn1.AsnWriter;
@@ -13,12 +14,16 @@ namespace GroupDelivery.Infrastructure.Services
         private readonly IStoreRepository _storeRepo;
         private readonly IGroupOrderRepository _groupOrderRepository;
         private readonly IGeocodingService _geocodingService;
+        private readonly IStoreMenuRepository _menuRepo;
+        private readonly IDeliveryRuleRepository _deliveryRuleRepo;
 
-        public StoreService(IStoreRepository storeRepo, IGroupOrderRepository groupOrderRepository, IGeocodingService geocodingService)
+        public StoreService(IStoreRepository storeRepo, IGroupOrderRepository groupOrderRepository, IGeocodingService geocodingService, IStoreMenuRepository menuRepo, IDeliveryRuleRepository deliveryRuleRepo)
         {
             _storeRepo = storeRepo;
             _groupOrderRepository = groupOrderRepository;
             _geocodingService = geocodingService;
+            _menuRepo = menuRepo;
+            _deliveryRuleRepo = deliveryRuleRepo;
         }
         public async Task<Store> GetFirstByOwnerAsync(int ownerUserId)
         {
@@ -63,12 +68,27 @@ namespace GroupDelivery.Infrastructure.Services
         public async Task<Guid> CreateAsync(int userId, StoreInitRequest request)
         {
             var (lat, lng) = await _geocodingService.GetLatLngAsync(request.Address);
+            string imagePath = null;
 
+            if (request.CoverImage != null && request.CoverImage.Length > 0)
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(request.CoverImage.FileName);
+
+                var savePath = Path.Combine("wwwroot/uploads/stores", fileName);
+
+                using (var stream = new FileStream(savePath, FileMode.Create))
+                {
+                    await request.CoverImage.CopyToAsync(stream);
+                }
+
+                imagePath = "/uploads/store/" + fileName;
+            }
             var store = new Store
             {
                 StorePublicId = Guid.NewGuid(),
                 OwnerUserId = userId,
                 StoreName = request.StoreName,
+                CoverImageUrl = imagePath,
                 Landline = request.Landline,
                 Mobile = request.Mobile,
                 Address = request.Address,
@@ -93,6 +113,7 @@ namespace GroupDelivery.Infrastructure.Services
         }
         public async Task UpdateAsync(int userId, StoreUpdateRequest request)
         {
+
             var store = await _storeRepo.GetByPublicIdAndOwnerAsync(request.StorePublicId, userId);
 
             if (store == null)
@@ -231,6 +252,52 @@ namespace GroupDelivery.Infrastructure.Services
                     .AnyActiveByStoreAsync(store.StoreId);
 
             return store;
+        }
+        public async Task<List<StoreListItemViewModel>> GetMyStoreListAsync(int userId)
+        {
+            var stores = await _storeRepo.GetByOwnerUserIdAsync(userId);
+
+            var result = new List<StoreListItemViewModel>();
+
+            foreach (var store in stores)
+            {
+                var hasMenu = await _menuRepo.AnyByStoreIdAsync(store.StoreId);
+                var hasDeliveryRule = await _deliveryRuleRepo.AnyByStoreIdAsync(store.StoreId);
+
+                var closedDayList = string.IsNullOrEmpty(store.ClosedDays)
+                    ? new List<int>()
+                    : store.ClosedDays.Split(',').Select(int.Parse).ToList();
+
+                var today = (int)DateTime.Now.DayOfWeek;
+                var isClosedToday = closedDayList.Contains(today);
+
+                result.Add(new StoreListItemViewModel
+                {
+                    StoreId = store.StoreId,
+                    StorePublicId = store.StorePublicId,
+                    StoreName = store.StoreName,
+                    Address = store.Address,
+                    Mobile = store.Mobile,
+                    Landline = store.Landline,
+                    CoverImageUrl = store.CoverImageUrl,
+                    OpenTime = store.OpenTime,
+                    CloseTime = store.CloseTime,
+                    OpenTime2 = store.OpenTime2,
+                    CloseTime2 = store.CloseTime2,
+                    ClosedDays = store.ClosedDays,
+                    IsPausedToday = store.IsPausedToday,
+                    HasMenu = hasMenu,
+                    HasDeliveryRule = hasDeliveryRule,
+                    IsClosedToday = isClosedToday,
+                    ClosedDayList = closedDayList
+                });
+            }
+
+            return result;
+        }
+        public async Task<List<StoreNearbyDto>> GetNearbyStoresAsync(double? lat, double? lng, string city)
+        {
+            return await _storeRepo.GetNearbyStoresAsync(lat, lng, city);
         }
         private bool IsStoreOpenNow(Store store, DateTime now)
         {

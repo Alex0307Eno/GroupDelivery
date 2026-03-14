@@ -10,6 +10,7 @@ namespace GroupDelivery.Domain
     {
         public int StoreMenuItemId { get; set; }             // 要修改哪一筆
         public int StoreId { get; set; }                // 所屬店家
+        public Guid StorePublicId { get; set; }                // 所屬店家
         public string Name { get; set; }        // 品名
         public int CategoryId { get; set; }     // 分類
         public Decimal Price { get; set; }          // 價格

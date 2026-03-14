@@ -22,10 +22,9 @@ namespace GroupDelivery.Web.Controllers.Api
             _orderService = orderService;
         }
 
-        #region API Endpoints
 
-        // 建立一般訂單，使用登入者身分建立，不信任前端 userId
-        [HttpPost]
+        #region  建立一般訂單，使用登入者身分建立，不信任前端 userId
+        [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
         {
             if (request == null || request.Items == null || !request.Items.Any())
@@ -41,22 +40,38 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok();
         }
+        #endregion
 
-        // 建立人工訂單，僅允許登入者操作
+        #region 建立人工訂單，僅允許登入者操作
         [HttpPost("manual")]
         public async Task<IActionResult> CreateManual([FromBody] CreateManualOrderRequest request)
         {
-            if (request == null || request.Amount <= 0)
+            if (request == null)
+                return BadRequest("請求錯誤");
+
+            if (request.Amount <= 0)
                 return BadRequest("金額錯誤");
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            await _orderService.CreateManualOrderAsync(userId, request);
+            if (claim == null)
+                return Unauthorized();
 
-            return Ok();
+            int userId = int.Parse(claim.Value);
+
+            try
+            {
+                await _orderService.CreateManualOrderAsync(userId, request);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+        #endregion
 
-        // 取得商家所有訂單清單
+        #region 取得商家所有訂單清單
         [HttpGet("all-orders")]
         public async Task<IActionResult> GetMerchantOrders()
         {
@@ -106,7 +121,8 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok(result);
         }
-
         #endregion
+
+        
     }
 }
