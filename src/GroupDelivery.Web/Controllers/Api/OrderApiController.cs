@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 
 namespace GroupDelivery.Web.Controllers.Api
 {
+    // 訂單 API，負責接收請求並委派給 Service 進行商業邏輯處理
     [ApiController]
     [Route("api/orders")]
+    [Authorize]
     public class OrderApiController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -19,6 +21,10 @@ namespace GroupDelivery.Web.Controllers.Api
         {
             _orderService = orderService;
         }
+
+        #region API Endpoints
+
+        // 建立一般訂單，使用登入者身分建立，不信任前端 userId
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
         {
@@ -35,7 +41,8 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok();
         }
-        [Authorize]
+
+        // 建立人工訂單，僅允許登入者操作
         [HttpPost("manual")]
         public async Task<IActionResult> CreateManual([FromBody] CreateManualOrderRequest request)
         {
@@ -48,7 +55,8 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok();
         }
-        [Authorize]
+
+        // 取得商家所有訂單清單
         [HttpGet("all-orders")]
         public async Task<IActionResult> GetMerchantOrders()
         {
@@ -98,5 +106,7 @@ namespace GroupDelivery.Web.Controllers.Api
 
             return Ok(result);
         }
+
+        #endregion
     }
 }

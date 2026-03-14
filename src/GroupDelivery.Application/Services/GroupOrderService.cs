@@ -350,24 +350,33 @@ namespace GroupDelivery.Application.Services
         {
             await _groupOrderRepository.UpdateAsync(groupOrder);
         }
-        public async Task SetTakeModeAsync(int orderId, TakeMode takeMode)
+        #region Business Logic
+        // 設定取餐方式，僅允許訂單擁有者修改
+        public async Task SetTakeModeAsync(int userId, int orderId, TakeMode takeMode)
         {
             var order = await _orderRepository.GetByIdAsync(orderId);
 
             if (order == null)
                 throw new Exception("訂單不存在");
 
+            if (order.UserId != userId)
+                throw new Exception("無權限操作此訂單");
+
             order.TakeMode = takeMode;
 
             await _orderRepository.UpdateAsync(order);
         }
 
+        // 手動關團，僅允許團主操作
         public async Task CloseGroupAsync(int userId, int groupId)
         {
             var group = await _groupOrderRepository.GetByIdAsync(groupId);
 
             if (group == null)
                 throw new Exception("揪團不存在");
+
+            if (group.OwnerUserId != userId)
+                throw new Exception("無權限操作此揪團");
 
             if (group.Status != GroupOrderStatus.Open)
                 throw new Exception("揪團已結束");
@@ -386,6 +395,8 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
+        #endregion
+
         private bool IsStoreOpenNow(Store store, DateTime now)
         {
             if (store.IsPausedToday)
