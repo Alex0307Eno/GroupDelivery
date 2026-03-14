@@ -10,6 +10,7 @@ using static GroupDelivery.Domain.Order;
 
 namespace GroupDelivery.Application.Services
 {
+    // 訂單服務，負責訂單建立與查詢等商業邏輯
     public class OrderService : IOrderService
     {
         private readonly IGroupOrderRepository _groupOrderRepository;
@@ -29,6 +30,9 @@ namespace GroupDelivery.Application.Services
             _userRepository = userRepository;
         }
 
+        #region Business Logic
+
+        // 建立一般訂單，金額與選項加價一律由資料庫重新計算
         public async Task CreateOrderAsync(int userId, CreateOrderRequest request)
         {
             // 1. 檢查團
@@ -42,10 +46,15 @@ namespace GroupDelivery.Application.Services
             if (group.Status != GroupOrderStatus.Open)
                 throw new Exception("揪團不可下單");
 
+            var firstMenuStoreId = 0;
+
             // 2. 抓菜單
             var menuIds = request.Items.Select(x => x.StoreMenuItemId).ToList();
             var menuItems = await _storeMenuItemRepository.GetByIdsAsync(menuIds);
             var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+                throw new Exception("使用者不存在");
 
             var order = new Order
             {
@@ -62,9 +71,18 @@ namespace GroupDelivery.Application.Services
 
             foreach (var item in request.Items)
             {
+                if (item.Quantity <= 0)
+                    throw new Exception("訂購數量錯誤");
+
                 var menu = menuItems.FirstOrDefault(x => x.StoreMenuItemId == item.StoreMenuItemId);
                 if (menu == null)
                     throw new Exception("菜單項目不存在");
+
+                if (firstMenuStoreId == 0)
+                    firstMenuStoreId = menu.StoreId;
+
+                if (menu.StoreId != firstMenuStoreId || menu.StoreId != group.StoreId)
+                    throw new Exception("菜單不屬於此團單店家");
 
                 decimal optionTotal = 0;
 
@@ -72,33 +90,39 @@ namespace GroupDelivery.Application.Services
                 {
                     StoreMenuItemPublicId = menu.StoreMenuItemPublicId,
                     Quantity = item.Quantity,
-                    UnitPrice = menu.Price, // 先放原價
+                    UnitPrice = menu.Price,
                     OrderItemOptions = new List<OrderItemOption>()
                 };
 
-                //  處理客製化
+                // 依資料庫選項重新計算加價，避免信任前端傳入價格
                 if (item.Options != null && item.Options.Any())
                 {
+                    var dbOptions = menu.OptionGroups != null
+                        ? menu.OptionGroups.SelectMany(x => x.Options ?? new List<StoreMenuItemOption>()).ToList()
+                        : new List<StoreMenuItemOption>();
+
                     foreach (var opt in item.Options)
                     {
-                        optionTotal += opt.PriceAdjust;
+                        var matchedOption = dbOptions.FirstOrDefault(x => x.OptionName == opt.OptionName);
+
+                        if (matchedOption == null)
+                            throw new Exception("選項不存在");
+
+                        optionTotal += matchedOption.PriceAdjust;
 
                         orderItem.OrderItemOptions.Add(new OrderItemOption
                         {
-                            OptionName = opt.OptionName,
-                            PriceAdjust = opt.PriceAdjust
+                            OptionName = matchedOption.OptionName,
+                            PriceAdjust = matchedOption.PriceAdjust
                         });
                     }
                 }
 
-                // 🔥 單價 = 原價 + 所有加價
+                // 單價與小計由後端計算
                 orderItem.UnitPrice = menu.Price + optionTotal;
-
-                // 🔥 小計 = 單價 × 數量
                 var subtotal = orderItem.UnitPrice * item.Quantity;
 
                 totalAmount += subtotal;
-
                 order.OrderItems.Add(orderItem);
             }
             order.TotalAmount = totalAmount;
@@ -111,11 +135,13 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
+        // 依團單查詢訂單
         public async Task<List<Order>> GetOrdersByGroupAsync(int groupId)
         {
             return await _orderRepository.GetByGroupOrderIdAsync(groupId);
         }
 
+        // 建立人工訂單，僅允許團主操作
         public async Task CreateManualOrderAsync(int userId, CreateManualOrderRequest request)
         {
             var group = await _groupOrderRepository.GetByIdAsync(request.GroupOrderId);
@@ -147,13 +173,17 @@ namespace GroupDelivery.Application.Services
 
             await _groupOrderRepository.UpdateAsync(group);
         }
+        // 取得個人訂單
         public async Task<List<Order>> GetMyOrdersAsync(int userId)
         {
             return await _orderRepository.GetOrdersByUserIdAsync(userId);
         }
+        // 取得商家訂單
         public async Task<List<Order>> GetOrdersForMerchantAsync(int merchantUserId)
         {
             return await _orderRepository.GetOrdersForMerchantAsync(merchantUserId);
         }
+
+        #endregion
     }
 }

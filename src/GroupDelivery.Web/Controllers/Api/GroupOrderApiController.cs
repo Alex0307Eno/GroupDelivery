@@ -1,91 +1,115 @@
 using GroupDelivery.Application.Abstractions;
 using GroupDelivery.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-[ApiController]
-[Route("api/groups")]
-public class GroupOrderApiController : ControllerBase
+namespace GroupDelivery.Web.Controllers.Api
 {
-    private readonly IGroupOrderService _groupOrderService;
-
-    public GroupOrderApiController(IGroupOrderService groupOrderService)
+    // 團單 API，負責團單查詢與操作入口
+    [ApiController]
+    [Route("api/groups")]
+    public class GroupOrderApiController : ControllerBase
     {
-        _groupOrderService = groupOrderService;
-    }
+        private readonly IGroupOrderService _groupOrderService;
 
-    // GET api/groups/5
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Get(Guid id)
-    {
-        var result = await _groupOrderService.GetGroupDetailAsync(id);
+        public GroupOrderApiController(IGroupOrderService groupOrderService)
+        {
+            _groupOrderService = groupOrderService;
+        }
 
-        if (result == null)
-            return NotFound();
+        #region API Endpoints
 
-        return Ok(result);
-    }
-    // GET api/groups
-    [HttpGet]
-    public async Task<IActionResult> Get(double? lat, double? lng)
-    {
-        var result = await _groupOrderService.GetOpenGroupsAsync(lat, lng);
-        return Ok(result);
-    }
+        // 依團單公開識別碼取得團單詳情
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Get(Guid id)
+        {
+            var result = await _groupOrderService.GetGroupDetailAsync(id);
 
-    // POST api/groups/5/join
-    [HttpPost("{id}/join")]
-    public async Task<IActionResult> Join(int id)
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (claim == null)
-            return Unauthorized();
+            if (result == null)
+                return NotFound();
 
-        var userId = int.Parse(claim.Value);
+            return Ok(result);
+        }
 
-        var group = await _groupOrderService.GetByIdAsync(id);
+        // 取得開團清單，可依座標回傳距離排序
+        [HttpGet]
+        public async Task<IActionResult> Get(double? lat, double? lng)
+        {
+            var result = await _groupOrderService.GetOpenGroupsAsync(lat, lng);
+            return Ok(result);
+        }
 
-        if (group == null)
-            return NotFound("���Τ��s�b");
+        // 加入團單，必須登入才可操作
+        [Authorize]
+        [HttpPost("{id}/join")]
+        public async Task<IActionResult> Join(int id)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized();
 
-        if (group.Deadline <= DateTime.Now)
-            return BadRequest("���Τw�I��");
+            var userId = int.Parse(claim.Value);
 
-        if (group.Status != GroupOrderStatus.Open)
-            return BadRequest("���Τw����");
+            var group = await _groupOrderService.GetByIdAsync(id);
 
-        await _groupOrderService.JoinGroupAsync(userId, id);
+            if (group == null)
+                return NotFound("團單不存在");
 
-        return Ok();
-    }
-    [HttpGet("{id}/menu")]
-    public async Task<IActionResult> GetMenu(int id)
-    {
-        var dto = await _groupOrderService.GetMenuAsync(id);
-        if (dto == null)
-            return NotFound();
+            if (group.Deadline <= DateTime.Now)
+                return BadRequest("團單已截止");
 
-        return Ok(dto);
-    }
-    [HttpPost("take-mode")]
-    public async Task<IActionResult> SetTakeMode(int groupOrderId, TakeMode takeMode)
-    {
-        await _groupOrderService.SetTakeModeAsync(groupOrderId, takeMode);
-        return Ok();
-    }
-    [HttpPost("/group/{id}/close")]
-    public async Task<IActionResult> CloseGroup(int id)
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (claim == null)
-            return Unauthorized();
+            if (group.Status != GroupOrderStatus.Open)
+                return BadRequest("團單已結束");
 
-        var userId = int.Parse(claim.Value);
+            await _groupOrderService.JoinGroupAsync(userId, id);
 
-        await _groupOrderService.CloseGroupAsync(userId, id);
+            return Ok();
+        }
 
-        return RedirectToAction("MerchantOrders", "Order", new { id = id });
+        // 取得指定團單菜單資料
+        [HttpGet("{id}/menu")]
+        public async Task<IActionResult> GetMenu(int id)
+        {
+            var dto = await _groupOrderService.GetMenuAsync(id);
+            if (dto == null)
+                return NotFound();
+
+            return Ok(dto);
+        }
+
+        // 設定訂單取餐方式，必須登入且由訂單擁有者操作
+        [Authorize]
+        [HttpPost("take-mode")]
+        public async Task<IActionResult> SetTakeMode(int groupOrderId, TakeMode takeMode)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized();
+
+            var userId = int.Parse(claim.Value);
+            await _groupOrderService.SetTakeModeAsync(userId, groupOrderId, takeMode);
+            return Ok();
+        }
+
+        // 關閉團單，必須登入，由 Service 驗證是否為團主
+        [Authorize]
+        [HttpPost("{id}/close")]
+        public async Task<IActionResult> CloseGroup(int id)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized();
+
+            var userId = int.Parse(claim.Value);
+
+            await _groupOrderService.CloseGroupAsync(userId, id);
+
+            return RedirectToAction("MerchantOrders", "Order", new { id = id });
+        }
+
+        #endregion
     }
 }
